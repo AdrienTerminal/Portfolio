@@ -1,132 +1,260 @@
----
-layout: default
-title: Adrien Terminal | Game Designer
----
+<!DOCTYPE html>
+<html lang="fr">
 
-<div class="hero">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<h1>ADRIEN<br><span>TERMINAL</span></h1>
+<title>Adrien | Game Designer</title>
 
-<p class="subtitle">
-GAME DESIGNER · UNITY · UNREAL ENGINE
-</p>
+<link rel="stylesheet" href="assets/css/style.css">
 
-<p>
-Je crée des expériences interactives mêlant
-systèmes de jeu, narration et expérimentation.
-</p>
+</head>
 
-<a class="button" href="#projects">
-Découvrir mes projets →
-</a>
+
+<body>
+
+
+<div class="grid"></div>
+
+<div class="cursor"></div>
+
+
+<header>
+
+<nav>
+
+<div class="logo">
+ADR1EN_
+</div>
+
+
+<div class="links">
+
+<a href="#about">ABOUT</a>
+<a href="#projects">PROJECTS</a>
+<a href="#skills">SKILLS</a>
+<a href="#contact">CONTACT</a>
 
 </div>
+
+
+</nav>
+
+
+</header>
+
+
+
+
+<section class="hero">
+
+
+<div class="boot">
+
+<p>INITIALIZING SYSTEM...</p>
+<p>LOADING CREATIVE CORE...</p>
+<p class="green">SYSTEM ONLINE</p>
+
+</div>
+
+
+
+<div class="hero-content">
+
+
+<h1>
+ADRIEN
+</h1>
+
+
+<h2>
+GAME DESIGNER
+</h2>
+
+
+<p>
+Creating immersive worlds,
+mechanics and interactive experiences.
+</p>
+
+
+<a class="button" href="#projects">
+ENTER PORTFOLIO
+</a>
+
+
+</div>
+
+
+
+</section>
+
+
+
+
+
+<section id="about">
+
+<h3>
+01 // ABOUT
+</h3>
+
+
+<p>
+Game Design student creating gameplay systems,
+interactive narratives and experimental experiences.
+</p>
+
+
+</section>
+
+
+
+
+
 
 
 <section id="projects">
 
-<h2>PROJETS</h2>
+
+<h3>
+02 // PROJECTS
+</h3>
+
+
 
 <div class="cards">
 
 
-<div class="card">
-
-<h3>PANDEMON</h3>
-
-<p>
-Tactical RPG où le joueur incarne
-le système immunitaire humain.
-</p>
-
-<div class="tags">
-Unity · Game Design · Combat
-</div>
-
-<a href="#">
-Voir le projet →
-</a>
-
-</div>
-
-
 
 <div class="card">
 
-<h3>ÖOO</h3>
+<div class="scan"></div>
+
+<h2>
+PANDEMON
+</h2>
 
 <p>
-Puzzle platformer basé sur
-l'expérimentation et la réflexion.
+Tactical RPG where players control
+the immune system.
 </p>
 
-<div class="tags">
-Level Design · Prototype
-</div>
 
-<a href="#">
-Voir le projet →
-</a>
+<span>
+UNITY / GAME DESIGN
+</span>
 
 </div>
+
+
 
 
 
 <div class="card">
 
-<h3>FPS ANCHOR</h3>
+<h2>
+PROJECT ZERO
+</h2>
 
 <p>
-Puzzle FPS utilisant l'encre comme
-mécanique principale.
+Experimental puzzle experience.
 </p>
 
-<div class="tags">
-Unreal Engine · Blueprint
-</div>
 
-<a href="#">
-Voir le projet →
-</a>
+<span>
+UNREAL ENGINE
+</span>
 
 </div>
 
 
+
+
+
 </div>
+
 
 </section>
 
 
 
-<section>
 
-<h2>COMPÉTENCES</h2>
 
-<div class="skills">
 
-<span>Unity</span>
-<span>Unreal Engine 5</span>
-<span>C#</span>
-<span>Blueprint</span>
-<span>Game Design</span>
-<span>Level Design</span>
+
+
+<section id="skills">
+
+
+<h3>
+03 // SKILLS
+</h3>
+
+
+<div class="skill">
+
+UNITY
+<div class="bar">
+<span style="width:90%"></span>
+</div>
 
 </div>
+
+
+<div class="skill">
+
+UNREAL ENGINE
+<div class="bar">
+<span style="width:80%"></span>
+</div>
+
+</div>
+
+
+<div class="skill">
+
+GAME DESIGN
+<div class="bar">
+<span style="width:95%"></span>
+</div>
+
+</div>
+
 
 </section>
 
 
 
-<section>
 
-<h2>CONTACT</h2>
+
+
+<section id="contact">
+
+
+<h3>
+04 // CONTACT
+</h3>
+
 
 <p>
-Disponible pour stage et collaborations.
+OPEN CHANNEL
 </p>
+
 
 <a class="button">
-Télécharger mon CV
+CONTACT ME
 </a>
 
+
 </section>
+
+
+
+
+<script src="assets/js/main.js"></script>
+
+</body>
+
+</html>
