@@ -1,365 +1,242 @@
 <!DOCTYPE html>
 <html lang="fr">
-
 <head>
-
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Adrien Terminal — Portfolio</title>
 
-<title>Adrien Terminal | Portfolio</title>
-
-<link rel="stylesheet" href="assets/css/style.css">
-
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
 </head>
-
-
 <body>
 
+<svg class="doodle doodle--star" viewBox="0 0 40 40" aria-hidden="true"><path d="M20 0l4.5 14.5H40L27.5 23l4.5 14.5L20 29 7.5 37.5 12 23 0 14.5h15.5z" fill="currentColor"/></svg>
+<svg class="doodle doodle--blob" viewBox="0 0 100 100" aria-hidden="true"><path d="M43 8c18-6 38 5 43 22 5 16-6 33-22 40-17 7-38 1-46-15C10 39 15 22 27 14c4-3 10-4 16-6z" fill="currentColor"/></svg>
 
-<div class="cursor">
-    <span></span>
+<div class="stage">
+  <div class="card" id="card">
+
+    <span class="sticker">lvl 1 designer</span>
+
+    <div class="card__topbar">
+      <span class="card__brand">
+        <!-- ⚙️ À REMPLACER : ton nom -->
+        Adrien Terminal
+        <svg class="brand__squiggle" viewBox="0 0 120 14" aria-hidden="true"><path d="M2 10c8-11 16-11 24 0s16 11 24 0 16-11 24 0 16 11 24 0 16-11 24 0" stroke="currentColor" stroke-width="3" fill="none" stroke-linecap="round"/></svg>
+      </span>
+
+      <nav class="card__tabs">
+        <button class="tab is-active" data-tab="projects">Projects <span class="chev">⌄</span></button>
+        <button class="tab" data-tab="about">About me <span class="chev">⌄</span></button>
+      </nav>
+    </div>
+
+    <div class="card__body">
+
+      <!-- Colonne gauche : identité, fixe -->
+      <aside class="card__profile">
+        <div class="avatar-frame">
+          <!-- ⚙️ À REMPLACER : ta photo -->
+          <img class="avatar" src="https://placehold.co/240x240/243758/F7F3EC?text=Photo" alt="Portrait d'Adrien Terminal">
+        </div>
+        <!-- ⚙️ À REMPLACER : tes intitulés de poste -->
+        <p class="role">🎮 Technical game designer</p>
+        <p class="role">✏️ UX designer</p>
+
+        <div class="profile__spacer"></div>
+
+        <!-- ⚙️ À REMPLACER : lien vers ton vrai CV en PDF -->
+        <a href="#" class="resume-btn" download>
+          Resume
+          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.6"><path d="M12 3v12m0 0l-4-4m4 4l4-4M4 21h16"/></svg>
+        </a>
+
+        <!-- ⚙️ À REMPLACER : bouton itch.io principal, lien vers ton profil itch -->
+        <a href="#" class="itch-main-btn">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M4.42 2.65C3.03 3.46 0 6.9 0 7.65c0 1.28 1.32 2.4 2.34 2.4.91 0 1.7-.62 2.5-1.36.6-.55.86-.7 1.16-.7.3 0 .56.15 1.16.7.8.74 1.59 1.36 2.5 1.36.9 0 1.68-.62 2.5-1.36.58-.55.85-.7 1.15-.7.3 0 .56.15 1.16.7.8.74 1.6 1.36 2.5 1.36.9 0 1.68-.62 2.5-1.36.58-.55.85-.7 1.15-.7.3 0 .57.15 1.16.7.8.74 1.6 1.36 2.5 1.36C22.68 10.05 24 8.93 24 7.65c0-.75-3.03-4.2-4.42-5C19.16 2.32 16.9 2 12 2S4.84 2.32 4.42 2.65Zm.36 9.02c-.44.24-.98.53-1.66.72-.24 1.6-.5 5.36-.13 7.65.22 1.36 2.6 2.2 4.83 2.2h8.36c2.22 0 4.6-.84 4.83-2.2.37-2.3.11-6.05-.13-7.65-.68-.19-1.22-.48-1.66-.72-.7.44-1.55.76-2.5.76-1.08 0-2.03-.4-2.8-.98-.7.55-1.6.98-2.7.98s-2-.43-2.7-.98c-.77.58-1.72.98-2.8.98-.95 0-1.8-.32-2.5-.76Z"/></svg>
+          Retrouve-moi sur itch.io
+        </a>
+
+        <ul class="socials">
+          <!-- ⚙️ À REMPLACER : tes vrais liens -->
+          <li><a href="#" title="LinkedIn" aria-label="LinkedIn">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M20.45 20.45h-3.55v-5.57c0-1.33-.02-3.03-1.85-3.03-1.86 0-2.15 1.45-2.15 2.94v5.66H9.35V9h3.41v1.56h.05c.47-.9 1.63-1.85 3.36-1.85 3.6 0 4.27 2.37 4.27 5.45v6.29ZM5.34 7.43a2.06 2.06 0 1 1 0-4.12 2.06 2.06 0 0 1 0 4.12ZM7.12 20.45H3.56V9h3.56v11.45Z"/></svg>
+          </a></li>
+          <li><a href="mailto:contact@example.com" title="Email" aria-label="Email">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v16H4z"/><path d="M4 6l8 6 8-6"/></svg>
+          </a></li>
+        </ul>
+      </aside>
+
+      <!-- Colonne droite -->
+      <div class="card__panel">
+
+        <!-- ================= PROJECTS ================= -->
+        <div class="panel-view is-active" data-panel="projects">
+
+          <div class="pill-row">
+            <!-- ⚙️ À REMPLACER : ajoute / retire un bouton par projet (garde le même data-project que son tiroir plus bas) -->
+            <button class="pill" data-project="p1">Project 1</button>
+            <button class="pill" data-project="p2">Project 2</button>
+            <button class="pill" data-project="p3">Project 3</button>
+          </div>
+
+          <!-- ============================================
+               TIROIR PROJECT 1 — ses propres pages + sa propre barre
+          ============================================ -->
+          <div class="project-drawer" data-drawer="p1">
+            <div class="drawer__inner">
+              <div class="drawer__scroll">
+
+                <!-- ⚙️ À REMPLACER : page 1 = présentation -->
+                <div class="page">
+                  <div class="page__text">
+                    <h3>Nom du Project 1</h3>
+                    <p class="page__tags"><span>Unity</span><span>Level Design</span><span>2024</span></p>
+                    <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc eu velit a velit bibendum lacinia aliquam vel nibh. Fusce erat eros, rutrum a neque aliquet, vehicula rhoncus dolor.</p>
+                    <a href="#" class="itch-link">Voir sur itch.io ↗</a>
+                  </div>
+                  <img class="page__img" src="https://placehold.co/460x300/E4483F/1B2A4A?text=Overview" alt="Aperçu du Project 1">
+                </div>
+
+                <!-- ⚙️ À REMPLACER : page 2 = gameplay / features -->
+                <div class="page">
+                  <div class="page__text">
+                    <h3>Fonctionnalités clés</h3>
+                    <p>Vestibulum nec elit sed dui vitae lacus. Sed a ante urna. Aenean pretium diam sed porta dapibus. Pellentesque risus justo, porta sit amet.</p>
+                    <a href="#" class="itch-link">Voir sur itch.io ↗</a>
+                  </div>
+                  <img class="page__img" src="https://placehold.co/460x300/F2C94C/1B2A4A?text=Gameplay" alt="Gameplay du Project 1">
+                </div>
+
+                <!-- ⚙️ À REMPLACER : page 3 = rôle / crédits -->
+                <div class="page">
+                  <div class="page__text">
+                    <h3>Mon rôle</h3>
+                    <p>Quisque nulla ex, faucibus ac elementum sit amet, rhoncus sed nibh. Fusce erat eros, rutrum a neque aliquet.</p>
+                    <a href="#" class="itch-link">Voir sur itch.io ↗</a>
+                  </div>
+                  <img class="page__img" src="https://placehold.co/460x300/1B2A4A/F7F3EC?text=Credits" alt="Crédits du Project 1">
+                </div>
+
+              </div>
+              <div class="scrollbar-track"><div class="scrollbar-thumb"></div></div>
+              <button class="fold-corner" aria-label="Rabattre la page" title="Rabattre"></button>
+            </div>
+          </div>
+
+          <!-- ============================================
+               TIROIR PROJECT 2
+          ============================================ -->
+          <div class="project-drawer" data-drawer="p2">
+            <div class="drawer__inner">
+              <div class="drawer__scroll">
+
+                <div class="page">
+                  <div class="page__text">
+                    <h3>Nom du Project 2</h3>
+                    <p class="page__tags"><span>Figma</span><span>UX Research</span><span>2023</span></p>
+                    <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc eu velit a velit bibendum lacinia aliquam vel nibh.</p>
+                    <a href="#" class="itch-link">Voir sur itch.io ↗</a>
+                  </div>
+                  <img class="page__img" src="https://placehold.co/460x300/F2C94C/1B2A4A?text=Overview" alt="Aperçu du Project 2">
+                </div>
+
+                <div class="page">
+                  <div class="page__text">
+                    <h3>Process</h3>
+                    <p>Sed a ante urna. Aenean pretium diam sed porta dapibus. Pellentesque risus justo, porta sit amet.</p>
+                    <a href="#" class="itch-link">Voir sur itch.io ↗</a>
+                  </div>
+                  <img class="page__img" src="https://placehold.co/460x300/E4483F/1B2A4A?text=Process" alt="Process du Project 2">
+                </div>
+
+              </div>
+              <div class="scrollbar-track"><div class="scrollbar-thumb"></div></div>
+              <button class="fold-corner" aria-label="Rabattre la page" title="Rabattre"></button>
+            </div>
+          </div>
+
+          <!-- ============================================
+               TIROIR PROJECT 3
+          ============================================ -->
+          <div class="project-drawer" data-drawer="p3">
+            <div class="drawer__inner">
+              <div class="drawer__scroll">
+
+                <div class="page">
+                  <div class="page__text">
+                    <h3>Nom du Project 3</h3>
+                    <p class="page__tags"><span>Godot</span><span>Game Design</span><span>2022</span></p>
+                    <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc eu velit a velit bibendum lacinia aliquam vel nibh.</p>
+                    <a href="#" class="itch-link">Voir sur itch.io ↗</a>
+                  </div>
+                  <img class="page__img" src="https://placehold.co/460x300/E4483F/1B2A4A?text=Overview" alt="Aperçu du Project 3">
+                </div>
+
+                <div class="page">
+                  <div class="page__text">
+                    <h3>Direction artistique</h3>
+                    <p>Fusce erat eros, rutrum a neque aliquet, vehicula rhoncus dolor. Quisque nulla ex, faucibus ac elementum sit amet.</p>
+                    <a href="#" class="itch-link">Voir sur itch.io ↗</a>
+                  </div>
+                  <img class="page__img" src="https://placehold.co/460x300/1B2A4A/F7F3EC?text=Art" alt="Direction artistique du Project 3">
+                </div>
+
+              </div>
+              <div class="scrollbar-track"><div class="scrollbar-thumb"></div></div>
+              <button class="fold-corner" aria-label="Rabattre la page" title="Rabattre"></button>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- ================= ABOUT ME — panneaux diagonaux façon launcher ================= -->
+        <div class="panel-view" data-panel="about">
+          <p class="about__hint">Clique une occupation pour zoomer dessus</p>
+
+          <div class="occupations" id="occupations">
+            <!-- ⚙️ À REMPLACER : une occupation = une image de fond + un titre + un texte -->
+            <button class="occupation is-active" style="background-image:url('https://placehold.co/300x420/E4483F/1B2A4A?text=%F0%9F%8E%AC')">
+              <span class="occupation__label">Cinéma</span>
+              <div class="occupation__info">
+                <h3>Cinéma</h3>
+                <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Grand amateur de films de genre et de scénarios qui sortent des sentiers battus.</p>
+              </div>
+            </button>
+
+            <button class="occupation" style="background-image:url('https://placehold.co/300x420/F2C94C/1B2A4A?text=%F0%9F%A7%97')">
+              <span class="occupation__label">Escalade</span>
+              <div class="occupation__info">
+                <h3>Escalade</h3>
+                <p>Sed a ante urna. Aenean pretium diam sed porta dapibus, en salle le week-end et en falaise dès que possible.</p>
+              </div>
+            </button>
+
+            <button class="occupation" style="background-image:url('https://placehold.co/300x420/1B2A4A/F7F3EC?text=%F0%9F%8E%AE')">
+              <span class="occupation__label">Jeux vidéo</span>
+              <div class="occupation__info">
+                <h3>Jeux vidéo</h3>
+                <p>Vestibulum nec elit sed dui vitae lacus, forcément — c'est aussi mon métier. Passionné de systèmes de jeu et de level design.</p>
+              </div>
+            </button>
+
+            <button class="occupation" style="background-image:url('https://placehold.co/300x420/E4483F/1B2A4A?text=%F0%9F%8E%A7')">
+              <span class="occupation__label">Musique</span>
+              <div class="occupation__info">
+                <h3>Musique</h3>
+                <p>Quisque nulla ex, faucibus ac elementum sit amet, rhoncus sed nibh — synthés analogiques et sound design en dilettante.</p>
+              </div>
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
 </div>
 
-
-<div class="noise"></div>
-
-
-
-<header>
-
-<div class="logo">
-Adrien Terminal
-</div>
-
-
-<nav>
-
-<a href="#projects">Projects</a>
-<a href="#about">About</a>
-<a href="mailto:adrien.terminal1@gmail.com">
-Contact
-</a>
-
-</nav>
-
-
-</header>
-
-
-
-
-
-<main>
-
-
-
-<section class="hero">
-
-
-<h1>
-Adrien Terminal
-</h1>
-
-
-<p>
-Game Designer Portfolio
-</p>
-
-
-<div class="scroll">
-Scroll
-</div>
-
-
-</section>
-
-
-
-
-
-
-<section id="projects" class="drawer-container">
-
-
-<div class="drawer">
-
-
-<button class="drawer-title">
-
-Project 01
-
-<span>
-+
-</span>
-
-</button>
-
-
-<div class="drawer-content">
-
-
-<div class="media">
-
-
-<div class="media-placeholder">
-
-PROJECT IMAGE / VIDEO
-
-</div>
-
-
-</div>
-
-
-
-
-
-<div class="project-info">
-
-
-<h2>
-Lorem Ipsum
-</h2>
-
-
-<h3>
-Lorem ipsum project type
-</h3>
-
-
-
-<div class="meta">
-
-
-<div>
-Engine
-<br>
-Lorem ipsum
-</div>
-
-
-<div>
-Duration
-<br>
-Lorem ipsum
-</div>
-
-
-<div>
-Role
-<br>
-Lorem ipsum
-</div>
-
-
-</div>
-
-
-
-<p>
-
-Lorem ipsum dolor sit amet,
-consectetur adipiscing elit.
-Sed do eiusmod tempor incididunt
-ut labore et dolore magna aliqua.
-
-</p>
-
-
-
-<div class="tags">
-
-<span>
-Lorem
-</span>
-
-<span>
-Ipsum
-</span>
-
-<span>
-Design
-</span>
-
-</div>
-
-
-
-<div class="buttons">
-
-
-<a href="https://adrien-terminal.itch.io/"
-target="_blank">
-ITCH.IO
-</a>
-
-
-
-<a href="#">
-PLAY VIDEO
-</a>
-
-
-
-<a href="#">
-GITHUB
-</a>
-
-
-</div>
-
-
-</div>
-
-
-</div>
-
-
-</div>
-
-
-
-
-
-
-
-<div class="drawer">
-
-
-<button class="drawer-title">
-
-Project 02
-
-<span>
-+
-</span>
-
-</button>
-
-
-<div class="drawer-content">
-
-
-<div class="media">
-
-<div class="media-placeholder">
-
-PROJECT IMAGE / VIDEO
-
-</div>
-
-</div>
-
-
-
-<div class="project-info">
-
-<h2>
-Lorem Ipsum
-</h2>
-
-
-<p>
-Lorem ipsum dolor sit amet.
-</p>
-
-
-
-<div class="buttons">
-
-
-<a href="https://adrien-terminal.itch.io/"
-target="_blank">
-ITCH.IO
-</a>
-
-
-<a href="mailto:adrien.terminal1@gmail.com">
-MAIL
-</a>
-
-
-</div>
-
-
-
-</div>
-
-
-</div>
-
-
-</div>
-
-
-
-
-
-
-</section>
-
-
-
-
-
-
-
-
-
-<section id="about">
-
-
-<h2>
-About
-</h2>
-
-
-<p>
-
-Lorem ipsum dolor sit amet,
-consectetur adipiscing elit.
-
-</p>
-
-
-
-</section>
-
-
-
-
-
-
-
-
-<section id="contact">
-
-
-<h2>
-Contact
-</h2>
-
-
-<a href="mailto:adrien.terminal1@gmail.com"
-class="mail">
-
-adrien.terminal1@gmail.com
-
-</a>
-
-
-</section>
-
-
-
-</main>
-
-
-
-
-<script src="assets/js/main.js"></script>
-
-
+<script src="main.js"></script>
 </body>
-
 </html>
