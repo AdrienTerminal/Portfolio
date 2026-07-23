@@ -2,10 +2,11 @@
 <html lang="fr">
 
 <head>
+
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Adrien | Game Designer</title>
+<title>Adrien Terminal | Portfolio</title>
 
 <link rel="stylesheet" href="assets/css/style.css">
 
@@ -15,29 +16,29 @@
 <body>
 
 
-<div class="grid"></div>
+<div class="cursor">
+    <span></span>
+</div>
 
-<div class="cursor"></div>
+
+<div class="noise"></div>
+
 
 
 <header>
 
+<div class="logo">
+Adrien Terminal
+</div>
+
+
 <nav>
 
-<div class="logo">
-ADR1EN_
-</div>
-
-
-<div class="links">
-
-<a href="#about">ABOUT</a>
-<a href="#projects">PROJECTS</a>
-<a href="#skills">SKILLS</a>
-<a href="#contact">CONTACT</a>
-
-</div>
-
+<a href="#projects">Projects</a>
+<a href="#about">About</a>
+<a href="mailto:adrien.terminal1@gmail.com">
+Contact
+</a>
 
 </nav>
 
@@ -47,40 +48,234 @@ ADR1EN_
 
 
 
+
+<main>
+
+
+
 <section class="hero">
 
 
-<div class="boot">
+<h1>
+Adrien Terminal
+</h1>
 
-<p>INITIALIZING SYSTEM...</p>
-<p>LOADING CREATIVE CORE...</p>
-<p class="green">SYSTEM ONLINE</p>
+
+<p>
+Game Designer Portfolio
+</p>
+
+
+<div class="scroll">
+Scroll
+</div>
+
+
+</section>
+
+
+
+
+
+
+<section id="projects" class="drawer-container">
+
+
+<div class="drawer">
+
+
+<button class="drawer-title">
+
+Project 01
+
+<span>
++
+</span>
+
+</button>
+
+
+<div class="drawer-content">
+
+
+<div class="media">
+
+
+<div class="media-placeholder">
+
+PROJECT IMAGE / VIDEO
+
+</div>
+
 
 </div>
 
 
 
-<div class="hero-content">
 
 
-<h1>
-ADRIEN
-</h1>
+<div class="project-info">
 
 
 <h2>
-GAME DESIGNER
+Lorem Ipsum
+</h2>
+
+
+<h3>
+Lorem ipsum project type
+</h3>
+
+
+
+<div class="meta">
+
+
+<div>
+Engine
+<br>
+Lorem ipsum
+</div>
+
+
+<div>
+Duration
+<br>
+Lorem ipsum
+</div>
+
+
+<div>
+Role
+<br>
+Lorem ipsum
+</div>
+
+
+</div>
+
+
+
+<p>
+
+Lorem ipsum dolor sit amet,
+consectetur adipiscing elit.
+Sed do eiusmod tempor incididunt
+ut labore et dolore magna aliqua.
+
+</p>
+
+
+
+<div class="tags">
+
+<span>
+Lorem
+</span>
+
+<span>
+Ipsum
+</span>
+
+<span>
+Design
+</span>
+
+</div>
+
+
+
+<div class="buttons">
+
+
+<a href="https://adrien-terminal.itch.io/"
+target="_blank">
+ITCH.IO
+</a>
+
+
+
+<a href="#">
+PLAY VIDEO
+</a>
+
+
+
+<a href="#">
+GITHUB
+</a>
+
+
+</div>
+
+
+</div>
+
+
+</div>
+
+
+</div>
+
+
+
+
+
+
+
+<div class="drawer">
+
+
+<button class="drawer-title">
+
+Project 02
+
+<span>
++
+</span>
+
+</button>
+
+
+<div class="drawer-content">
+
+
+<div class="media">
+
+<div class="media-placeholder">
+
+PROJECT IMAGE / VIDEO
+
+</div>
+
+</div>
+
+
+
+<div class="project-info">
+
+<h2>
+Lorem Ipsum
 </h2>
 
 
 <p>
-Creating immersive worlds,
-mechanics and interactive experiences.
+Lorem ipsum dolor sit amet.
 </p>
 
 
-<a class="button" href="#projects">
-ENTER PORTFOLIO
+
+<div class="buttons">
+
+
+<a href="https://adrien-terminal.itch.io/"
+target="_blank">
+ITCH.IO
+</a>
+
+
+<a href="mailto:adrien.terminal1@gmail.com">
+MAIL
 </a>
 
 
@@ -88,7 +283,24 @@ ENTER PORTFOLIO
 
 
 
+</div>
+
+
+</div>
+
+
+</div>
+
+
+
+
+
+
 </section>
+
+
+
+
 
 
 
@@ -96,134 +308,24 @@ ENTER PORTFOLIO
 
 <section id="about">
 
-<h3>
-01 // ABOUT
-</h3>
-
-
-<p>
-Game Design student creating gameplay systems,
-interactive narratives and experimental experiences.
-</p>
-
-
-</section>
-
-
-
-
-
-
-
-<section id="projects">
-
-
-<h3>
-02 // PROJECTS
-</h3>
-
-
-
-<div class="cards">
-
-
-
-<div class="card">
-
-<div class="scan"></div>
 
 <h2>
-PANDEMON
+About
 </h2>
 
-<p>
-Tactical RPG where players control
-the immune system.
-</p>
-
-
-<span>
-UNITY / GAME DESIGN
-</span>
-
-</div>
-
-
-
-
-
-<div class="card">
-
-<h2>
-PROJECT ZERO
-</h2>
 
 <p>
-Experimental puzzle experience.
+
+Lorem ipsum dolor sit amet,
+consectetur adipiscing elit.
+
 </p>
 
-
-<span>
-UNREAL ENGINE
-</span>
-
-</div>
-
-
-
-
-
-</div>
 
 
 </section>
 
 
-
-
-
-
-
-
-<section id="skills">
-
-
-<h3>
-03 // SKILLS
-</h3>
-
-
-<div class="skill">
-
-UNITY
-<div class="bar">
-<span style="width:90%"></span>
-</div>
-
-</div>
-
-
-<div class="skill">
-
-UNREAL ENGINE
-<div class="bar">
-<span style="width:80%"></span>
-</div>
-
-</div>
-
-
-<div class="skill">
-
-GAME DESIGN
-<div class="bar">
-<span style="width:95%"></span>
-</div>
-
-</div>
-
-
-</section>
 
 
 
@@ -233,18 +335,16 @@ GAME DESIGN
 <section id="contact">
 
 
-<h3>
-04 // CONTACT
-</h3>
+<h2>
+Contact
+</h2>
 
 
-<p>
-OPEN CHANNEL
-</p>
+<a href="mailto:adrien.terminal1@gmail.com"
+class="mail">
 
+adrien.terminal1@gmail.com
 
-<a class="button">
-CONTACT ME
 </a>
 
 
@@ -252,8 +352,13 @@ CONTACT ME
 
 
 
+</main>
+
+
+
 
 <script src="assets/js/main.js"></script>
+
 
 </body>
 
