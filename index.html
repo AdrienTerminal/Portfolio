@@ -47,14 +47,12 @@
           <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.6"><path d="M12 3v12m0 0l-4-4m4 4l4-4M4 21h16"/></svg>
         </a>
 
-        <!-- ⚙️ À REMPLACER : bouton itch.io principal, lien vers ton profil itch -->
-        <a href="#" class="itch-main-btn">
-          <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M4.42 2.65C3.03 3.46 0 6.9 0 7.65c0 1.28 1.32 2.4 2.34 2.4.91 0 1.7-.62 2.5-1.36.6-.55.86-.7 1.16-.7.3 0 .56.15 1.16.7.8.74 1.59 1.36 2.5 1.36.9 0 1.68-.62 2.5-1.36.58-.55.85-.7 1.15-.7.3 0 .56.15 1.16.7.8.74 1.6 1.36 2.5 1.36.9 0 1.68-.62 2.5-1.36.58-.55.85-.7 1.15-.7.3 0 .57.15 1.16.7.8.74 1.6 1.36 2.5 1.36C22.68 10.05 24 8.93 24 7.65c0-.75-3.03-4.2-4.42-5C19.16 2.32 16.9 2 12 2S4.84 2.32 4.42 2.65Zm.36 9.02c-.44.24-.98.53-1.66.72-.24 1.6-.5 5.36-.13 7.65.22 1.36 2.6 2.2 4.83 2.2h8.36c2.22 0 4.6-.84 4.83-2.2.37-2.3.11-6.05-.13-7.65-.68-.19-1.22-.48-1.66-.72-.7.44-1.55.76-2.5.76-1.08 0-2.03-.4-2.8-.98-.7.55-1.6.98-2.7.98s-2-.43-2.7-.98c-.77.58-1.72.98-2.8.98-.95 0-1.8-.32-2.5-.76Z"/></svg>
-          Retrouve-moi sur itch.io
-        </a>
-
+        <!-- itch.io rejoint LinkedIn et mail : un rond parmi les autres, pas un bouton à part -->
         <ul class="socials">
           <!-- ⚙️ À REMPLACER : tes vrais liens -->
+          <li><a href="#" title="itch.io" aria-label="itch.io">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M4.42 2.65C3.03 3.46 0 6.9 0 7.65c0 1.28 1.32 2.4 2.34 2.4.91 0 1.7-.62 2.5-1.36.6-.55.86-.7 1.16-.7.3 0 .56.15 1.16.7.8.74 1.59 1.36 2.5 1.36.9 0 1.68-.62 2.5-1.36.58-.55.85-.7 1.15-.7.3 0 .56.15 1.16.7.8.74 1.6 1.36 2.5 1.36.9 0 1.68-.62 2.5-1.36.58-.55.85-.7 1.15-.7.3 0 .57.15 1.16.7.8.74 1.6 1.36 2.5 1.36C22.68 10.05 24 8.93 24 7.65c0-.75-3.03-4.2-4.42-5C19.16 2.32 16.9 2 12 2S4.84 2.32 4.42 2.65Zm.36 9.02c-.44.24-.98.53-1.66.72-.24 1.6-.5 5.36-.13 7.65.22 1.36 2.6 2.2 4.83 2.2h8.36c2.22 0 4.6-.84 4.83-2.2.37-2.3.11-6.05-.13-7.65-.68-.19-1.22-.48-1.66-.72-.7.44-1.55.76-2.5.76-1.08 0-2.03-.4-2.8-.98-.7.55-1.6.98-2.7.98s-2-.43-2.7-.98c-.77.58-1.72.98-2.8.98-.95 0-1.8-.32-2.5-.76Z"/></svg>
+          </a></li>
           <li><a href="#" title="LinkedIn" aria-label="LinkedIn">
             <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M20.45 20.45h-3.55v-5.57c0-1.33-.02-3.03-1.85-3.03-1.86 0-2.15 1.45-2.15 2.94v5.66H9.35V9h3.41v1.56h.05c.47-.9 1.63-1.85 3.36-1.85 3.6 0 4.27 2.37 4.27 5.45v6.29ZM5.34 7.43a2.06 2.06 0 1 1 0-4.12 2.06 2.06 0 0 1 0 4.12ZM7.12 20.45H3.56V9h3.56v11.45Z"/></svg>
           </a></li>
@@ -78,7 +76,7 @@
           </div>
 
           <!-- ============================================
-               TIROIR PROJECT 1 — ses propres pages + sa propre barre
+               TIROIR PROJECT 1 — 4 pages + sa propre barre
           ============================================ -->
           <div class="project-drawer" data-drawer="p1">
             <div class="drawer__inner">
@@ -105,7 +103,7 @@
                   <img class="page__img" src="https://placehold.co/460x300/F2C94C/1B2A4A?text=Gameplay" alt="Gameplay du Project 1">
                 </div>
 
-                <!-- ⚙️ À REMPLACER : page 3 = rôle / crédits -->
+                <!-- ⚙️ À REMPLACER : page 3 = rôle -->
                 <div class="page">
                   <div class="page__text">
                     <h3>Mon rôle</h3>
@@ -115,12 +113,18 @@
                   <img class="page__img" src="https://placehold.co/460x300/1B2A4A/F7F3EC?text=Credits" alt="Crédits du Project 1">
                 </div>
 
+                <!-- ⚙️ À REMPLACER : page 4 = post-mortem / chiffres -->
+                <div class="page">
+                  <div class="page__text">
+                    <h3>Post-mortem</h3>
+                    <p>Pellentesque risus justo, porta sit amet dapibus, vitae congue nibh. Nunc eu velit a velit bibendum lacinia aliquam vel nibh.</p>
+                    <a href="#" class="itch-link">Voir sur itch.io ↗</a>
+                  </div>
+                  <img class="page__img" src="https://placehold.co/460x300/F2C94C/1B2A4A?text=Post-mortem" alt="Post-mortem du Project 1">
+                </div>
+
               </div>
               <div class="scrollbar-track"><div class="scrollbar-thumb"></div></div>
-              <button class="drawer-close" aria-label="Rabattre la page" title="Rabattre">
-                <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M18 15l-6-6-6 6"/></svg>
-                Fermer
-              </button>
             </div>
           </div>
 
@@ -150,12 +154,26 @@
                   <img class="page__img" src="https://placehold.co/460x300/E4483F/1B2A4A?text=Process" alt="Process du Project 2">
                 </div>
 
+                <div class="page">
+                  <div class="page__text">
+                    <h3>Mon rôle</h3>
+                    <p>Fusce erat eros, rutrum a neque aliquet, vehicula rhoncus dolor. Quisque nulla ex, faucibus ac elementum sit amet.</p>
+                    <a href="#" class="itch-link">Voir sur itch.io ↗</a>
+                  </div>
+                  <img class="page__img" src="https://placehold.co/460x300/1B2A4A/F7F3EC?text=Role" alt="Rôle sur le Project 2">
+                </div>
+
+                <div class="page">
+                  <div class="page__text">
+                    <h3>Résultats</h3>
+                    <p>Vestibulum nec elit sed dui vitae lacus. Sed a ante urna. Aenean pretium diam sed porta dapibus.</p>
+                    <a href="#" class="itch-link">Voir sur itch.io ↗</a>
+                  </div>
+                  <img class="page__img" src="https://placehold.co/460x300/F2C94C/1B2A4A?text=Resultats" alt="Résultats du Project 2">
+                </div>
+
               </div>
               <div class="scrollbar-track"><div class="scrollbar-thumb"></div></div>
-              <button class="drawer-close" aria-label="Rabattre la page" title="Rabattre">
-                <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M18 15l-6-6-6 6"/></svg>
-                Fermer
-              </button>
             </div>
           </div>
 
@@ -185,12 +203,26 @@
                   <img class="page__img" src="https://placehold.co/460x300/1B2A4A/F7F3EC?text=Art" alt="Direction artistique du Project 3">
                 </div>
 
+                <div class="page">
+                  <div class="page__text">
+                    <h3>Level design</h3>
+                    <p>Pellentesque risus justo, porta sit amet dapibus, vitae congue nibh. Quisque nulla ex, faucibus ac elementum.</p>
+                    <a href="#" class="itch-link">Voir sur itch.io ↗</a>
+                  </div>
+                  <img class="page__img" src="https://placehold.co/460x300/F2C94C/1B2A4A?text=Level+Design" alt="Level design du Project 3">
+                </div>
+
+                <div class="page">
+                  <div class="page__text">
+                    <h3>Sortie & retours</h3>
+                    <p>Sed a ante urna. Aenean pretium diam sed porta dapibus. Vestibulum nec elit sed dui vitae lacus.</p>
+                    <a href="#" class="itch-link">Voir sur itch.io ↗</a>
+                  </div>
+                  <img class="page__img" src="https://placehold.co/460x300/E4483F/1B2A4A?text=Retours" alt="Retours sur le Project 3">
+                </div>
+
               </div>
               <div class="scrollbar-track"><div class="scrollbar-thumb"></div></div>
-              <button class="drawer-close" aria-label="Rabattre la page" title="Rabattre">
-                <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M18 15l-6-6-6 6"/></svg>
-                Fermer
-              </button>
             </div>
           </div>
 
