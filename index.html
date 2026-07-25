@@ -21,10 +21,17 @@
         <span class="brand__underline"></span>
       </span>
 
-      <nav class="card__tabs">
-        <button class="tab is-active" data-tab="projects">Projects</button>
-        <button class="tab" data-tab="about">About me</button>
-      </nav>
+      <div class="topbar__right">
+        <div class="lang-switch" id="langSwitch" role="group" aria-label="Langue">
+          <button class="lang-switch__btn is-active" data-lang="fr">FR</button>
+          <button class="lang-switch__btn" data-lang="en">EN</button>
+        </div>
+
+        <nav class="card__tabs">
+          <button class="tab is-active" data-tab="projects">Projects</button>
+          <button class="tab" data-tab="about">About me</button>
+        </nav>
+      </div>
     </div>
 
     <div class="card__body">
@@ -35,14 +42,14 @@
           <!-- ⚙️ À REMPLACER : ta photo -->
           <img class="avatar" src="https://placehold.co/240x240/243758/F7F3EC?text=Photo" alt="Portrait d'Adrien Terminal">
         </div>
-        <!-- ⚙️ À REMPLACER : tes intitulés de poste -->
-        <p class="role">🎮 Technical game designer</p>
-        <p class="role">✏️ UX designer</p>
+        <!-- ⚙️ À REMPLACER : ton intitulé de poste -->
+        <p class="role">Game Designer</p>
 
         <div class="profile__spacer"></div>
 
         <!-- ⚙️ À REMPLACER : lien vers ton vrai CV en PDF -->
         <a href="#" class="resume-btn" download>
+          <span class="resume-btn__shine"></span>
           Resume
           <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.6"><path d="M12 3v12m0 0l-4-4m4 4l4-4M4 21h16"/></svg>
         </a>
@@ -57,6 +64,10 @@
           </a></li>
           <li><a href="mailto:contact@example.com" title="Email" aria-label="Email">
             <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v16H4z"/><path d="M4 6l8 6 8-6"/></svg>
+          </a></li>
+          <!-- ⚙️ À REMPLACER : lien vers ton profil artiste Spotify -->
+          <li><a href="#" title="Spotify" aria-label="Spotify">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2Zm4.59 14.44a.622.622 0 0 1-.86.21c-2.36-1.44-5.33-1.77-8.83-.97a.624.624 0 1 1-.28-1.22c3.83-.88 7.12-.5 9.76 1.12.3.19.39.58.21.86Zm1.22-2.72a.78.78 0 0 1-1.07.26c-2.7-1.66-6.82-2.14-10.02-1.17a.78.78 0 1 1-.45-1.49c3.65-1.11 8.19-.57 11.28 1.33.37.23.48.72.26 1.07Zm.1-2.83c-3.24-1.92-8.6-2.1-11.7-1.16a.936.936 0 1 1-.54-1.79c3.56-1.08 9.47-.87 13.2 1.34a.936.936 0 0 1-.96 1.61Z"/></svg>
           </a></li>
         </ul>
       </aside>
@@ -74,53 +85,72 @@
             <button class="pill" data-project="p3">Project 3</button>
           </div>
 
-          <!-- Scène à taille fixe : les tiroirs se superposent ici en fondu, la scène elle ne bouge pas -->
+          <!-- Scène à taille fixe : le tiroir se déplie/replie en fondu doux -->
           <div class="stage-frame" id="projectsStage">
-            <p class="stage-frame__hint">Sélectionne un projet ci-dessus pour voir le détail</p>
+            <p class="stage-frame__hint" data-fr="Sélectionne un projet ci-dessus pour voir le détail" data-en="Pick a project above to see the details">Sélectionne un projet ci-dessus pour voir le détail</p>
 
             <!-- ============================================
-                 PROJECT 1 — 4 pages + sa propre barre
+                 PROJECT 1 — template complet : Overview / Features / Rôle / Résultats
             ============================================ -->
             <div class="project-drawer" data-drawer="p1">
               <div class="drawer__scroll">
 
-                <!-- ⚙️ À REMPLACER : page 1 = présentation -->
+                <!-- PAGE 1 — Overview -->
                 <div class="page">
                   <div class="page__text">
                     <h3>Nom du Project 1</h3>
                     <p class="page__tags"><span>Unity</span><span>Level Design</span><span>2024</span></p>
-                    <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc eu velit a velit bibendum lacinia aliquam vel nibh. Fusce erat eros, rutrum a neque aliquet, vehicula rhoncus dolor.</p>
-                    <a href="#" class="itch-link">Voir sur itch.io ↗</a>
+                    <!-- ⚙️ Pitch en une phrase : ce que c'est, en une ligne accrocheuse -->
+                    <p class="page__pitch">Un puzzle-platformer où chaque niveau se résout en changeant de point de vue.</p>
+                    <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc eu velit a velit bibendum lacinia aliquam vel nibh. Fusce erat eros, rutrum a neque aliquet.</p>
+                    <a href="#" class="itch-link" data-fr="Voir sur itch.io ↗" data-en="View on itch.io ↗">Voir sur itch.io ↗</a>
                   </div>
                   <img class="page__img" src="https://placehold.co/460x300/E4483F/1B2A4A?text=Overview" alt="Aperçu du Project 1">
                 </div>
 
-                <!-- ⚙️ À REMPLACER : page 2 = gameplay / features -->
+                <!-- PAGE 2 — Fonctionnalités clés -->
                 <div class="page">
                   <div class="page__text">
                     <h3>Fonctionnalités clés</h3>
-                    <p>Vestibulum nec elit sed dui vitae lacus. Sed a ante urna. Aenean pretium diam sed porta dapibus. Pellentesque risus justo, porta sit amet.</p>
-                    <a href="#" class="itch-link">Voir sur itch.io ↗</a>
+                    <!-- ⚙️ 3-4 mécaniques ou features phares, une ligne chacune -->
+                    <ul class="page__list">
+                      <li><strong>Rotation de caméra —</strong> révèle des chemins cachés selon l'angle.</li>
+                      <li><strong>Checkpoints dynamiques —</strong> s'adaptent à la difficulté du joueur.</li>
+                      <li><strong>20 niveaux —</strong> répartis sur 4 biomes distincts.</li>
+                    </ul>
+                    <a href="#" class="itch-link" data-fr="Voir sur itch.io ↗" data-en="View on itch.io ↗">Voir sur itch.io ↗</a>
                   </div>
                   <img class="page__img" src="https://placehold.co/460x300/F2C94C/1B2A4A?text=Gameplay" alt="Gameplay du Project 1">
                 </div>
 
-                <!-- ⚙️ À REMPLACER : page 3 = rôle -->
+                <!-- PAGE 3 — Mon rôle -->
                 <div class="page">
                   <div class="page__text">
                     <h3>Mon rôle</h3>
-                    <p>Quisque nulla ex, faucibus ac elementum sit amet, rhoncus sed nibh. Fusce erat eros, rutrum a neque aliquet.</p>
-                    <a href="#" class="itch-link">Voir sur itch.io ↗</a>
+                    <!-- ⚙️ Taille d'équipe + durée, et 2-4 responsabilités concrètes -->
+                    <p class="page__meta">Équipe de 4 personnes · 3 mois de production</p>
+                    <ul class="page__list">
+                      <li>Level design des 20 niveaux</li>
+                      <li>Scripting des mécaniques de caméra</li>
+                      <li>Playtests et itération d'équilibrage</li>
+                    </ul>
+                    <a href="#" class="itch-link" data-fr="Voir sur itch.io ↗" data-en="View on itch.io ↗">Voir sur itch.io ↗</a>
                   </div>
-                  <img class="page__img" src="https://placehold.co/460x300/1B2A4A/F7F3EC?text=Credits" alt="Crédits du Project 1">
+                  <img class="page__img" src="https://placehold.co/460x300/1B2A4A/F7F3EC?text=Role" alt="Rôle sur le Project 1">
                 </div>
 
-                <!-- ⚙️ À REMPLACER : page 4 = post-mortem / chiffres -->
+                <!-- PAGE 4 — Résultats -->
                 <div class="page">
                   <div class="page__text">
-                    <h3>Post-mortem</h3>
-                    <p>Pellentesque risus justo, porta sit amet dapibus, vitae congue nibh. Nunc eu velit a velit bibendum lacinia aliquam vel nibh.</p>
-                    <a href="#" class="itch-link">Voir sur itch.io ↗</a>
+                    <h3>Résultats</h3>
+                    <!-- ⚙️ Remplace par tes vrais chiffres (ou supprime les stats qui ne s'appliquent pas) -->
+                    <div class="page__stats">
+                      <div class="stat"><strong>1.2K</strong>téléchargements</div>
+                      <div class="stat"><strong>4.6</strong>note moyenne</div>
+                      <div class="stat"><strong>32</strong>avis</div>
+                    </div>
+                    <p>Pellentesque risus justo, porta sit amet dapibus, vitae congue nibh — ce que j'en retiens, ce que je referais autrement.</p>
+                    <a href="#" class="itch-link" data-fr="Voir sur itch.io ↗" data-en="View on itch.io ↗">Voir sur itch.io ↗</a>
                   </div>
                   <img class="page__img" src="https://placehold.co/460x300/F2C94C/1B2A4A?text=Post-mortem" alt="Post-mortem du Project 1">
                 </div>
@@ -139,8 +169,9 @@
                   <div class="page__text">
                     <h3>Nom du Project 2</h3>
                     <p class="page__tags"><span>Figma</span><span>UX Research</span><span>2023</span></p>
+                    <p class="page__pitch">Refonte du parcours d'onboarding d'une app mobile, de 6 étapes à 2.</p>
                     <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc eu velit a velit bibendum lacinia aliquam vel nibh.</p>
-                    <a href="#" class="itch-link">Voir sur itch.io ↗</a>
+                    <a href="#" class="itch-link" data-fr="Voir sur itch.io ↗" data-en="View on itch.io ↗">Voir sur itch.io ↗</a>
                   </div>
                   <img class="page__img" src="https://placehold.co/460x300/F2C94C/1B2A4A?text=Overview" alt="Aperçu du Project 2">
                 </div>
@@ -148,8 +179,12 @@
                 <div class="page">
                   <div class="page__text">
                     <h3>Process</h3>
-                    <p>Sed a ante urna. Aenean pretium diam sed porta dapibus. Pellentesque risus justo, porta sit amet.</p>
-                    <a href="#" class="itch-link">Voir sur itch.io ↗</a>
+                    <ul class="page__list">
+                      <li><strong>Recherche utilisateur —</strong> 12 entretiens, 3 profils types.</li>
+                      <li><strong>Wireframes —</strong> 3 itérations testées en A/B.</li>
+                      <li><strong>UI kit —</strong> design system réutilisable livré à l'équipe.</li>
+                    </ul>
+                    <a href="#" class="itch-link" data-fr="Voir sur itch.io ↗" data-en="View on itch.io ↗">Voir sur itch.io ↗</a>
                   </div>
                   <img class="page__img" src="https://placehold.co/460x300/E4483F/1B2A4A?text=Process" alt="Process du Project 2">
                 </div>
@@ -157,8 +192,13 @@
                 <div class="page">
                   <div class="page__text">
                     <h3>Mon rôle</h3>
-                    <p>Fusce erat eros, rutrum a neque aliquet, vehicula rhoncus dolor. Quisque nulla ex, faucibus ac elementum sit amet.</p>
-                    <a href="#" class="itch-link">Voir sur itch.io ↗</a>
+                    <p class="page__meta">Équipe de 3 personnes · 6 semaines</p>
+                    <ul class="page__list">
+                      <li>Recherche utilisateur et synthèse</li>
+                      <li>Wireframes et prototypage Figma</li>
+                      <li>Passation des specs à la dev</li>
+                    </ul>
+                    <a href="#" class="itch-link" data-fr="Voir sur itch.io ↗" data-en="View on itch.io ↗">Voir sur itch.io ↗</a>
                   </div>
                   <img class="page__img" src="https://placehold.co/460x300/1B2A4A/F7F3EC?text=Role" alt="Rôle sur le Project 2">
                 </div>
@@ -166,8 +206,13 @@
                 <div class="page">
                   <div class="page__text">
                     <h3>Résultats</h3>
-                    <p>Vestibulum nec elit sed dui vitae lacus. Sed a ante urna. Aenean pretium diam sed porta dapibus.</p>
-                    <a href="#" class="itch-link">Voir sur itch.io ↗</a>
+                    <div class="page__stats">
+                      <div class="stat"><strong>+34%</strong>complétion</div>
+                      <div class="stat"><strong>-40%</strong>temps d'onboarding</div>
+                      <div class="stat"><strong>6→2</strong>étapes</div>
+                    </div>
+                    <p>Vestibulum nec elit sed dui vitae lacus — retour d'expérience et enseignements clés.</p>
+                    <a href="#" class="itch-link" data-fr="Voir sur itch.io ↗" data-en="View on itch.io ↗">Voir sur itch.io ↗</a>
                   </div>
                   <img class="page__img" src="https://placehold.co/460x300/F2C94C/1B2A4A?text=Resultats" alt="Résultats du Project 2">
                 </div>
@@ -186,8 +231,9 @@
                   <div class="page__text">
                     <h3>Nom du Project 3</h3>
                     <p class="page__tags"><span>Godot</span><span>Game Design</span><span>2022</span></p>
+                    <p class="page__pitch">Un jeu narratif court sur la mémoire, jouable en une session.</p>
                     <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc eu velit a velit bibendum lacinia aliquam vel nibh.</p>
-                    <a href="#" class="itch-link">Voir sur itch.io ↗</a>
+                    <a href="#" class="itch-link" data-fr="Voir sur itch.io ↗" data-en="View on itch.io ↗">Voir sur itch.io ↗</a>
                   </div>
                   <img class="page__img" src="https://placehold.co/460x300/E4483F/1B2A4A?text=Overview" alt="Aperçu du Project 3">
                 </div>
@@ -195,17 +241,26 @@
                 <div class="page">
                   <div class="page__text">
                     <h3>Direction artistique</h3>
-                    <p>Fusce erat eros, rutrum a neque aliquet, vehicula rhoncus dolor. Quisque nulla ex, faucibus ac elementum sit amet.</p>
-                    <a href="#" class="itch-link">Voir sur itch.io ↗</a>
+                    <ul class="page__list">
+                      <li><strong>Palette limitée —</strong> 4 couleurs par chapitre, symbolique de l'humeur.</li>
+                      <li><strong>Sound design —</strong> entièrement procédural, réactif aux choix du joueur.</li>
+                      <li><strong>Pixel art —</strong> animations image par image faites main.</li>
+                    </ul>
+                    <a href="#" class="itch-link" data-fr="Voir sur itch.io ↗" data-en="View on itch.io ↗">Voir sur itch.io ↗</a>
                   </div>
                   <img class="page__img" src="https://placehold.co/460x300/1B2A4A/F7F3EC?text=Art" alt="Direction artistique du Project 3">
                 </div>
 
                 <div class="page">
                   <div class="page__text">
-                    <h3>Level design</h3>
-                    <p>Pellentesque risus justo, porta sit amet dapibus, vitae congue nibh. Quisque nulla ex, faucibus ac elementum.</p>
-                    <a href="#" class="itch-link">Voir sur itch.io ↗</a>
+                    <h3>Mon rôle</h3>
+                    <p class="page__meta">Projet solo · 2 mois de production</p>
+                    <ul class="page__list">
+                      <li>Écriture et level design narratif</li>
+                      <li>Programmation Godot / GDScript</li>
+                      <li>Direction artistique et sound design</li>
+                    </ul>
+                    <a href="#" class="itch-link" data-fr="Voir sur itch.io ↗" data-en="View on itch.io ↗">Voir sur itch.io ↗</a>
                   </div>
                   <img class="page__img" src="https://placehold.co/460x300/F2C94C/1B2A4A?text=Level+Design" alt="Level design du Project 3">
                 </div>
@@ -213,8 +268,13 @@
                 <div class="page">
                   <div class="page__text">
                     <h3>Sortie & retours</h3>
-                    <p>Sed a ante urna. Aenean pretium diam sed porta dapibus. Vestibulum nec elit sed dui vitae lacus.</p>
-                    <a href="#" class="itch-link">Voir sur itch.io ↗</a>
+                    <div class="page__stats">
+                      <div class="stat"><strong>800+</strong>joueurs</div>
+                      <div class="stat"><strong>4.8</strong>note moyenne</div>
+                      <div class="stat"><strong>Top 15</strong>jam</div>
+                    </div>
+                    <p>Sed a ante urna. Aenean pretium diam sed porta dapibus — bilan et retours de la communauté.</p>
+                    <a href="#" class="itch-link" data-fr="Voir sur itch.io ↗" data-en="View on itch.io ↗">Voir sur itch.io ↗</a>
                   </div>
                   <img class="page__img" src="https://placehold.co/460x300/E4483F/1B2A4A?text=Retours" alt="Retours sur le Project 3">
                 </div>
@@ -228,8 +288,6 @@
 
         <!-- ================= ABOUT ME — panneaux diagonaux façon launcher ================= -->
         <div class="panel-view" data-panel="about">
-          <p class="about__hint">Clique une occupation pour zoomer dessus</p>
-
           <div class="occupations" id="occupations">
             <!-- ⚙️ À REMPLACER : une occupation = une image de fond + un titre + un texte -->
             <button class="occupation is-active" style="background-image:url('https://placehold.co/300x420/E4483F/1B2A4A?text=%F0%9F%8E%AC')">
@@ -237,6 +295,8 @@
               <div class="occupation__info">
                 <h3>Cinéma</h3>
                 <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Grand amateur de films de genre et de scénarios qui sortent des sentiers battus.</p>
+                <!-- ⚙️ Un petit détail perso, façon fun fact -->
+                <span class="occupation__stat">Dernier film vu : à remplacer</span>
               </div>
             </button>
 
@@ -245,6 +305,7 @@
               <div class="occupation__info">
                 <h3>Escalade</h3>
                 <p>Sed a ante urna. Aenean pretium diam sed porta dapibus, en salle le week-end et en falaise dès que possible.</p>
+                <span class="occupation__stat">Niveau : 6a</span>
               </div>
             </button>
 
@@ -253,6 +314,7 @@
               <div class="occupation__info">
                 <h3>Jeux vidéo</h3>
                 <p>Vestibulum nec elit sed dui vitae lacus, forcément — c'est aussi mon métier. Passionné de systèmes de jeu et de level design.</p>
+                <span class="occupation__stat">Temps de jeu 2026 : ~300h</span>
               </div>
             </button>
 
@@ -261,6 +323,7 @@
               <div class="occupation__info">
                 <h3>Musique</h3>
                 <p>Quisque nulla ex, faucibus ac elementum sit amet, rhoncus sed nibh — synthés analogiques et sound design en dilettante.</p>
+                <span class="occupation__stat">Sur la platine : à remplacer</span>
               </div>
             </button>
           </div>

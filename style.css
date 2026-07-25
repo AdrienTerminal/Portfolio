@@ -16,11 +16,12 @@
   --border:      3px;
   --ease:        cubic-bezier(.34,1.56,.64,1);
 
-  /* hauteur de la zone de contenu (colonne droite + colonne gauche) :
-     fixe tant qu'on reste sur "Projects", quel que soit le projet ouvert.
-     "About me" passe à 1.5x cette hauteur. */
+  /* hauteur de la zone de contenu : fixe tant qu'on reste sur "Projects".
+     "About me" grandit d'environ 30% au total, mais réparti de façon
+     asymétrique : plus vers le haut que vers le bas (voir .card.is-about
+     plus bas, qui décale légèrement la carte vers le haut en plus). */
   --body-h:       600px;
-  --body-h-about: 900px;
+  --body-h-about: 780px;
 }
 
 *{ box-sizing:border-box; margin:0; padding:0; }
@@ -61,9 +62,13 @@ button{ font:inherit; color:inherit; background:none; border:none; cursor:pointe
   overflow:hidden;
   position:relative;
   transform:rotate(-0.5deg);
+  margin-top:0;
+  transition:margin-top .5s var(--ease);
 }
+/* la carte grandit surtout vers le haut plutôt que symétriquement :
+   30px ≈ 5% de --body-h, retirés du bas et ajoutés au haut */
+.card.is-about{ margin-top:-30px; }
 
-/* --- topbar --- */
 .card__topbar{
   display:flex; align-items:center; justify-content:space-between;
   padding:24px 32px;
@@ -72,6 +77,22 @@ button{ font:inherit; color:inherit; background:none; border:none; cursor:pointe
 }
 .card__brand{ font-family:var(--font-display); font-weight:600; font-size:1.6rem; display:inline-flex; flex-direction:column; line-height:1; }
 .brand__underline{ width:90px; height:4px; background:var(--red); border-radius:100px; margin-top:8px; }
+
+.topbar__right{ display:flex; align-items:center; gap:16px; flex-wrap:wrap; }
+
+.lang-switch{
+  display:flex; border:2.5px solid var(--ink); border-radius:var(--radius);
+  overflow:hidden;
+}
+.lang-switch__btn{
+  font-family:var(--font-mono); font-weight:700; font-size:0.76rem;
+  padding:8px 12px;
+  background:var(--card-bg); color:var(--muted);
+  transition:background .15s var(--ease), color .15s var(--ease);
+}
+.lang-switch__btn + .lang-switch__btn{ border-left:2.5px solid var(--ink); }
+.lang-switch__btn.is-active{ background:var(--ink); color:#fff; }
+.lang-switch__btn:not(.is-active):hover{ background:var(--yellow); color:var(--ink); }
 
 .card__tabs{ display:flex; gap:12px; }
 .tab{
@@ -84,7 +105,6 @@ button{ font:inherit; color:inherit; background:none; border:none; cursor:pointe
 .tab:active{ transform:translateY(0); }
 .tab.is-active{ background:var(--red); color:#fff; }
 
-/* --- corps : hauteur fixe, transition uniquement au changement d'onglet --- */
 .card__body{
   display:grid;
   grid-template-columns:250px 1fr;
@@ -111,18 +131,44 @@ button{ font:inherit; color:inherit; background:none; border:none; cursor:pointe
 }
 .avatar{ width:100%; height:100%; border-radius:calc(var(--radius-lg) - 4px); object-fit:cover; }
 
-.role{ font-family:var(--font-mono); font-size:0.85rem; color:var(--muted); font-weight:500; }
+.role{ font-family:var(--font-display); font-size:1.05rem; font-weight:600; color:var(--ink); }
 
 .resume-btn{
   margin-top:8px; width:100%;
+  position:relative; overflow:hidden;
   display:inline-flex; align-items:center; justify-content:center; gap:8px;
-  font-family:var(--font-mono); font-size:0.85rem; font-weight:700;
-  background:var(--card-bg); color:var(--ink);
-  padding:11px 18px; border:2.5px solid var(--ink); border-radius:var(--radius);
-  transition:transform .15s var(--ease), background .15s var(--ease);
+  font-family:var(--font-mono); font-size:0.92rem; font-weight:700;
+  background:var(--red); color:#fff;
+  padding:13px 18px; border:2.5px solid var(--ink); border-radius:var(--radius);
+  box-shadow:4px 4px 0 var(--ink);
+  animation:resume-pulse 2.6s ease-in-out infinite;
+  transition:transform .15s var(--ease), box-shadow .15s var(--ease), background .15s var(--ease);
 }
-.resume-btn:hover{ transform:translateY(-2px); }
-.resume-btn:active{ transform:translateY(0); }
+.resume-btn svg{ transition:transform .2s var(--ease); }
+.resume-btn:hover{
+  background:var(--red-dark);
+  transform:translate(-2px,-2px);
+  box-shadow:6px 6px 0 var(--ink);
+  animation-play-state:paused;
+}
+.resume-btn:hover svg{ transform:translateY(3px); }
+.resume-btn:active{ transform:translate(1px,1px); box-shadow:2px 2px 0 var(--ink); }
+.resume-btn__shine{
+  position:absolute; top:0; left:-60%;
+  width:40%; height:100%;
+  background:linear-gradient(115deg, transparent, rgba(255,255,255,.55), transparent);
+  transform:skewX(-20deg);
+  animation:resume-shine 3.2s ease-in-out infinite;
+  pointer-events:none;
+}
+@keyframes resume-shine{
+  0%, 35%{ left:-60%; }
+  65%, 100%{ left:130%; }
+}
+@keyframes resume-pulse{
+  0%, 100%{ box-shadow:4px 4px 0 var(--ink); }
+  50%{ box-shadow:4px 4px 0 var(--ink), 0 0 0 6px rgba(228,72,63,0.18); }
+}
 
 .socials{ list-style:none; display:flex; gap:10px; margin-top:16px; }
 .socials a{
@@ -133,7 +179,7 @@ button{ font:inherit; color:inherit; background:none; border:none; cursor:pointe
 .socials a:hover{ background:var(--yellow); transform:scale(1.08); }
 
 /* ==================================================================
-   PANNEAU DROIT — hauteur = 100% de card__body, ne bouge jamais seul
+   PANNEAU DROIT
 ================================================================== */
 .card__panel{
   height:100%;
@@ -151,7 +197,6 @@ button{ font:inherit; color:inherit; background:none; border:none; cursor:pointe
 }
 @keyframes pop-in{ from{ opacity:0; transform:translateY(6px);} to{ opacity:1; transform:none;} }
 
-/* --- pills projets --- */
 .pill-row{
   display:flex; flex-wrap:wrap; gap:12px;
   padding-bottom:20px; margin-bottom:20px;
@@ -168,7 +213,9 @@ button{ font:inherit; color:inherit; background:none; border:none; cursor:pointe
 .pill:active{ transform:translateY(0); }
 .pill.is-active{ background:var(--red); color:#fff; }
 
-/* --- SCÈNE PROJETS : taille fixe, les tiroirs s'y superposent en fondu --- */
+/* --- SCÈNE PROJETS : taille fixe, les tiroirs se superposent ici en
+       fondu doux (léger scale + opacity) à l'ouverture comme à la
+       fermeture — simple et fluide dans les deux sens. --- */
 .stage-frame{
   position:relative;
   flex:1; min-height:0;
@@ -186,9 +233,13 @@ button{ font:inherit; color:inherit; background:none; border:none; cursor:pointe
   position:absolute; inset:0;
   display:flex; flex-direction:column;
   opacity:0; pointer-events:none;
-  transition:opacity .35s var(--ease);
+  transform:scale(.97) translateY(6px);
+  transition:opacity .38s var(--ease), transform .38s var(--ease);
 }
-.project-drawer.is-open{ opacity:1; pointer-events:auto; }
+.project-drawer.is-open{
+  opacity:1; pointer-events:auto;
+  transform:scale(1) translateY(0);
+}
 
 .drawer__scroll{
   flex:1; min-height:0;
@@ -215,6 +266,31 @@ button{ font:inherit; color:inherit; background:none; border:none; cursor:pointe
   padding:4px 10px; border-radius:7px; background:var(--yellow); border:2px solid var(--ink);
 }
 .page__text p{ opacity:.85; font-size:0.96rem; max-width:56ch; margin-bottom:14px; }
+.page__pitch{
+  font-family:var(--font-display); font-weight:600; font-size:1.02rem;
+  opacity:1 !important; color:var(--red-dark); margin-bottom:12px !important;
+}
+.page__meta{
+  font-family:var(--font-mono); font-size:0.78rem; color:var(--muted);
+  margin-bottom:12px;
+}
+.page__list{
+  list-style:none; display:flex; flex-direction:column; gap:8px;
+  margin-bottom:14px;
+}
+.page__list li{
+  font-size:0.92rem; opacity:.9; padding-left:18px; position:relative;
+}
+.page__list li::before{
+  content:"▸"; position:absolute; left:0; color:var(--red); font-weight:700;
+}
+.page__stats{ display:flex; gap:10px; flex-wrap:wrap; margin-bottom:14px; }
+.stat{
+  background:var(--card-bg); border:2px solid var(--ink); border-radius:var(--radius);
+  padding:8px 14px; text-align:center; font-family:var(--font-mono); font-size:0.72rem; font-weight:600; color:var(--muted);
+}
+.stat strong{ display:block; font-family:var(--font-display); font-size:1.15rem; color:var(--ink); }
+
 .page__img{
   width:100%; height:100%;
   object-fit:cover;
@@ -256,13 +332,11 @@ button{ font:inherit; color:inherit; background:none; border:none; cursor:pointe
 .scrollbar-thumb.is-dragging{ cursor:grabbing; }
 
 /* ==================================================================
-   ABOUT ME — panneaux diagonaux façon launcher, remplit toute la scène
+   ABOUT ME — panneaux droits, remplit toute la scène.
+   Pas de texte d'instruction : le hover fait "peeker" les panneaux
+   pour donner envie de cliquer, et une petite vague les fait
+   respirer une fois à l'ouverture de l'onglet.
 ================================================================== */
-.about__hint{
-  font-family:var(--font-mono); font-size:0.78rem; color:var(--muted);
-  margin-bottom:16px; flex:0 0 auto;
-}
-
 .occupations{
   display:flex;
   flex:1; min-height:0;
@@ -270,6 +344,7 @@ button{ font:inherit; color:inherit; background:none; border:none; cursor:pointe
   border-radius:var(--radius-lg);
   overflow:hidden;
   box-shadow:6px 6px 0 var(--ink);
+  gap:3px;
 }
 
 .occupation{
@@ -279,12 +354,11 @@ button{ font:inherit; color:inherit; background:none; border:none; cursor:pointe
   background-size:cover;
   background-position:center;
   cursor:pointer;
-  transform:skewX(-10deg);
-  margin-left:-34px;
   transition:flex .55s var(--ease);
 }
-.occupation:first-child{ margin-left:0; }
 .occupation.is-active{ flex:5; }
+.occupation:hover:not(.is-active){ flex:1.8; }
+.occupation.is-peeking:not(.is-active){ flex:1.8; }
 
 .occupation::before{
   content:"";
@@ -295,18 +369,15 @@ button{ font:inherit; color:inherit; background:none; border:none; cursor:pointe
 .occupation:not(.is-active)::before{ background:rgba(27,42,74,0.55); }
 
 .occupation__label{
-  position:absolute; left:20px; bottom:18px;
-  transform:skewX(10deg);
+  position:absolute; left:16px; bottom:16px; right:16px;
   font-family:var(--font-mono); font-weight:700; font-size:0.82rem;
   color:#fff;
-  writing-mode:vertical-rl;
   transition:opacity .25s var(--ease);
 }
 .occupation.is-active .occupation__label{ display:none; }
 
 .occupation__info{
   position:absolute; left:26px; right:26px; bottom:22px;
-  transform:skewX(10deg);
   opacity:0;
   pointer-events:none;
   transition:opacity .3s var(--ease) .1s;
@@ -318,11 +389,18 @@ button{ font:inherit; color:inherit; background:none; border:none; cursor:pointe
 .occupation__info p{
   font-size:0.86rem; color:rgba(255,255,255,0.9); max-width:46ch;
 }
+.occupation__stat{
+  display:inline-block;
+  margin-top:12px;
+  font-family:var(--font-mono); font-size:0.72rem; font-weight:700;
+  color:#fff;
+  padding:5px 12px;
+  border:1.5px dashed rgba(255,255,255,.7);
+  border-radius:100px;
+}
 
 /* ==================================================================
-   RESPONSIVE — on abandonne la scène "à taille fixe + superposition"
-   sur mobile au profit d'un flux naturel, pour rester lisible quel
-   que soit le format de fenêtre / d'écran.
+   RESPONSIVE
 ================================================================== */
 @media (max-width:760px){
   .card{ transform:none; }
@@ -348,9 +426,10 @@ button{ font:inherit; color:inherit; background:none; border:none; cursor:pointe
   .stage-frame{ min-height:460px; }
   .stage-frame__hint{ position:static; padding:40px 0; }
   .stage-frame.has-open .stage-frame__hint{ display:none; }
+
   .project-drawer{
     position:relative; inset:auto;
-    display:none; opacity:1; pointer-events:auto;
+    display:none; opacity:1; pointer-events:auto; transform:none;
   }
   .project-drawer.is-open{ display:flex; }
 
@@ -358,10 +437,9 @@ button{ font:inherit; color:inherit; background:none; border:none; cursor:pointe
   .page__img{ order:-1; height:200px; }
 
   .occupations{ flex-direction:column; height:auto; }
-  .occupation{ transform:none; margin-left:0; min-height:64px; }
+  .occupation{ min-height:64px; }
   .occupation.is-active{ flex:5; min-height:240px; }
-  .occupation__label{ writing-mode:horizontal-tb; }
-  .occupation__info{ transform:none; }
+  .occupation:hover:not(.is-active){ flex:1; }
 }
 
 @media (prefers-reduced-motion: reduce){

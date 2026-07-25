@@ -33,17 +33,18 @@ const sfx = {
   open:   () => blip({ freqStart:300, freqEnd:560,  duration:0.16, type:"triangle", gain:0.05  }),
   close:  () => blip({ freqStart:440, freqEnd:220,  duration:0.14, type:"triangle", gain:0.05  }),
   select: () => blip({ freqStart:820, freqEnd:1040, duration:0.07, type:"sine",     gain:0.04  }),
+  scroll: () => blip({ freqStart:680, freqEnd:720,  duration:0.035,type:"square",   gain:0.022 }),
 };
 
 
 /* ==================================================================
    1) ONGLETS "Projects" / "About me"
-      Passer sur "About me" étend la carte (1.5x), "Projects" la
-      ramène à sa hauteur normale — géré via une classe sur .card.
 ================================================================== */
 const cardEl = document.getElementById("card");
 const tabs = document.querySelectorAll(".tab");
 const panels = document.querySelectorAll(".panel-view");
+
+let aboutPeekPlayed = false;
 
 tabs.forEach(tab => {
   tab.addEventListener("click", () => {
@@ -54,41 +55,50 @@ tabs.forEach(tab => {
     document.querySelector(`.panel-view[data-panel="${tab.dataset.tab}"]`).classList.add("is-active");
     cardEl.classList.toggle("is-about", tab.dataset.tab === "about");
     sfx.tab();
+
+    if(tab.dataset.tab === "about" && !aboutPeekPlayed){
+      aboutPeekPlayed = true;
+      window.setTimeout(playAboutPeekSequence, 500);
+    }
   });
 });
 
 
 /* ==================================================================
-   2) PROJETS — machine d'état simple pour éviter que deux tiroirs
-      s'ouvrent en même temps si on clique vite plusieurs fois de
-      suite : pendant qu'une transition tourne, les clics ne font
-      que mettre à jour "la dernière destination demandée", qui est
-      traitée dès que l'animation en cours se termine.
+   2) PROJETS — même machine d'état anti-spam qu'avant : pendant
+      qu'une transition tourne, un clic ne fait que mettre à jour
+      "la dernière destination demandée", traitée dès la fin de
+      l'animation en cours. Ouverture et fermeture utilisent le même
+      fondu doux (scale + opacity, défini en CSS) dans les deux sens.
 ================================================================== */
-const CLOSE_DURATION = 380; // doit être ≥ à la transition CSS d'opacité du tiroir
+const TRANSITION_MS = 380; // doit correspondre à la transition CSS de .project-drawer
 
 const pills   = document.querySelectorAll(".pill");
 const drawers = document.querySelectorAll(".project-drawer");
 const stageFrame = document.getElementById("projectsStage");
 
-let openId = null;        // id du tiroir actuellement ouvert (ou null)
-let isAnimating = false;  // une transition est en cours
-let pendingId = undefined; // prochaine destination demandée pendant l'animation ("close" = fermer)
+let openId = null;
+let isAnimating = false;
+let pendingId = undefined;
 
 function setPillActive(id){
   pills.forEach(p => p.classList.toggle("is-active", p.dataset.project === id));
 }
 
-function showDrawer(id){
-  drawers.forEach(d => d.classList.toggle("is-open", d.dataset.drawer === id));
-  stageFrame.classList.add("has-open");
-  const api = document.querySelector(`.project-drawer[data-drawer="${id}"]`)?._scrollApi;
-  if(api) api.reset();
+function resetDrawerScroll(id){
+  const drawer = document.querySelector(`.project-drawer[data-drawer="${id}"]`);
+  drawer?._scrollApi?.reset();
 }
 
 function hideAllDrawers(){
   drawers.forEach(d => d.classList.remove("is-open"));
   stageFrame.classList.remove("has-open");
+}
+
+function openDrawer(id){
+  resetDrawerScroll(id);
+  stageFrame.classList.add("has-open");
+  document.querySelector(`.project-drawer[data-drawer="${id}"]`)?.classList.add("is-open");
 }
 
 function runTransition(nextId){
@@ -101,15 +111,13 @@ function runTransition(nextId){
       openId = null;
       setPillActive(null);
       resolveTransition(nextId);
-    }, CLOSE_DURATION);
+    }, TRANSITION_MS);
   }else{
     resolveTransition(nextId);
   }
 }
 
 function resolveTransition(nextId){
-  // si une nouvelle destination a été demandée pendant qu'on animait,
-  // c'est elle qui gagne — on ignore les clics intermédiaires
   if(pendingId !== undefined){
     const target = pendingId;
     pendingId = undefined;
@@ -123,14 +131,13 @@ function resolveTransition(nextId){
   }
   openId = nextId;
   setPillActive(nextId);
-  showDrawer(nextId);
+  openDrawer(nextId);
   sfx.open();
-  isAnimating = false;
+  window.setTimeout(() => { isAnimating = false; }, TRANSITION_MS);
 }
 
 function goTo(nextId){
   if(isAnimating){
-    // on ne fait qu'enregistrer la dernière intention, traitée à la fin de l'animation en cours
     pendingId = nextId;
     return;
   }
@@ -152,16 +159,19 @@ pills.forEach(pill => {
   });
 });
 
-// Chaque tiroir gère sa propre barre : clic pour sauter, glisser pour lerp entre les pages
+// Chaque tiroir gère sa propre barre : clic pour sauter, glisser pour lerp entre
+// les pages. Un petit son marque chaque changement de page pendant le glissement.
 drawers.forEach(drawer => {
   const scrollWrap = drawer.querySelector(".drawer__scroll");
   const track       = drawer.querySelector(".scrollbar-track");
   const thumb       = drawer.querySelector(".scrollbar-thumb");
+  const pageCount   = drawer.querySelectorAll(".page").length;
 
   let target = 0;
   let current = 0;
   let rafId = null;
   let dragging = false;
+  let lastPageIndex = 0;
 
   function maxScroll(){ return scrollWrap.scrollWidth - scrollWrap.clientWidth; }
 
@@ -176,6 +186,15 @@ drawers.forEach(drawer => {
     if(Math.abs(target - current) < 0.001){ current = target; }
     scrollWrap.scrollLeft = current * maxScroll();
     applyThumb(current);
+
+    if(pageCount > 1){
+      const idx = Math.round(current * (pageCount - 1));
+      if(idx !== lastPageIndex){
+        lastPageIndex = idx;
+        sfx.scroll();
+      }
+    }
+
     if(current !== target){
       rafId = requestAnimationFrame(tick);
     }else{
@@ -190,7 +209,7 @@ drawers.forEach(drawer => {
 
   drawer._scrollApi = {
     reset(){
-      target = 0; current = 0;
+      target = 0; current = 0; lastPageIndex = 0;
       scrollWrap.scrollLeft = 0;
       applyThumb(0);
     }
@@ -222,7 +241,10 @@ drawers.forEach(drawer => {
 
 
 /* ==================================================================
-   3) ABOUT ME — panneaux diagonaux, un seul zoomé à la fois
+   3) ABOUT ME — panneaux diagonaux, un seul zoomé à la fois.
+      Pas de texte d'instruction : au premier passage sur l'onglet,
+      une petite vague fait "peeker" chaque panneau tour à tour pour
+      suggérer l'interaction sans l'écrire.
 ================================================================== */
 const occupations = document.querySelectorAll(".occupation");
 
@@ -232,5 +254,39 @@ occupations.forEach(occ => {
     occupations.forEach(o => o.classList.remove("is-active"));
     occ.classList.add("is-active");
     sfx.select();
+  });
+});
+
+function playAboutPeekSequence(){
+  const inactiveOnes = [...occupations].filter(o => !o.classList.contains("is-active"));
+  let i = 0;
+  function step(){
+    if(i > 0) inactiveOnes[i - 1].classList.remove("is-peeking");
+    if(i >= inactiveOnes.length) return;
+    inactiveOnes[i].classList.add("is-peeking");
+    i++;
+    window.setTimeout(step, 280);
+  }
+  step();
+}
+
+
+/* ==================================================================
+   4) SWITCH DE LANGUE — bascule le texte des éléments porteurs
+      d'attributs data-fr / data-en. Pour rendre une de tes propres
+      phrases bilingue (ex : dans les pages projets), ajoute
+      simplement data-fr="..." data-en="..." sur l'élément.
+================================================================== */
+const langButtons = document.querySelectorAll(".lang-switch__btn");
+const i18nEls = document.querySelectorAll("[data-fr][data-en]");
+
+langButtons.forEach(btn => {
+  btn.addEventListener("click", () => {
+    if(btn.classList.contains("is-active")) return;
+    const lang = btn.dataset.lang;
+    langButtons.forEach(b => b.classList.toggle("is-active", b === btn));
+    i18nEls.forEach(el => { el.textContent = el.dataset[lang]; });
+    document.documentElement.lang = lang;
+    sfx.tab();
   });
 });
