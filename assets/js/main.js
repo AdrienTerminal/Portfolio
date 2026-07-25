@@ -41,12 +41,12 @@ pills.forEach(pill => {
   });
 });
 
-// Chaque tiroir gère sa propre barre de scroll + son propre bouton "rabattre"
+// Chaque tiroir gère sa propre barre de scroll (cliquable ET glissable) + son bouton "Fermer"
 drawers.forEach(drawer => {
-  const scrollWrap  = drawer.querySelector(".drawer__scroll");
-  const track        = drawer.querySelector(".scrollbar-track");
-  const thumb        = drawer.querySelector(".scrollbar-thumb");
-  const foldCorner   = drawer.querySelector(".fold-corner");
+  const scrollWrap = drawer.querySelector(".drawer__scroll");
+  const track       = drawer.querySelector(".scrollbar-track");
+  const thumb       = drawer.querySelector(".scrollbar-thumb");
+  const closeBtn    = drawer.querySelector(".drawer-close");
 
   function syncScrollbar(){
     const max = scrollWrap.scrollWidth - scrollWrap.clientWidth;
@@ -60,14 +60,40 @@ drawers.forEach(drawer => {
   window.addEventListener("resize", syncScrollbar);
   syncScrollbar();
 
+  // Clic sur la piste (en dehors du curseur) : saute à cet endroit
   track.addEventListener("click", (e) => {
+    if(e.target === thumb) return;
     const rect = track.getBoundingClientRect();
     const ratio = (e.clientX - rect.left) / rect.width;
     const max = scrollWrap.scrollWidth - scrollWrap.clientWidth;
     scrollWrap.scrollTo({ left: ratio * max, behavior: "smooth" });
   });
 
-  foldCorner.addEventListener("click", () => {
+  // Glisser le curseur avec la souris
+  let dragging = false;
+
+  thumb.addEventListener("pointerdown", (e) => {
+    dragging = true;
+    thumb.classList.add("is-dragging");
+    thumb.setPointerCapture(e.pointerId);
+  });
+
+  thumb.addEventListener("pointermove", (e) => {
+    if(!dragging) return;
+    const rect = track.getBoundingClientRect();
+    const ratio = Math.min(1, Math.max(0, (e.clientX - rect.left) / rect.width));
+    const max = scrollWrap.scrollWidth - scrollWrap.clientWidth;
+    scrollWrap.scrollLeft = ratio * max;
+  });
+
+  function stopDrag(){
+    dragging = false;
+    thumb.classList.remove("is-dragging");
+  }
+  thumb.addEventListener("pointerup", stopDrag);
+  thumb.addEventListener("pointercancel", stopDrag);
+
+  closeBtn.addEventListener("click", () => {
     drawer.classList.remove("is-open");
     document.querySelector(`.pill[data-project="${drawer.dataset.drawer}"]`)?.classList.remove("is-active");
   });

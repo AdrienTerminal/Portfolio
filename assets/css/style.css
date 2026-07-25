@@ -11,7 +11,7 @@
   --font-mono:   'JetBrains Mono', monospace;
   --font-body:   'Inter', sans-serif;
 
-  --radius:      24px;
+  --radius:      13px;
   --border:      3px;
   --ease:        cubic-bezier(.34,1.56,.64,1);
 }
@@ -21,7 +21,8 @@
 body{
   min-height:100vh;
   background:
-    radial-gradient(circle, var(--ink) 1.4px, transparent 1.4px) 0 0/26px 26px,
+    repeating-linear-gradient(0deg, rgba(27,42,74,0.05) 0 1px, transparent 1px 34px),
+    repeating-linear-gradient(90deg, rgba(27,42,74,0.05) 0 1px, transparent 1px 34px),
     var(--paper);
   font-family:var(--font-body);
   color:var(--ink);
@@ -41,13 +42,6 @@ button{ font:inherit; color:inherit; background:none; border:none; cursor:pointe
 
 .stage{ width:100%; display:flex; justify-content:center; position:relative; z-index:1; }
 
-/* Doodles */
-.doodle{ position:fixed; pointer-events:none; z-index:0; }
-.doodle--star{ width:36px; color:var(--yellow); top:8%; left:8%; animation:spin-slow 9s linear infinite; }
-.doodle--blob{ width:140px; color:var(--red); bottom:6%; right:6%; opacity:.14; animation:float 7s ease-in-out infinite; }
-@keyframes spin-slow{ to{ transform:rotate(360deg); } }
-@keyframes float{ 0%,100%{ transform:translateY(0); } 50%{ transform:translateY(-14px); } }
-
 /* ==================================================================
    LA CARTE — plus grande, posée de travers
 ================================================================== */
@@ -63,14 +57,6 @@ button{ font:inherit; color:inherit; background:none; border:none; cursor:pointe
   transform:rotate(-0.5deg);
 }
 
-.sticker{
-  position:absolute; top:-18px; right:34px;
-  background:var(--yellow); border:2.5px solid var(--ink); color:var(--ink);
-  font-family:var(--font-mono); font-size:0.72rem; font-weight:700;
-  padding:6px 14px; border-radius:100px;
-  transform:rotate(4deg); box-shadow:3px 3px 0 var(--ink); z-index:2;
-}
-
 .card__topbar{
   display:flex; align-items:center; justify-content:space-between;
   padding:24px 32px;
@@ -78,19 +64,22 @@ button{ font:inherit; color:inherit; background:none; border:none; cursor:pointe
   flex-wrap:wrap; gap:12px;
 }
 .card__brand{ font-family:var(--font-display); font-weight:600; font-size:1.6rem; display:inline-flex; flex-direction:column; line-height:1; }
-.brand__squiggle{ width:90px; height:11px; color:var(--red); margin-top:7px; }
+.brand__underline{
+  width:64%; height:5px; margin-top:8px;
+  background:var(--red); border-radius:3px;
+}
 
 .card__tabs{ display:flex; gap:12px; }
 .tab{
   font-family:var(--font-mono); font-weight:700; font-size:0.88rem;
-  padding:11px 20px; border-radius:100px; border:2.5px solid var(--ink);
+  padding:11px 22px 11px 18px; border:2.5px solid var(--ink);
+  clip-path:polygon(12px 0, 100% 0, 100% 100%, 0 100%, 0 12px);
   display:flex; align-items:center; gap:6px; background:var(--card-bg);
-  box-shadow:3px 3px 0 var(--ink);
-  transition:transform .15s var(--ease), box-shadow .15s var(--ease), background .15s var(--ease);
+  transition:transform .15s var(--ease), background .15s var(--ease);
 }
 .tab .chev{ font-size:0.85rem; transition:transform .3s var(--ease); }
-.tab:hover{ transform:translate(-1px,-1px); box-shadow:4px 4px 0 var(--ink); }
-.tab:active{ transform:translate(2px,2px); box-shadow:0 0 0 var(--ink); }
+.tab:hover{ transform:translateY(-2px); }
+.tab:active{ transform:translateY(0); }
 .tab.is-active{ background:var(--red); color:#fff; }
 .tab.is-active .chev{ transform:rotate(180deg); }
 
@@ -104,12 +93,13 @@ button{ font:inherit; color:inherit; background:none; border:none; cursor:pointe
 .profile__spacer{ flex:1; min-height:20px; }
 
 .avatar-frame{
-  width:136px; height:136px; border-radius:50%;
+  width:136px; height:136px;
   border:var(--border) solid var(--ink); background:var(--yellow);
+  clip-path:polygon(20px 0, 100% 0, 100% 100%, 0 100%, 0 20px);
   padding:6px; margin-bottom:16px; transform:rotate(-3deg);
   box-shadow:6px 6px 0 var(--ink);
 }
-.avatar{ width:100%; height:100%; border-radius:50%; object-fit:cover; }
+.avatar{ width:100%; height:100%; object-fit:cover; }
 
 .role{ font-family:var(--font-mono); font-size:0.85rem; color:var(--muted); font-weight:500; }
 
@@ -118,20 +108,21 @@ button{ font:inherit; color:inherit; background:none; border:none; cursor:pointe
   display:inline-flex; align-items:center; justify-content:center; gap:8px;
   font-family:var(--font-mono); font-size:0.85rem; font-weight:700;
   background:var(--card-bg); color:var(--ink);
-  padding:11px 18px; border-radius:100px; border:2.5px solid var(--ink);
-  box-shadow:3px 3px 0 var(--ink);
-  transition:transform .15s var(--ease), box-shadow .15s var(--ease);
+  padding:11px 18px; border:2.5px solid var(--ink);
+  clip-path:polygon(10px 0, 100% 0, 100% 100%, 0 100%, 0 10px);
+  transition:transform .15s var(--ease), background .15s var(--ease);
 }
-.resume-btn:hover{ transform:translate(-1px,-1px); box-shadow:4px 4px 0 var(--ink); }
-.resume-btn:active{ transform:translate(2px,2px); box-shadow:0 0 0 var(--ink); }
+.resume-btn:hover{ transform:translateY(-2px); }
+.resume-btn:active{ transform:translateY(0); }
 
-/* --- bouton itch principal : le "JOUER" du sidebar --- */
+/* --- bouton itch principal : le "JOUER" du sidebar, seule pièce à garder une ombre franche --- */
 .itch-main-btn{
   margin-top:12px; width:100%;
   display:inline-flex; align-items:center; justify-content:center; gap:8px;
   font-family:var(--font-mono); font-size:0.85rem; font-weight:700;
   background:var(--red); color:#fff;
-  padding:13px 14px; border-radius:100px; border:2.5px solid var(--ink);
+  padding:13px 14px; border:2.5px solid var(--ink);
+  clip-path:polygon(14px 0, 100% 0, 100% 100%, 0 100%, 0 14px);
   box-shadow:4px 4px 0 var(--ink);
   transition:transform .15s var(--ease), box-shadow .15s var(--ease), background .15s var(--ease);
 }
@@ -144,7 +135,7 @@ button{ font:inherit; color:inherit; background:none; border:none; cursor:pointe
   border-radius:50%; background:var(--card-bg); border:2.5px solid var(--ink);
   transition:transform .15s var(--ease), background .15s var(--ease);
 }
-.socials a:hover{ background:var(--yellow); transform:rotate(-8deg) scale(1.08); }
+.socials a:hover{ background:var(--yellow); transform:scale(1.08); }
 
 /* ==================================================================
    PANNEAU DROIT
@@ -157,15 +148,14 @@ button{ font:inherit; color:inherit; background:none; border:none; cursor:pointe
 .pill-row{ display:flex; flex-wrap:wrap; gap:12px; padding-bottom:24px; }
 .pill{
   font-family:var(--font-mono); font-weight:700; font-size:0.88rem;
-  padding:10px 20px; border-radius:100px; background:var(--card-bg);
-  border:2.5px solid var(--ink); box-shadow:3px 3px 0 var(--ink);
-  transition:transform .15s var(--ease), box-shadow .15s var(--ease), background .15s var(--ease);
+  padding:10px 20px; background:var(--card-bg);
+  border:2.5px solid var(--ink);
+  clip-path:polygon(11px 0, 100% 0, 100% 100%, 0 100%, 0 11px);
+  transition:transform .15s var(--ease), background .15s var(--ease);
 }
-.pill:nth-child(odd){ transform:rotate(-1.5deg); }
-.pill:nth-child(even){ transform:rotate(1.5deg); }
-.pill:hover{ transform:translate(-1px,-1px) rotate(0deg); box-shadow:4px 4px 0 var(--ink); }
-.pill:active{ transform:translate(2px,2px) rotate(0deg); box-shadow:0 0 0 var(--ink); }
-.pill.is-active{ background:var(--red); color:#fff; transform:rotate(0deg); }
+.pill:hover{ transform:translateY(-2px); }
+.pill:active{ transform:translateY(0); }
+.pill.is-active{ background:var(--red); color:#fff; }
 
 /* --- Chaque projet a son propre tiroir, indépendant --- */
 .project-drawer{
@@ -186,52 +176,84 @@ button{ font:inherit; color:inherit; background:none; border:none; cursor:pointe
 
 .page{
   min-width:100%; scroll-snap-align:start;
-  display:grid; grid-template-columns:1fr 260px; gap:26px; padding-bottom:24px;
+  display:grid; grid-template-columns:1fr 320px; gap:28px; padding-bottom:26px;
+  min-height:300px;
+}
+.page__text{
+  background:var(--paper);
+  border:2.5px solid var(--ink);
+  border-radius:12px;
+  padding:24px 26px;
+  display:flex; flex-direction:column; justify-content:center;
 }
 .page__text h3{ font-family:var(--font-display); font-weight:600; font-size:1.4rem; margin-bottom:10px; }
 .page__tags{ display:flex; gap:6px; flex-wrap:wrap; margin-bottom:14px; }
 .page__tags span{
   font-family:var(--font-mono); font-size:0.7rem; font-weight:700;
-  padding:4px 10px; border-radius:100px; background:var(--yellow); border:2px solid var(--ink);
+  padding:4px 10px; border-radius:7px; background:var(--yellow); border:2px solid var(--ink);
 }
 .page__text p{ opacity:.85; font-size:0.96rem; max-width:56ch; margin-bottom:14px; }
 .page__img{
-  border-radius:14px; border:2.5px solid var(--ink);
-  box-shadow:5px 5px 0 var(--ink); align-self:start; transform:rotate(1.2deg);
+  width:100%; height:100%; min-height:280px;
+  object-fit:cover;
+  border-radius:12px; border:2.5px solid var(--ink);
+  box-shadow:5px 5px 0 var(--ink); transform:rotate(1deg);
 }
 
 .itch-link{
-  display:inline-flex; align-items:center; gap:6px;
+  display:inline-flex; align-items:center; gap:6px; align-self:flex-start;
   font-family:var(--font-mono); font-size:0.8rem; font-weight:700;
-  padding:8px 16px; border-radius:100px;
+  padding:8px 16px;
   background:var(--card-bg); border:2.5px solid var(--ink);
-  box-shadow:3px 3px 0 var(--ink);
-  transition:transform .15s var(--ease), box-shadow .15s var(--ease), background .15s var(--ease);
+  clip-path:polygon(9px 0, 100% 0, 100% 100%, 0 100%, 0 9px);
+  transition:transform .15s var(--ease), background .15s var(--ease);
 }
-.itch-link:hover{ background:var(--yellow); transform:translate(-1px,-1px); box-shadow:4px 4px 0 var(--ink); }
-.itch-link:active{ transform:translate(2px,2px); box-shadow:0 0 0 var(--ink); }
+.itch-link:hover{ background:var(--yellow); transform:translateY(-2px); }
+.itch-link:active{ transform:translateY(0); }
 
 .scrollbar-track{
-  height:11px; background:var(--card-bg); border:2px solid var(--ink); border-radius:100px;
-  margin-bottom:26px; cursor:pointer; position:relative; overflow:hidden;
+  height:14px; background:var(--card-bg); border:2px solid var(--ink); border-radius:8px;
+  margin-bottom:22px; cursor:pointer; position:relative; overflow:visible;
+  display:flex; align-items:center;
 }
 .scrollbar-thumb{
-  position:absolute; top:0; left:0; height:100%; width:33%;
-  background:repeating-linear-gradient(135deg, var(--red) 0 6px, var(--red-dark) 6px 12px);
-  border-radius:100px; transition:width .2s var(--ease);
+  position:absolute; top:-2px; left:0; height:calc(100% + 4px); width:33%;
+  background:var(--red);
+  border:2px solid var(--ink);
+  border-radius:7px;
+  cursor:grab;
+  transition:width .2s var(--ease), background .15s var(--ease);
 }
+.scrollbar-thumb::before{
+  /* petites cannelures pour signaler que c'est prenable */
+  content:"";
+  position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
+  width:16px; height:6px;
+  background:repeating-linear-gradient(90deg, rgba(255,255,255,.8) 0 2px, transparent 2px 5px);
+}
+.scrollbar-thumb:hover{ background:var(--red-dark); }
+.scrollbar-thumb.is-dragging{ cursor:grabbing; }
 
-.fold-corner{
-  position:absolute; right:-3px; bottom:-3px; width:40px; height:40px;
-  background:linear-gradient(135deg, transparent 50%, var(--yellow) 50%);
-  border-top:2.5px solid var(--ink); border-left:2.5px solid var(--ink);
-  border-top-left-radius:8px; transition:transform .15s var(--ease);
+/* --- bouton pour rabattre le tiroir : clair, textuel, pas pictural --- */
+.drawer-close{
+  position:absolute; right:0; bottom:-2px;
+  display:flex; align-items:center; gap:6px;
+  font-family:var(--font-mono); font-size:0.76rem; font-weight:700;
+  color:var(--ink);
+  background:var(--card-bg);
+  border:2.5px solid var(--ink);
+  border-radius:8px;
+  padding:7px 12px;
+  opacity:0;
+  pointer-events:none;
+  transition:opacity .25s var(--ease) .1s, transform .15s var(--ease), box-shadow .15s var(--ease);
 }
-.fold-corner::after{
-  content:"⌃"; position:absolute; right:6px; bottom:2px;
-  font-size:0.95rem; font-weight:700; color:var(--ink);
+.project-drawer.is-open .drawer-close{
+  opacity:1;
+  pointer-events:auto;
 }
-.fold-corner:hover{ transform:scale(1.08) rotate(-4deg); }
+.drawer-close:hover{ background:var(--yellow); transform:translateY(-1px); box-shadow:2px 2px 0 var(--ink); }
+.drawer-close:active{ transform:translateY(0); box-shadow:none; }
 
 /* ==================================================================
    ABOUT ME — panneaux diagonaux façon launcher, zoom au clic
@@ -245,7 +267,7 @@ button{ font:inherit; color:inherit; background:none; border:none; cursor:pointe
   display:flex;
   height:340px;
   border:var(--border) solid var(--ink);
-  border-radius:16px;
+  border-radius:12px;
   overflow:hidden;
   box-shadow:6px 6px 0 var(--ink);
   margin-bottom:30px;
@@ -311,7 +333,6 @@ button{ font:inherit; color:inherit; background:none; border:none; cursor:pointe
   .resume-btn, .itch-main-btn{ width:auto; }
   .page{ grid-template-columns:1fr; }
   .page__img{ order:-1; }
-  .sticker{ right:14px; }
 
   .occupations{ height:auto; flex-direction:column; }
   .occupation{ transform:none; margin-left:0; min-height:70px; }
