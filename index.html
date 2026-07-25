@@ -22,8 +22,8 @@
       </span>
 
       <nav class="card__tabs">
-        <button class="tab is-active" data-tab="projects">Projects <span class="chev">⌄</span></button>
-        <button class="tab" data-tab="about">About me <span class="chev">⌄</span></button>
+        <button class="tab is-active" data-tab="projects">Projects</button>
+        <button class="tab" data-tab="about">About me</button>
       </nav>
     </div>
 
@@ -47,7 +47,6 @@
           <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.6"><path d="M12 3v12m0 0l-4-4m4 4l4-4M4 21h16"/></svg>
         </a>
 
-        <!-- itch.io rejoint LinkedIn et mail : un rond parmi les autres, pas un bouton à part -->
         <ul class="socials">
           <!-- ⚙️ À REMPLACER : tes vrais liens -->
           <li><a href="#" title="itch.io" aria-label="itch.io">
@@ -62,7 +61,7 @@
         </ul>
       </aside>
 
-      <!-- Colonne droite -->
+      <!-- Colonne droite : hauteur fixe, ne bouge jamais quand on ouvre/ferme un projet -->
       <div class="card__panel">
 
         <!-- ================= PROJECTS ================= -->
@@ -75,11 +74,14 @@
             <button class="pill" data-project="p3">Project 3</button>
           </div>
 
-          <!-- ============================================
-               TIROIR PROJECT 1 — 4 pages + sa propre barre
-          ============================================ -->
-          <div class="project-drawer" data-drawer="p1">
-            <div class="drawer__inner">
+          <!-- Scène à taille fixe : les tiroirs se superposent ici en fondu, la scène elle ne bouge pas -->
+          <div class="stage-frame" id="projectsStage">
+            <p class="stage-frame__hint">Sélectionne un projet ci-dessus pour voir le détail</p>
+
+            <!-- ============================================
+                 PROJECT 1 — 4 pages + sa propre barre
+            ============================================ -->
+            <div class="project-drawer" data-drawer="p1">
               <div class="drawer__scroll">
 
                 <!-- ⚙️ À REMPLACER : page 1 = présentation -->
@@ -126,13 +128,11 @@
               </div>
               <div class="scrollbar-track"><div class="scrollbar-thumb"></div></div>
             </div>
-          </div>
 
-          <!-- ============================================
-               TIROIR PROJECT 2
-          ============================================ -->
-          <div class="project-drawer" data-drawer="p2">
-            <div class="drawer__inner">
+            <!-- ============================================
+                 PROJECT 2
+            ============================================ -->
+            <div class="project-drawer" data-drawer="p2">
               <div class="drawer__scroll">
 
                 <div class="page">
@@ -175,13 +175,11 @@
               </div>
               <div class="scrollbar-track"><div class="scrollbar-thumb"></div></div>
             </div>
-          </div>
 
-          <!-- ============================================
-               TIROIR PROJECT 3
-          ============================================ -->
-          <div class="project-drawer" data-drawer="p3">
-            <div class="drawer__inner">
+            <!-- ============================================
+                 PROJECT 3
+            ============================================ -->
+            <div class="project-drawer" data-drawer="p3">
               <div class="drawer__scroll">
 
                 <div class="page">
@@ -224,8 +222,8 @@
               </div>
               <div class="scrollbar-track"><div class="scrollbar-thumb"></div></div>
             </div>
-          </div>
 
+          </div>
         </div>
 
         <!-- ================= ABOUT ME — panneaux diagonaux façon launcher ================= -->

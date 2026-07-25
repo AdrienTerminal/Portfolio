@@ -11,9 +11,16 @@
   --font-mono:   'JetBrains Mono', monospace;
   --font-body:   'Inter', sans-serif;
 
-  --radius:      13px;
+  --radius:      10px;
+  --radius-lg:   16px;
   --border:      3px;
   --ease:        cubic-bezier(.34,1.56,.64,1);
+
+  /* hauteur de la zone de contenu (colonne droite + colonne gauche) :
+     fixe tant qu'on reste sur "Projects", quel que soit le projet ouvert.
+     "About me" passe à 1.5x cette hauteur. */
+  --body-h:       600px;
+  --body-h-about: 900px;
 }
 
 *{ box-sizing:border-box; margin:0; padding:0; }
@@ -21,8 +28,7 @@
 body{
   min-height:100vh;
   background:
-    repeating-linear-gradient(0deg, rgba(27,42,74,0.05) 0 1px, transparent 1px 34px),
-    repeating-linear-gradient(90deg, rgba(27,42,74,0.05) 0 1px, transparent 1px 34px),
+    radial-gradient(circle, var(--ink) 1.4px, transparent 1.4px) 0 0/26px 26px,
     var(--paper);
   font-family:var(--font-body);
   color:var(--ink);
@@ -43,20 +49,21 @@ button{ font:inherit; color:inherit; background:none; border:none; cursor:pointe
 .stage{ width:100%; display:flex; justify-content:center; position:relative; z-index:1; }
 
 /* ==================================================================
-   LA CARTE — plus grande, posée de travers
+   LA CARTE
 ================================================================== */
 .card{
   width:100%;
   max-width:1080px;
   background:var(--card-bg);
   border:var(--border) solid var(--ink);
-  border-radius:var(--radius);
+  border-radius:var(--radius-lg);
   box-shadow:12px 12px 0 var(--ink);
-  overflow:visible;
+  overflow:hidden;
   position:relative;
   transform:rotate(-0.5deg);
 }
 
+/* --- topbar --- */
 .card__topbar{
   display:flex; align-items:center; justify-content:space-between;
   padding:24px 32px;
@@ -64,42 +71,45 @@ button{ font:inherit; color:inherit; background:none; border:none; cursor:pointe
   flex-wrap:wrap; gap:12px;
 }
 .card__brand{ font-family:var(--font-display); font-weight:600; font-size:1.6rem; display:inline-flex; flex-direction:column; line-height:1; }
-.brand__underline{
-  width:64%; height:5px; margin-top:8px;
-  background:var(--red); border-radius:3px;
-}
+.brand__underline{ width:90px; height:4px; background:var(--red); border-radius:100px; margin-top:8px; }
 
 .card__tabs{ display:flex; gap:12px; }
 .tab{
   font-family:var(--font-mono); font-weight:700; font-size:0.88rem;
-  padding:11px 22px 11px 18px; border:2.5px solid var(--ink);
-  clip-path:polygon(12px 0, 100% 0, 100% 100%, 0 100%, 0 12px);
-  display:flex; align-items:center; gap:6px; background:var(--card-bg);
+  padding:11px 20px; border-radius:var(--radius); border:2.5px solid var(--ink);
+  background:var(--card-bg);
   transition:transform .15s var(--ease), background .15s var(--ease);
 }
-.tab .chev{ font-size:0.85rem; transition:transform .3s var(--ease); }
 .tab:hover{ transform:translateY(-2px); }
 .tab:active{ transform:translateY(0); }
 .tab.is-active{ background:var(--red); color:#fff; }
-.tab.is-active .chev{ transform:rotate(180deg); }
 
-.card__body{ display:grid; grid-template-columns:250px 1fr; }
+/* --- corps : hauteur fixe, transition uniquement au changement d'onglet --- */
+.card__body{
+  display:grid;
+  grid-template-columns:250px 1fr;
+  grid-template-rows:1fr;
+  height:var(--body-h);
+  transition:height .5s var(--ease);
+}
+.card.is-about .card__body{ height:var(--body-h-about); }
 
 .card__profile{
   padding:38px 26px;
   border-right:var(--border) solid var(--ink);
   display:flex; flex-direction:column; align-items:center; text-align:center; gap:8px;
+  overflow-y:auto;
 }
 .profile__spacer{ flex:1; min-height:20px; }
 
 .avatar-frame{
   width:136px; height:136px;
   border:var(--border) solid var(--ink); background:var(--yellow);
-  clip-path:polygon(20px 0, 100% 0, 100% 100%, 0 100%, 0 20px);
-  padding:6px; margin-bottom:16px; transform:rotate(-3deg);
+  border-radius:var(--radius-lg);
+  padding:6px; margin-bottom:16px;
   box-shadow:6px 6px 0 var(--ink);
 }
-.avatar{ width:100%; height:100%; object-fit:cover; }
+.avatar{ width:100%; height:100%; border-radius:calc(var(--radius-lg) - 4px); object-fit:cover; }
 
 .role{ font-family:var(--font-mono); font-size:0.85rem; color:var(--muted); font-weight:500; }
 
@@ -108,8 +118,7 @@ button{ font:inherit; color:inherit; background:none; border:none; cursor:pointe
   display:inline-flex; align-items:center; justify-content:center; gap:8px;
   font-family:var(--font-mono); font-size:0.85rem; font-weight:700;
   background:var(--card-bg); color:var(--ink);
-  padding:11px 18px; border:2.5px solid var(--ink);
-  clip-path:polygon(10px 0, 100% 0, 100% 100%, 0 100%, 0 10px);
+  padding:11px 18px; border:2.5px solid var(--ink); border-radius:var(--radius);
   transition:transform .15s var(--ease), background .15s var(--ease);
 }
 .resume-btn:hover{ transform:translateY(-2px); }
@@ -124,53 +133,80 @@ button{ font:inherit; color:inherit; background:none; border:none; cursor:pointe
 .socials a:hover{ background:var(--yellow); transform:scale(1.08); }
 
 /* ==================================================================
-   PANNEAU DROIT
+   PANNEAU DROIT — hauteur = 100% de card__body, ne bouge jamais seul
 ================================================================== */
-.card__panel{ padding:30px 32px 32px; position:relative; }
-.panel-view{ display:none; }
-.panel-view.is-active{ display:block; animation:pop-in .35s var(--ease); }
-@keyframes pop-in{ from{ opacity:0; transform:translateY(6px) scale(.98);} to{ opacity:1; transform:none;} }
+.card__panel{
+  height:100%;
+  padding:30px 32px;
+  display:flex;
+  flex-direction:column;
+  overflow:hidden;
+}
 
-.pill-row{ display:flex; flex-wrap:wrap; gap:12px; padding-bottom:24px; }
+.panel-view{ display:none; }
+.panel-view.is-active{
+  display:flex; flex-direction:column;
+  flex:1; min-height:0;
+  animation:pop-in .35s var(--ease);
+}
+@keyframes pop-in{ from{ opacity:0; transform:translateY(6px);} to{ opacity:1; transform:none;} }
+
+/* --- pills projets --- */
+.pill-row{
+  display:flex; flex-wrap:wrap; gap:12px;
+  padding-bottom:20px; margin-bottom:20px;
+  border-bottom:2.5px dashed var(--ink);
+  flex:0 0 auto;
+}
 .pill{
   font-family:var(--font-mono); font-weight:700; font-size:0.88rem;
   padding:10px 20px; background:var(--card-bg);
-  border:2.5px solid var(--ink);
-  clip-path:polygon(11px 0, 100% 0, 100% 100%, 0 100%, 0 11px);
+  border:2.5px solid var(--ink); border-radius:var(--radius);
   transition:transform .15s var(--ease), background .15s var(--ease);
 }
 .pill:hover{ transform:translateY(-2px); }
 .pill:active{ transform:translateY(0); }
 .pill.is-active{ background:var(--red); color:#fff; }
 
-/* --- Chaque projet a son propre tiroir, indépendant --- */
+/* --- SCÈNE PROJETS : taille fixe, les tiroirs s'y superposent en fondu --- */
+.stage-frame{
+  position:relative;
+  flex:1; min-height:0;
+}
+.stage-frame__hint{
+  position:absolute; inset:0;
+  display:flex; align-items:center; justify-content:center;
+  text-align:center;
+  font-family:var(--font-mono); font-size:0.85rem; color:var(--muted);
+  transition:opacity .25s var(--ease);
+}
+.stage-frame.has-open .stage-frame__hint{ opacity:0; }
+
 .project-drawer{
-  display:grid; grid-template-rows:0fr;
-  transition:grid-template-rows .5s var(--ease);
+  position:absolute; inset:0;
+  display:flex; flex-direction:column;
+  opacity:0; pointer-events:none;
+  transition:opacity .35s var(--ease);
 }
-.project-drawer.is-open{ grid-template-rows:1fr; }
-.drawer__inner{ overflow:hidden; min-height:0; }
-.project-drawer.is-open .drawer__inner{
-  border-top:var(--border) dashed var(--ink);
-  padding-top:24px; position:relative;
-}
+.project-drawer.is-open{ opacity:1; pointer-events:auto; }
 
 .drawer__scroll{
+  flex:1; min-height:0;
   display:flex; overflow-x:auto; scrollbar-width:none;
 }
 .drawer__scroll::-webkit-scrollbar{ display:none; }
 
 .page{
-  min-width:100%;
-  display:grid; grid-template-columns:1fr 320px; gap:28px; padding-bottom:20px;
-  min-height:300px;
+  min-width:100%; height:100%;
+  display:grid; grid-template-columns:1fr 320px; gap:24px; padding-bottom:16px;
 }
 .page__text{
   background:var(--paper);
   border:2.5px solid var(--ink);
-  border-radius:12px;
+  border-radius:var(--radius-lg);
   padding:24px 26px;
   display:flex; flex-direction:column; justify-content:center;
+  overflow-y:auto;
 }
 .page__text h3{ font-family:var(--font-display); font-weight:600; font-size:1.4rem; margin-bottom:10px; }
 .page__tags{ display:flex; gap:6px; flex-wrap:wrap; margin-bottom:14px; }
@@ -180,26 +216,26 @@ button{ font:inherit; color:inherit; background:none; border:none; cursor:pointe
 }
 .page__text p{ opacity:.85; font-size:0.96rem; max-width:56ch; margin-bottom:14px; }
 .page__img{
-  width:100%; height:100%; min-height:280px;
+  width:100%; height:100%;
   object-fit:cover;
-  border-radius:12px; border:2.5px solid var(--ink);
-  box-shadow:5px 5px 0 var(--ink); transform:rotate(1deg);
+  border-radius:var(--radius-lg); border:2.5px solid var(--ink);
+  box-shadow:5px 5px 0 var(--ink);
 }
 
 .itch-link{
   display:inline-flex; align-items:center; gap:6px; align-self:flex-start;
   font-family:var(--font-mono); font-size:0.8rem; font-weight:700;
-  padding:8px 16px;
+  padding:8px 16px; border-radius:var(--radius);
   background:var(--card-bg); border:2.5px solid var(--ink);
-  clip-path:polygon(9px 0, 100% 0, 100% 100%, 0 100%, 0 9px);
   transition:transform .15s var(--ease), background .15s var(--ease);
 }
 .itch-link:hover{ background:var(--yellow); transform:translateY(-2px); }
 .itch-link:active{ transform:translateY(0); }
 
 .scrollbar-track{
+  flex:0 0 auto; margin-top:14px;
   height:14px; background:var(--card-bg); border:2px solid var(--ink); border-radius:8px;
-  margin-bottom:2px; cursor:pointer; position:relative; overflow:visible;
+  cursor:pointer; position:relative; overflow:visible;
   display:flex; align-items:center;
 }
 .scrollbar-thumb{
@@ -211,7 +247,6 @@ button{ font:inherit; color:inherit; background:none; border:none; cursor:pointe
   transition:width .2s var(--ease), background .15s var(--ease);
 }
 .scrollbar-thumb::before{
-  /* petites cannelures pour signaler que c'est prenable */
   content:"";
   position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
   width:16px; height:6px;
@@ -221,21 +256,20 @@ button{ font:inherit; color:inherit; background:none; border:none; cursor:pointe
 .scrollbar-thumb.is-dragging{ cursor:grabbing; }
 
 /* ==================================================================
-   ABOUT ME — panneaux diagonaux façon launcher, zoom au clic
+   ABOUT ME — panneaux diagonaux façon launcher, remplit toute la scène
 ================================================================== */
 .about__hint{
   font-family:var(--font-mono); font-size:0.78rem; color:var(--muted);
-  margin-bottom:16px;
+  margin-bottom:16px; flex:0 0 auto;
 }
 
 .occupations{
   display:flex;
-  height:340px;
+  flex:1; min-height:0;
   border:var(--border) solid var(--ink);
-  border-radius:12px;
+  border-radius:var(--radius-lg);
   overflow:hidden;
   box-shadow:6px 6px 0 var(--ink);
-  margin-bottom:30px;
 }
 
 .occupation{
@@ -253,7 +287,6 @@ button{ font:inherit; color:inherit; background:none; border:none; cursor:pointe
 .occupation.is-active{ flex:5; }
 
 .occupation::before{
-  /* voile sombre pour que le texte reste lisible sur l'image */
   content:"";
   position:absolute; inset:0;
   background:linear-gradient(0deg, rgba(27,42,74,0.85), rgba(27,42,74,0.15) 55%);
@@ -287,21 +320,46 @@ button{ font:inherit; color:inherit; background:none; border:none; cursor:pointe
 }
 
 /* ==================================================================
-   RESPONSIVE
+   RESPONSIVE — on abandonne la scène "à taille fixe + superposition"
+   sur mobile au profit d'un flux naturel, pour rester lisible quel
+   que soit le format de fenêtre / d'écran.
 ================================================================== */
 @media (max-width:760px){
   .card{ transform:none; }
-  .card__body{ grid-template-columns:1fr; }
-  .card__profile{ border-right:none; border-bottom:var(--border) solid var(--ink); flex-direction:row; flex-wrap:wrap; justify-content:center; padding:22px; }
+
+  .card__body{
+    grid-template-columns:1fr;
+    grid-template-rows:auto auto;
+    height:auto !important;
+  }
+  .card.is-about .card__body{ height:auto !important; }
+
+  .card__profile{
+    border-right:none; border-bottom:var(--border) solid var(--ink);
+    flex-direction:row; flex-wrap:wrap; justify-content:center; padding:22px;
+    overflow:visible;
+  }
   .profile__spacer{ display:none; }
   .avatar-frame{ width:80px; height:80px; margin-bottom:0; }
-  .resume-btn, .itch-main-btn{ width:auto; }
-  .page{ grid-template-columns:1fr; }
-  .page__img{ order:-1; }
 
-  .occupations{ height:auto; flex-direction:column; }
-  .occupation{ transform:none; margin-left:0; min-height:70px; }
-  .occupation.is-active{ flex:5; min-height:220px; }
+  .card__panel{ height:auto; overflow:visible; }
+  .panel-view.is-active{ flex:none; }
+
+  .stage-frame{ min-height:460px; }
+  .stage-frame__hint{ position:static; padding:40px 0; }
+  .stage-frame.has-open .stage-frame__hint{ display:none; }
+  .project-drawer{
+    position:relative; inset:auto;
+    display:none; opacity:1; pointer-events:auto;
+  }
+  .project-drawer.is-open{ display:flex; }
+
+  .page{ grid-template-columns:1fr; height:auto; }
+  .page__img{ order:-1; height:200px; }
+
+  .occupations{ flex-direction:column; height:auto; }
+  .occupation{ transform:none; margin-left:0; min-height:64px; }
+  .occupation.is-active{ flex:5; min-height:240px; }
   .occupation__label{ writing-mode:horizontal-tb; }
   .occupation__info{ transform:none; }
 }
