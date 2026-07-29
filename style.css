@@ -347,6 +347,18 @@ button{ font:inherit; color:inherit; background:none; border:none; cursor:pointe
   gap:3px;
 }
 
+.about-intro{ flex:0 0 auto; margin-bottom:20px; }
+.about-bio{
+  font-size:0.96rem; line-height:1.55; opacity:.9;
+  max-width:70ch; margin-bottom:14px;
+}
+.stack-row{ display:flex; flex-wrap:wrap; gap:8px; }
+.stack-tag{
+  font-family:var(--font-mono); font-size:0.74rem; font-weight:700;
+  padding:6px 13px;
+  background:var(--card-bg); border:2px solid var(--ink); border-radius:var(--radius);
+}
+
 .occupation{
   position:relative;
   flex:1;
