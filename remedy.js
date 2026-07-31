@@ -1,5 +1,6 @@
 /* ==================================================================
-   0) SONS — synthétisés à la volée (Web Audio), pas de fichiers externes
+   0) SONS — retravaillés en plus sourd / plus "signal radio parasité"
+      pour coller à l'ambiance, toujours synthétisés à la volée.
 ================================================================== */
 const AudioCtx = window.AudioContext || window.webkitAudioContext;
 let actx = null;
@@ -29,11 +30,11 @@ function blip({ freqStart, freqEnd = freqStart, duration = 0.09, type = "square"
 }
 
 const sfx = {
-  tab:    () => blip({ freqStart:520, freqEnd:640,  duration:0.07, type:"square",   gain:0.04  }),
-  open:   () => blip({ freqStart:300, freqEnd:560,  duration:0.16, type:"triangle", gain:0.05  }),
-  close:  () => blip({ freqStart:440, freqEnd:220,  duration:0.14, type:"triangle", gain:0.05  }),
-  select: () => blip({ freqStart:820, freqEnd:1040, duration:0.07, type:"sine",     gain:0.04  }),
-  scroll: () => blip({ freqStart:680, freqEnd:720,  duration:0.035,type:"square",   gain:0.022 }),
+  tab:    () => blip({ freqStart:180, freqEnd:120,  duration:0.09, type:"sawtooth", gain:0.035 }),
+  open:   () => blip({ freqStart:90,  freqEnd:260,  duration:0.28, type:"sawtooth", gain:0.05  }),
+  close:  () => blip({ freqStart:260, freqEnd:70,   duration:0.22, type:"sawtooth", gain:0.05  }),
+  select: () => blip({ freqStart:520, freqEnd:180,  duration:0.12, type:"square",   gain:0.04  }),
+  scroll: () => blip({ freqStart:340, freqEnd:300,  duration:0.03, type:"square",   gain:0.02  }),
 };
 
 
@@ -65,13 +66,16 @@ tabs.forEach(tab => {
 
 
 /* ==================================================================
-   2) PROJETS — même machine d'état anti-spam qu'avant : pendant
-      qu'une transition tourne, un clic ne fait que mettre à jour
-      "la dernière destination demandée", traitée dès la fin de
-      l'animation en cours. Ouverture et fermeture utilisent le même
-      fondu doux (scale + opacity, défini en CSS) dans les deux sens.
+   2) PROJETS — la fermeture/ouverture d'un tiroir passe par un
+      balayage d'éclats façon kaléidoscope : l'écran se couvre
+      d'éclats rouges, le contenu change pendant qu'il est masqué,
+      puis les éclats se retirent pour révéler le nouveau projet.
+      La protection anti-spam reste la même : pendant le balayage,
+      un clic ne fait que mettre à jour la destination visée.
 ================================================================== */
-const TRANSITION_MS = 380; // doit correspondre à la transition CSS de .project-drawer
+const COVER_MS   = 260;
+const UNCOVER_MS = 340;
+const SHARD_COUNT = 10;
 
 const pills   = document.querySelectorAll(".pill");
 const drawers = document.querySelectorAll(".project-drawer");
@@ -90,50 +94,56 @@ function resetDrawerScroll(id){
   drawer?._scrollApi?.reset();
 }
 
-function hideAllDrawers(){
+function swapVisibleDrawer(nextId){
   drawers.forEach(d => d.classList.remove("is-open"));
-  stageFrame.classList.remove("has-open");
+  if(nextId === null){
+    stageFrame.classList.remove("has-open");
+    setPillActive(null);
+    return;
+  }
+  resetDrawerScroll(nextId);
+  stageFrame.classList.add("has-open");
+  setPillActive(nextId);
+  document.querySelector(`.project-drawer[data-drawer="${nextId}"]`)?.classList.add("is-open");
 }
 
-function openDrawer(id){
-  resetDrawerScroll(id);
-  stageFrame.classList.add("has-open");
-  document.querySelector(`.project-drawer[data-drawer="${id}"]`)?.classList.add("is-open");
+function spawnKaleido(){
+  const overlay = document.createElement("div");
+  overlay.className = "kaleido-overlay";
+  for(let i = 0; i < SHARD_COUNT; i++){
+    const shard = document.createElement("div");
+    shard.className = "kaleido-shard";
+    shard.style.setProperty("--angle", (360 / SHARD_COUNT) * i + "deg");
+    shard.style.setProperty("--delay", (i * 14) + "ms");
+    overlay.appendChild(shard);
+  }
+  stageFrame.appendChild(overlay);
+  return overlay;
 }
 
 function runTransition(nextId){
   isAnimating = true;
-  const needsClose = openId !== null;
+  const overlay = spawnKaleido();
 
-  if(needsClose){
-    hideAllDrawers();
-    window.setTimeout(() => {
-      openId = null;
-      setPillActive(null);
-      resolveTransition(nextId);
-    }, TRANSITION_MS);
-  }else{
-    resolveTransition(nextId);
-  }
-}
+  requestAnimationFrame(() => overlay.classList.add("is-covering"));
 
-function resolveTransition(nextId){
-  if(pendingId !== undefined){
-    const target = pendingId;
-    pendingId = undefined;
+  window.setTimeout(() => {
+    swapVisibleDrawer(nextId);
+    openId = nextId;
+    if(nextId !== null) sfx.open();
+    overlay.classList.remove("is-covering");
+    overlay.classList.add("is-uncovering");
+  }, COVER_MS);
+
+  window.setTimeout(() => {
+    overlay.remove();
     isAnimating = false;
-    goTo(target);
-    return;
-  }
-  if(nextId === null){
-    isAnimating = false;
-    return;
-  }
-  openId = nextId;
-  setPillActive(nextId);
-  openDrawer(nextId);
-  sfx.open();
-  window.setTimeout(() => { isAnimating = false; }, TRANSITION_MS);
+    if(pendingId !== undefined){
+      const target = pendingId;
+      pendingId = undefined;
+      goTo(target);
+    }
+  }, COVER_MS + UNCOVER_MS);
 }
 
 function goTo(nextId){
@@ -148,12 +158,11 @@ function goTo(nextId){
 pills.forEach(pill => {
   pill.addEventListener("click", () => {
     const id = pill.dataset.project;
-    const somethingWasOpen = openId !== null || pendingId !== undefined;
     if(id === openId){
       sfx.close();
       goTo(null);
     }else{
-      if(somethingWasOpen) sfx.close();
+      if(openId !== null) sfx.close();
       goTo(id);
     }
   });
@@ -241,10 +250,7 @@ drawers.forEach(drawer => {
 
 
 /* ==================================================================
-   3) ABOUT ME — panneaux diagonaux, un seul zoomé à la fois.
-      Pas de texte d'instruction : au premier passage sur l'onglet,
-      une petite vague fait "peeker" chaque panneau tour à tour pour
-      suggérer l'interaction sans l'écrire.
+   3) ABOUT ME — panneaux droits, un seul zoomé à la fois
 ================================================================== */
 const occupations = document.querySelectorAll(".occupation");
 
@@ -272,10 +278,7 @@ function playAboutPeekSequence(){
 
 
 /* ==================================================================
-   4) SWITCH DE LANGUE — bascule le texte des éléments porteurs
-      d'attributs data-fr / data-en. Pour rendre une de tes propres
-      phrases bilingue (ex : dans les pages projets), ajoute
-      simplement data-fr="..." data-en="..." sur l'élément.
+   4) SWITCH DE LANGUE
 ================================================================== */
 const langButtons = document.querySelectorAll(".lang-switch__btn");
 const i18nEls = document.querySelectorAll("[data-fr][data-en]");
