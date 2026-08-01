@@ -3,352 +3,52 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Adrien Terminal — Portfolio</title>
-
+<title>Éditeur — Adrien Terminal Portfolio</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="edit.css">
 </head>
 <body>
 
-<div class="stage">
-  <div class="card" id="card">
-
-    <div class="card__topbar">
-      <span class="card__brand">
-        <!-- ⚙️ À REMPLACER : ton nom -->
-        Adrien Terminal
-        <span class="brand__underline"></span>
-      </span>
-
-      <div class="topbar__right">
-        <div class="lang-switch" id="langSwitch" role="group" aria-label="Langue">
-          <button class="lang-switch__btn is-active" data-lang="fr">FR</button>
-          <button class="lang-switch__btn" data-lang="en">EN</button>
-        </div>
-
-        <nav class="card__tabs">
-          <button class="tab is-active" data-tab="projects">Projects</button>
-          <button class="tab" data-tab="about">About me</button>
-        </nav>
-      </div>
-    </div>
-
-    <div class="card__body">
-
-      <!-- Colonne gauche : identité, fixe -->
-      <aside class="card__profile">
-        <div class="avatar-frame">
-          <!-- ⚙️ À REMPLACER : ta photo -->
-          <img class="avatar" src="https://placehold.co/240x240/243758/F7F3EC?text=Photo" alt="Portrait d'Adrien Terminal">
-        </div>
-        <!-- ⚙️ À REMPLACER : ton intitulé de poste -->
-        <p class="role">Game Designer</p>
-
-        <div class="profile__spacer"></div>
-
-        <!-- ⚙️ À REMPLACER : lien vers ton vrai CV en PDF -->
-        <a href="https://docs.google.com/document/d/1zwWv5rEWPgMTv9Es5RQ-hh1RS-XkhoJ83X6RH_pLDUY/export?format=pdf" class="resume-btn" download>
-          <span class="resume-btn__shine"></span>
-          Resume
-          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.6"><path d="M12 3v12m0 0l-4-4m4 4l4-4M4 21h16"/></svg>
-        </a>
-
-        <ul class="socials">
-          <!-- ⚙️ À REMPLACER : tes vrais liens -->
-          <li><a href="https://adrien-terminal.itch.io/" target="_blank" rel="noopener" title="itch.io" aria-label="itch.io">
-            <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M4.42 2.65C3.03 3.46 0 6.9 0 7.65c0 1.28 1.32 2.4 2.34 2.4.91 0 1.7-.62 2.5-1.36.6-.55.86-.7 1.16-.7.3 0 .56.15 1.16.7.8.74 1.59 1.36 2.5 1.36.9 0 1.68-.62 2.5-1.36.58-.55.85-.7 1.15-.7.3 0 .56.15 1.16.7.8.74 1.6 1.36 2.5 1.36.9 0 1.68-.62 2.5-1.36.58-.55.85-.7 1.15-.7.3 0 .57.15 1.16.7.8.74 1.6 1.36 2.5 1.36C22.68 10.05 24 8.93 24 7.65c0-.75-3.03-4.2-4.42-5C19.16 2.32 16.9 2 12 2S4.84 2.32 4.42 2.65Zm.36 9.02c-.44.24-.98.53-1.66.72-.24 1.6-.5 5.36-.13 7.65.22 1.36 2.6 2.2 4.83 2.2h8.36c2.22 0 4.6-.84 4.83-2.2.37-2.3.11-6.05-.13-7.65-.68-.19-1.22-.48-1.66-.72-.7.44-1.55.76-2.5.76-1.08 0-2.03-.4-2.8-.98-.7.55-1.6.98-2.7.98s-2-.43-2.7-.98c-.77.58-1.72.98-2.8.98-.95 0-1.8-.32-2.5-.76Z"/></svg>
-          </a></li>
-          <li><a href="https://www.linkedin.com/in/adrien-terminal-6a8bb434b/" target="_blank" rel="noopener" title="LinkedIn" aria-label="LinkedIn">
-            <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M20.45 20.45h-3.55v-5.57c0-1.33-.02-3.03-1.85-3.03-1.86 0-2.15 1.45-2.15 2.94v5.66H9.35V9h3.41v1.56h.05c.47-.9 1.63-1.85 3.36-1.85 3.6 0 4.27 2.37 4.27 5.45v6.29ZM5.34 7.43a2.06 2.06 0 1 1 0-4.12 2.06 2.06 0 0 1 0 4.12ZM7.12 20.45H3.56V9h3.56v11.45Z"/></svg>
-          </a></li>
-          <li><a href="mailto:adrien.terminal1@gmail.com" title="Email" aria-label="Email">
-            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v16H4z"/><path d="M4 6l8 6 8-6"/></svg>
-          </a></li>
-          <!-- ⚙️ À REMPLACER : lien vers ton profil artiste Spotify -->
-          <li><a href="https://open.spotify.com/intl-fr/artist/1vI1WZqEmniNYLQHgheETq?si=ElNJqVcTR0-Om8WeXl4FmA" target="_blank" rel="noopener" title="Spotify" aria-label="Spotify">
-            <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2Zm4.59 14.44a.622.622 0 0 1-.86.21c-2.36-1.44-5.33-1.77-8.83-.97a.624.624 0 1 1-.28-1.22c3.83-.88 7.12-.5 9.76 1.12.3.19.39.58.21.86Zm1.22-2.72a.78.78 0 0 1-1.07.26c-2.7-1.66-6.82-2.14-10.02-1.17a.78.78 0 1 1-.45-1.49c3.65-1.11 8.19-.57 11.28 1.33.37.23.48.72.26 1.07Zm.1-2.83c-3.24-1.92-8.6-2.1-11.7-1.16a.936.936 0 1 1-.54-1.79c3.56-1.08 9.47-.87 13.2 1.34a.936.936 0 0 1-.96 1.61Z"/></svg>
-          </a></li>
-        </ul>
-      </aside>
-
-      <!-- Colonne droite : hauteur fixe, ne bouge jamais quand on ouvre/ferme un projet -->
-      <div class="card__panel">
-
-        <!-- ================= PROJECTS ================= -->
-        <div class="panel-view is-active" data-panel="projects">
-
-          <div class="pill-row">
-            <!-- ⚙️ À REMPLACER : ajoute / retire un bouton par projet (garde le même data-project que son tiroir plus bas) -->
-            <button class="pill" data-project="p1">Project 1</button>
-            <button class="pill" data-project="p2">Project 2</button>
-            <button class="pill" data-project="p3">Project 3</button>
-          </div>
-
-          <!-- Scène à taille fixe : le tiroir se déplie/replie en fondu doux -->
-          <div class="stage-frame" id="projectsStage">
-            <p class="stage-frame__hint" data-fr="Sélectionne un projet ci-dessus pour voir le détail" data-en="Pick a project above to see the details">Sélectionne un projet ci-dessus pour voir le détail</p>
-
-            <!-- ============================================
-                 PROJECT 1 — template complet : Overview / Features / Rôle / Résultats
-            ============================================ -->
-            <div class="project-drawer" data-drawer="p1">
-              <div class="drawer__scroll">
-
-                <!-- PAGE 1 — Overview -->
-                <div class="page">
-                  <div class="page__text">
-                    <h3 data-fr="Nom du Project 1" data-en="Project 1 Name">Nom du Project 1</h3>
-                    <p class="page__tags"><span>Unity</span><span>Level Design</span><span>2024</span></p>
-                    <!-- ⚙️ Pitch en une phrase : ce que c'est, en une ligne accrocheuse -->
-                    <p class="page__pitch" data-fr="Un puzzle-platformer où chaque niveau se résout en changeant de point de vue." data-en="A puzzle-platformer where every level is solved by shifting perspective.">Un puzzle-platformer où chaque niveau se résout en changeant de point de vue.</p>
-                    <p data-fr="Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc eu velit a velit bibendum lacinia aliquam vel nibh. Fusce erat eros, rutrum a neque aliquet." data-en="Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc eu velit a velit bibendum lacinia aliquam vel nibh. Fusce erat eros, rutrum a neque aliquet.</p>
-                    <a href="#" class="itch-link" data-fr="Voir sur itch.io ↗" data-en="View on itch.io ↗">Voir sur itch.io ↗</a>
-                  </div>
-                  <img class="page__img" src="https://placehold.co/460x300/E4483F/1B2A4A?text=Overview" alt="Aperçu du Project 1">
-                </div>
-
-                <!-- PAGE 2 — Fonctionnalités clés -->
-                <div class="page">
-                  <div class="page__text">
-                    <h3 data-fr="Fonctionnalités clés" data-en="Key Features">Fonctionnalités clés</h3>
-                    <!-- ⚙️ 3-4 mécaniques ou features phares, une ligne chacune -->
-                    <ul class="page__list">
-                      <li data-fr="<strong>Rotation de caméra —</strong> révèle des chemins cachés selon l'angle." data-en="<strong>Camera rotation —</strong> reveals hidden paths depending on the angle."><strong>Rotation de caméra —</strong> révèle des chemins cachés selon l'angle.</li>
-                      <li data-fr="<strong>Checkpoints dynamiques —</strong> s'adaptent à la difficulté du joueur." data-en="<strong>Dynamic checkpoints —</strong> adapt to the player's difficulty."><strong>Checkpoints dynamiques —</strong> s'adaptent à la difficulté du joueur.</li>
-                      <li data-fr="<strong>20 niveaux —</strong> répartis sur 4 biomes distincts." data-en="<strong>20 levels —</strong> spread across 4 distinct biomes."><strong>20 niveaux —</strong> répartis sur 4 biomes distincts.</li>
-                    </ul>
-                    <a href="#" class="itch-link" data-fr="Voir sur itch.io ↗" data-en="View on itch.io ↗">Voir sur itch.io ↗</a>
-                  </div>
-                  <img class="page__img" src="https://placehold.co/460x300/F2C94C/1B2A4A?text=Gameplay" alt="Gameplay du Project 1">
-                </div>
-
-                <!-- PAGE 3 — Mon rôle -->
-                <div class="page">
-                  <div class="page__text">
-                    <h3 data-fr="Mon rôle" data-en="My Role">Mon rôle</h3>
-                    <!-- ⚙️ Taille d'équipe + durée, et 2-4 responsabilités concrètes -->
-                    <p class="page__meta" data-fr="Équipe de 4 personnes · 3 mois de production" data-en="Team of 4 · 3 months of production">Équipe de 4 personnes · 3 mois de production</p>
-                    <ul class="page__list">
-                      <li data-fr="Level design des 20 niveaux" data-en="Level design for all 20 levels">Level design des 20 niveaux</li>
-                      <li data-fr="Scripting des mécaniques de caméra" data-en="Scripting the camera mechanics">Scripting des mécaniques de caméra</li>
-                      <li data-fr="Playtests et itération d'équilibrage" data-en="Playtesting and balance iteration">Playtests et itération d'équilibrage</li>
-                    </ul>
-                    <a href="#" class="itch-link" data-fr="Voir sur itch.io ↗" data-en="View on itch.io ↗">Voir sur itch.io ↗</a>
-                  </div>
-                  <img class="page__img" src="https://placehold.co/460x300/1B2A4A/F7F3EC?text=Role" alt="Rôle sur le Project 1">
-                </div>
-
-                <!-- PAGE 4 — Résultats -->
-                <div class="page">
-                  <div class="page__text">
-                    <h3 data-fr="Résultats" data-en="Results">Résultats</h3>
-                    <!-- ⚙️ Remplace par tes vrais chiffres (ou supprime les stats qui ne s'appliquent pas) -->
-                    <div class="page__stats">
-                      <div class="stat"><strong>1.2K</strong><span data-fr="téléchargements" data-en="downloads">téléchargements</span></div>
-                      <div class="stat"><strong>4.6</strong><span data-fr="note moyenne" data-en="average rating">note moyenne</span></div>
-                      <div class="stat"><strong>32</strong><span data-fr="avis" data-en="reviews">avis</span></div>
-                    </div>
-                    <p data-fr="Pellentesque risus justo, porta sit amet dapibus, vitae congue nibh — ce que j'en retiens, ce que je referais autrement." data-en="Pellentesque risus justo, porta sit amet dapibus, vitae congue nibh — what I took from it, what I'd do differently.">Pellentesque risus justo, porta sit amet dapibus, vitae congue nibh — ce que j'en retiens, ce que je referais autrement.</p>
-                    <a href="#" class="itch-link" data-fr="Voir sur itch.io ↗" data-en="View on itch.io ↗">Voir sur itch.io ↗</a>
-                  </div>
-                  <img class="page__img" src="https://placehold.co/460x300/F2C94C/1B2A4A?text=Post-mortem" alt="Post-mortem du Project 1">
-                </div>
-
-              </div>
-              <div class="scrollbar-track"><div class="scrollbar-thumb"></div></div>
-            </div>
-
-            <!-- ============================================
-                 PROJECT 2
-            ============================================ -->
-            <div class="project-drawer" data-drawer="p2">
-              <div class="drawer__scroll">
-
-                <div class="page">
-                  <div class="page__text">
-                    <h3 data-fr="Nom du Project 2" data-en="Project 2 Name">Nom du Project 2</h3>
-                    <p class="page__tags"><span>Figma</span><span>UX Research</span><span>2023</span></p>
-                    <p class="page__pitch" data-fr="Refonte du parcours d'onboarding d'une app mobile, de 6 étapes à 2." data-en="Redesigning a mobile app's onboarding flow, from 6 steps down to 2.">Refonte du parcours d'onboarding d'une app mobile, de 6 étapes à 2.</p>
-                    <p data-fr="Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc eu velit a velit bibendum lacinia aliquam vel nibh." data-en="Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut enim ad minim veniam, quis nostrud exercitation ullamco.">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc eu velit a velit bibendum lacinia aliquam vel nibh.</p>
-                    <a href="#" class="itch-link" data-fr="Voir sur itch.io ↗" data-en="View on itch.io ↗">Voir sur itch.io ↗</a>
-                  </div>
-                  <img class="page__img" src="https://placehold.co/460x300/F2C94C/1B2A4A?text=Overview" alt="Aperçu du Project 2">
-                </div>
-
-                <div class="page">
-                  <div class="page__text">
-                    <h3>Process</h3>
-                    <ul class="page__list">
-                      <li data-fr="<strong>Recherche utilisateur —</strong> 12 entretiens, 3 profils types." data-en="<strong>User research —</strong> 12 interviews, 3 user personas."><strong>Recherche utilisateur —</strong> 12 entretiens, 3 profils types.</li>
-                      <li data-fr="<strong>Wireframes —</strong> 3 itérations testées en A/B." data-en="<strong>Wireframes —</strong> 3 iterations tested via A/B."><strong>Wireframes —</strong> 3 itérations testées en A/B.</li>
-                      <li data-fr="<strong>UI kit —</strong> design system réutilisable livré à l'équipe." data-en="<strong>UI kit —</strong> reusable design system handed off to the team."><strong>UI kit —</strong> design system réutilisable livré à l'équipe.</li>
-                    </ul>
-                    <a href="#" class="itch-link" data-fr="Voir sur itch.io ↗" data-en="View on itch.io ↗">Voir sur itch.io ↗</a>
-                  </div>
-                  <img class="page__img" src="https://placehold.co/460x300/E4483F/1B2A4A?text=Process" alt="Process du Project 2">
-                </div>
-
-                <div class="page">
-                  <div class="page__text">
-                    <h3 data-fr="Mon rôle" data-en="My Role">Mon rôle</h3>
-                    <p class="page__meta" data-fr="Équipe de 3 personnes · 6 semaines" data-en="Team of 3 · 6 weeks">Équipe de 3 personnes · 6 semaines</p>
-                    <ul class="page__list">
-                      <li data-fr="Recherche utilisateur et synthèse" data-en="User research and synthesis">Recherche utilisateur et synthèse</li>
-                      <li data-fr="Wireframes et prototypage Figma" data-en="Wireframing and prototyping in Figma">Wireframes et prototypage Figma</li>
-                      <li data-fr="Passation des specs à la dev" data-en="Handoff of specs to the dev team">Passation des specs à la dev</li>
-                    </ul>
-                    <a href="#" class="itch-link" data-fr="Voir sur itch.io ↗" data-en="View on itch.io ↗">Voir sur itch.io ↗</a>
-                  </div>
-                  <img class="page__img" src="https://placehold.co/460x300/1B2A4A/F7F3EC?text=Role" alt="Rôle sur le Project 2">
-                </div>
-
-                <div class="page">
-                  <div class="page__text">
-                    <h3 data-fr="Résultats" data-en="Results">Résultats</h3>
-                    <div class="page__stats">
-                      <div class="stat"><strong>+34%</strong><span data-fr="complétion" data-en="completion">complétion</span></div>
-                      <div class="stat"><strong>-40%</strong><span data-fr="temps d'onboarding" data-en="onboarding time">temps d'onboarding</span></div>
-                      <div class="stat"><strong>6→2</strong><span data-fr="étapes" data-en="steps">étapes</span></div>
-                    </div>
-                    <p data-fr="Vestibulum nec elit sed dui vitae lacus — retour d'expérience et enseignements clés." data-en="Vestibulum nec elit sed dui vitae lacus — key takeaways and lessons learned.">Vestibulum nec elit sed dui vitae lacus — retour d'expérience et enseignements clés.</p>
-                    <a href="#" class="itch-link" data-fr="Voir sur itch.io ↗" data-en="View on itch.io ↗">Voir sur itch.io ↗</a>
-                  </div>
-                  <img class="page__img" src="https://placehold.co/460x300/F2C94C/1B2A4A?text=Resultats" alt="Résultats du Project 2">
-                </div>
-
-              </div>
-              <div class="scrollbar-track"><div class="scrollbar-thumb"></div></div>
-            </div>
-
-            <!-- ============================================
-                 PROJECT 3
-            ============================================ -->
-            <div class="project-drawer" data-drawer="p3">
-              <div class="drawer__scroll">
-
-                <div class="page">
-                  <div class="page__text">
-                    <h3 data-fr="Nom du Project 3" data-en="Project 3 Name">Nom du Project 3</h3>
-                    <p class="page__tags"><span>Godot</span><span>Game Design</span><span>2022</span></p>
-                    <p class="page__pitch" data-fr="Un jeu narratif court sur la mémoire, jouable en une session." data-en="A short narrative game about memory, playable in one sitting.">Un jeu narratif court sur la mémoire, jouable en une session.</p>
-                    <p data-fr="Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc eu velit a velit bibendum lacinia aliquam vel nibh." data-en="Lorem ipsum dolor sit amet, consectetur adipiscing elit. Duis aute irure dolor in reprehenderit in voluptate velit.">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc eu velit a velit bibendum lacinia aliquam vel nibh.</p>
-                    <a href="#" class="itch-link" data-fr="Voir sur itch.io ↗" data-en="View on itch.io ↗">Voir sur itch.io ↗</a>
-                  </div>
-                  <img class="page__img" src="https://placehold.co/460x300/E4483F/1B2A4A?text=Overview" alt="Aperçu du Project 3">
-                </div>
-
-                <div class="page">
-                  <div class="page__text">
-                    <h3 data-fr="Direction artistique" data-en="Art Direction">Direction artistique</h3>
-                    <ul class="page__list">
-                      <li data-fr="<strong>Palette limitée —</strong> 4 couleurs par chapitre, symbolique de l'humeur." data-en="<strong>Limited palette —</strong> 4 colors per chapter, symbolic of the mood."><strong>Palette limitée —</strong> 4 couleurs par chapitre, symbolique de l'humeur.</li>
-                      <li data-fr="<strong>Sound design —</strong> entièrement procédural, réactif aux choix du joueur." data-en="<strong>Sound design —</strong> fully procedural, reactive to player choices."><strong>Sound design —</strong> entièrement procédural, réactif aux choix du joueur.</li>
-                      <li data-fr="<strong>Pixel art —</strong> animations image par image faites main." data-en="<strong>Pixel art —</strong> hand-drawn frame-by-frame animations."><strong>Pixel art —</strong> animations image par image faites main.</li>
-                    </ul>
-                    <a href="#" class="itch-link" data-fr="Voir sur itch.io ↗" data-en="View on itch.io ↗">Voir sur itch.io ↗</a>
-                  </div>
-                  <img class="page__img" src="https://placehold.co/460x300/1B2A4A/F7F3EC?text=Art" alt="Direction artistique du Project 3">
-                </div>
-
-                <div class="page">
-                  <div class="page__text">
-                    <h3 data-fr="Mon rôle" data-en="My Role">Mon rôle</h3>
-                    <p class="page__meta" data-fr="Projet solo · 2 mois de production" data-en="Solo project · 2 months of production">Projet solo · 2 mois de production</p>
-                    <ul class="page__list">
-                      <li data-fr="Écriture et level design narratif" data-en="Writing and narrative level design">Écriture et level design narratif</li>
-                      <li data-fr="Programmation Godot / GDScript" data-en="Programming in Godot / GDScript">Programmation Godot / GDScript</li>
-                      <li data-fr="Direction artistique et sound design" data-en="Art direction and sound design">Direction artistique et sound design</li>
-                    </ul>
-                    <a href="#" class="itch-link" data-fr="Voir sur itch.io ↗" data-en="View on itch.io ↗">Voir sur itch.io ↗</a>
-                  </div>
-                  <img class="page__img" src="https://placehold.co/460x300/F2C94C/1B2A4A?text=Level+Design" alt="Level design du Project 3">
-                </div>
-
-                <div class="page">
-                  <div class="page__text">
-                    <h3 data-fr="Sortie & retours" data-en="Launch &amp; Feedback">Sortie & retours</h3>
-                    <div class="page__stats">
-                      <div class="stat"><strong>800+</strong><span data-fr="joueurs" data-en="players">joueurs</span></div>
-                      <div class="stat"><strong>4.8</strong><span data-fr="note moyenne" data-en="average rating">note moyenne</span></div>
-                      <div class="stat"><strong>Top 15</strong><span data-fr="jam" data-en="in the jam">jam</span></div>
-                    </div>
-                    <p data-fr="Sed a ante urna. Aenean pretium diam sed porta dapibus — bilan et retours de la communauté." data-en="Sed a ante urna. Aenean pretium diam sed porta dapibus — recap and feedback from the community.">Sed a ante urna. Aenean pretium diam sed porta dapibus — bilan et retours de la communauté.</p>
-                    <a href="#" class="itch-link" data-fr="Voir sur itch.io ↗" data-en="View on itch.io ↗">Voir sur itch.io ↗</a>
-                  </div>
-                  <img class="page__img" src="https://placehold.co/460x300/E4483F/1B2A4A?text=Retours" alt="Retours sur le Project 3">
-                </div>
-
-              </div>
-              <div class="scrollbar-track"><div class="scrollbar-thumb"></div></div>
-            </div>
-
-          </div>
-        </div>
-
-        <!-- ================= ABOUT ME — panneaux diagonaux façon launcher ================= -->
-        <div class="panel-view" data-panel="about">
-          <div class="about-intro">
-            <!-- ⚙️ À REMPLACER : 1-2 phrases sur qui tu es professionnellement -->
-            <p class="about-bio" data-fr="Game designer touche-à-tout basé en France, je passe autant de temps à prototyper des mécaniques qu'à peaufiner des interfaces. J'aime les projets où le gameplay et l'UX se nourrissent l'un l'autre." data-en="A jack-of-all-trades game designer based in France, I spend as much time prototyping mechanics as I do polishing interfaces. I love projects where gameplay and UX feed off each other.">Game designer touche-à-tout basé en France, je passe autant de temps à prototyper des mécaniques qu'à peaufiner des interfaces. J'aime les projets où le gameplay et l'UX se nourrissent l'un l'autre.</p>
-
-            <!-- ⚙️ À REMPLACER : ajoute / retire les outils que tu maîtrises -->
-            <div class="stack-row">
-              <span class="stack-tag">Unity</span>
-              <span class="stack-tag">Unreal</span>
-              <span class="stack-tag">Godot</span>
-              <span class="stack-tag">C#</span>
-              <span class="stack-tag">Figma</span>
-              <span class="stack-tag">Blender</span>
-            </div>
-          </div>
-
-          <div class="occupations" id="occupations">
-            <!-- ⚙️ À REMPLACER : une occupation = une image de fond + un titre + un texte -->
-            <button class="occupation is-active" style="background-image:url('https://placehold.co/300x420/E4483F/1B2A4A?text=%F0%9F%8E%AC')">
-              <span class="occupation__label" data-fr="Cinéma" data-en="Movies">Cinéma</span>
-              <div class="occupation__info">
-                <h3 data-fr="Cinéma" data-en="Movies">Cinéma</h3>
-                <p data-fr="Lorem ipsum dolor sit amet, consectetur adipiscing elit. Grand amateur de films de genre et de scénarios qui sortent des sentiers battus." data-en="Lorem ipsum dolor sit amet, consectetur adipiscing elit. A big fan of genre films and scripts that go off the beaten path.">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Grand amateur de films de genre et de scénarios qui sortent des sentiers battus.</p>
-                <!-- ⚙️ Un petit détail perso, façon fun fact -->
-                <span class="occupation__stat" data-fr="Dernier film vu : à remplacer" data-en="Last movie watched: replace me">Dernier film vu : à remplacer</span>
-              </div>
-            </button>
-
-            <button class="occupation" style="background-image:url('https://placehold.co/300x420/F2C94C/1B2A4A?text=%F0%9F%A7%97')">
-              <span class="occupation__label" data-fr="Escalade" data-en="Climbing">Escalade</span>
-              <div class="occupation__info">
-                <h3 data-fr="Escalade" data-en="Climbing">Escalade</h3>
-                <p data-fr="Sed a ante urna. Aenean pretium diam sed porta dapibus, en salle le week-end et en falaise dès que possible." data-en="Sed a ante urna. Aenean pretium diam sed porta dapibus, indoors on weekends and outdoors whenever possible.">Sed a ante urna. Aenean pretium diam sed porta dapibus, en salle le week-end et en falaise dès que possible.</p>
-                <span class="occupation__stat" data-fr="Niveau : 6a" data-en="Grade: 6a">Niveau : 6a</span>
-              </div>
-            </button>
-
-            <button class="occupation" style="background-image:url('https://placehold.co/300x420/1B2A4A/F7F3EC?text=%F0%9F%8E%AE')">
-              <span class="occupation__label" data-fr="Jeux vidéo" data-en="Video games">Jeux vidéo</span>
-              <div class="occupation__info">
-                <h3 data-fr="Jeux vidéo" data-en="Video games">Jeux vidéo</h3>
-                <p data-fr="Vestibulum nec elit sed dui vitae lacus, forcément — c'est aussi mon métier. Passionné de systèmes de jeu et de level design." data-en="Vestibulum nec elit sed dui vitae lacus, obviously — it's also my job. Passionate about game systems and level design.">Vestibulum nec elit sed dui vitae lacus, forcément — c'est aussi mon métier. Passionné de systèmes de jeu et de level design.</p>
-                <span class="occupation__stat" data-fr="Temps de jeu 2026 : ~300h" data-en="2026 playtime: ~300h">Temps de jeu 2026 : ~300h</span>
-              </div>
-            </button>
-
-            <button class="occupation" style="background-image:url('https://placehold.co/300x420/E4483F/1B2A4A?text=%F0%9F%8E%A7')">
-              <span class="occupation__label" data-fr="Musique" data-en="Music">Musique</span>
-              <div class="occupation__info">
-                <h3 data-fr="Musique" data-en="Music">Musique</h3>
-                <p data-fr="Quisque nulla ex, faucibus ac elementum sit amet, rhoncus sed nibh — synthés analogiques et sound design en dilettante." data-en="Quisque nulla ex, faucibus ac elementum sit amet, rhoncus sed nibh — analog synths and sound design as a hobby.">Quisque nulla ex, faucibus ac elementum sit amet, rhoncus sed nibh — synthés analogiques et sound design en dilettante.</p>
-                <span class="occupation__stat" data-fr="Sur la platine : à remplacer" data-en="On the turntable: replace me">Sur la platine : à remplacer</span>
-              </div>
-            </button>
-          </div>
-        </div>
-
-      </div>
-    </div>
+<header class="toolbar">
+  <div class="toolbar__brand">
+    <span class="dot"></span>
+    <span>SITE EDITOR</span>
   </div>
+
+  <div class="toolbar__group">
+    <button id="btnText" class="tbtn is-active" title="Cliquer un texte pour l'éditer">✎ Texte</button>
+    <button id="btnImages" class="tbtn is-active" title="Cliquer une image pour la remplacer">🖼 Images</button>
+  </div>
+
+  <div class="toolbar__group toolbar__colors">
+    <span class="toolbar__label">Couleurs</span>
+    <label class="swatch" title="Rouge / accent"><input type="color" id="colorRed" value="#e4483f"><span style="background:#e4483f"></span></label>
+    <label class="swatch" title="Encre / texte"><input type="color" id="colorInk" value="#1b2a4a"><span style="background:#1b2a4a"></span></label>
+    <label class="swatch" title="Jaune / accent secondaire"><input type="color" id="colorYellow" value="#f2c94c"><span style="background:#f2c94c"></span></label>
+    <label class="swatch" title="Fond papier"><input type="color" id="colorPaper" value="#f2e9d8"><span style="background:#f2e9d8"></span></label>
+  </div>
+
+  <div class="toolbar__group toolbar__right">
+    <span id="saveStatus" class="save-status">Brouillon à jour</span>
+    <button id="btnReset" class="tbtn tbtn--ghost">Réinitialiser</button>
+    <button id="btnDownload" class="tbtn tbtn--primary">⬇ Télécharger le site</button>
+  </div>
+</header>
+
+<div class="hint-bar" id="hintBar">
+  Clique n'importe quel texte pour le modifier, ou une image / un placeholder coloré pour en uploader une nouvelle. Tout est sauvegardé automatiquement dans ce navigateur pendant que tu travailles.
 </div>
 
-<script src="main.js"></script>
+<main class="editor-stage">
+  <iframe id="siteFrame" src="../index.html" title="Aperçu éditable du site"></iframe>
+</main>
+
+<!-- input caché, réutilisé pour chaque upload d'image -->
+<input type="file" id="fileInput" accept="image/*" hidden>
+
+<div class="toast" id="toast"></div>
+
+<script src="edit.js"></script>
 </body>
 </html>
