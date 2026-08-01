@@ -61,6 +61,7 @@ body{
 .tbtn--ghost{ background:transparent; }
 .tbtn--primary{ background:var(--green); color:#0D1310; border-color:var(--green); font-weight:700; }
 .tbtn--primary:hover{ filter:brightness(1.1); border-color:var(--green); color:#0D1310; }
+.tbtn--icon{ padding:8px 11px; font-size:0.95rem; }
 
 .toolbar__label{ font-family:var(--font-mono); font-size:0.72rem; color:var(--muted); margin-right:2px; }
 
