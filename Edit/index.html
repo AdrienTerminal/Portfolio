@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Éditeur — Adrien Terminal Portfolio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="edit.css">
+</head>
+<body>
+
+<header class="toolbar">
+  <div class="toolbar__brand">
+    <span class="dot"></span>
+    <span>SITE EDITOR</span>
+  </div>
+
+  <div class="toolbar__group">
+    <button id="btnText" class="tbtn is-active" title="Cliquer un texte pour l'éditer">✎ Texte</button>
+    <button id="btnImages" class="tbtn is-active" title="Cliquer une image pour la remplacer">🖼 Images</button>
+  </div>
+
+  <div class="toolbar__group toolbar__colors">
+    <span class="toolbar__label">Couleurs</span>
+    <label class="swatch" title="Rouge / accent"><input type="color" id="colorRed" value="#e4483f"><span style="background:#e4483f"></span></label>
+    <label class="swatch" title="Encre / texte"><input type="color" id="colorInk" value="#1b2a4a"><span style="background:#1b2a4a"></span></label>
+    <label class="swatch" title="Jaune / accent secondaire"><input type="color" id="colorYellow" value="#f2c94c"><span style="background:#f2c94c"></span></label>
+    <label class="swatch" title="Fond papier"><input type="color" id="colorPaper" value="#f2e9d8"><span style="background:#f2e9d8"></span></label>
+  </div>
+
+  <div class="toolbar__group toolbar__right">
+    <span id="saveStatus" class="save-status">Brouillon à jour</span>
+    <button id="btnReset" class="tbtn tbtn--ghost">Réinitialiser</button>
+    <button id="btnDownload" class="tbtn tbtn--primary">⬇ Télécharger le site</button>
+  </div>
+</header>
+
+<div class="hint-bar" id="hintBar">
+  Clique n'importe quel texte pour le modifier, ou une image / un placeholder coloré pour en uploader une nouvelle. Tout est sauvegardé automatiquement dans ce navigateur pendant que tu travailles.
+</div>
+
+<main class="editor-stage">
+  <iframe id="siteFrame" src="../index.html" title="Aperçu éditable du site"></iframe>
+</main>
+
+<!-- input caché, réutilisé pour chaque upload d'image -->
+<input type="file" id="fileInput" accept="image/*" hidden>
+
+<div class="toast" id="toast"></div>
+
+<script src="edit.js"></script>
+</body>
+</html>
