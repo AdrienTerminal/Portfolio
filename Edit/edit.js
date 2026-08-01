@@ -1,6 +1,6 @@
 /* ==================================================================
    ÉDITEUR VISUEL — charge le vrai site dans l'iframe et le rend
-   éditable directement dessus.
+   éditable directement dessus (pas de copie séparée à maintenir).
 
    ⚠️ Doit tourner sur http(s):// (GitHub Pages, ou un serveur local
    type `npx serve`). Ouvrir ce fichier en double-clic (file://)
@@ -8,18 +8,15 @@
 ================================================================== */
 
 const DRAFT_KEY = "portfolio_editor_draft_v1";
-const HISTORY_LIMIT = 50;
 
-const frame        = document.getElementById("siteFrame");
-const btnDownload   = document.getElementById("btnDownload");
-const btnReset       = document.getElementById("btnReset");
-const btnUndo        = document.getElementById("btnUndo");
-const btnRedo        = document.getElementById("btnRedo");
-const btnAddProject  = document.getElementById("btnAddProject");
-const saveStatus     = document.getElementById("saveStatus");
-const fileInput      = document.getElementById("fileInput");
-const toastEl        = document.getElementById("toast");
-const modeButtons    = document.querySelectorAll("#modeGroup .tbtn");
+const frame       = document.getElementById("siteFrame");
+const btnText      = document.getElementById("btnText");
+const btnImages    = document.getElementById("btnImages");
+const btnDownload  = document.getElementById("btnDownload");
+const btnReset     = document.getElementById("btnReset");
+const saveStatus   = document.getElementById("saveStatus");
+const fileInput    = document.getElementById("fileInput");
+const toastEl      = document.getElementById("toast");
 
 const colorInputs = {
   "--red":   document.getElementById("colorRed"),
@@ -28,26 +25,19 @@ const colorInputs = {
   "--paper": document.getElementById("colorPaper"),
 };
 
-let activeMode = "text"; // 'text' | 'images' | 'links' | 'delete'
+let textModeOn = true;
+let imageModeOn = true;
 let currentImageTarget = null;
 let saveTimer = null;
-let isRestoring = false;
-
-let historyStack = [];
-let historyIndex = -1;
 
 const TEXT_SELECTOR = [
   ".card__brand", ".role", ".about-bio",
   ".page__text h3", ".page__pitch", ".page__meta", ".page__list li", ".page__tags span",
   ".stat", ".occupation__label", ".occupation__info h3", ".occupation__info p",
-  ".occupation__stat", ".stack-tag", ".itch-link",
+  ".occupation__stat", ".stack-tag",
 ].join(", ");
 
-const IMAGE_SELECTOR = "img.avatar, img.page__img";
-const OCCUPATION_IMAGE_SELECTOR = ".occupation";
-const DBLCLICK_TEXT_SELECTOR = ".tab, .pill";
-const LINK_SELECTOR  = ".itch-link, .resume-btn, .socials a";
-const DELETE_SELECTOR = ".itch-link, .socials li, .page__tags span, .stack-tag, .pill";
+const IMAGE_SELECTOR = "img.avatar, img.page__img, .occupation";
 
 function toast(msg){
   toastEl.textContent = msg;
@@ -55,16 +45,6 @@ function toast(msg){
   clearTimeout(toastEl._t);
   toastEl._t = setTimeout(() => toastEl.classList.remove("is-visible"), 2600);
 }
-
-// ---------------------------------------------------------------
-// Modes exclusifs
-// ---------------------------------------------------------------
-modeButtons.forEach(btn => {
-  btn.addEventListener("click", () => {
-    activeMode = btn.dataset.mode;
-    modeButtons.forEach(b => b.classList.toggle("is-active", b === btn));
-  });
-});
 
 // ---------------------------------------------------------------
 // Chargement initial : reprend le brouillon localStorage s'il existe
@@ -90,214 +70,48 @@ function injectEditing(){
   const doc = frame.contentDocument;
   if(!doc) return;
 
-  syncColorInputsFromFrame(doc);
+  const style = doc.createElement("style");
+  style.id = "editor-injected-style";
+  style.textContent = `
+    ${TEXT_SELECTOR}{ cursor:text; transition:outline-color .15s ease, background-color .15s ease; outline:2px dashed transparent; outline-offset:2px; }
+    ${TEXT_SELECTOR}:hover{ outline-color:#5B8DEF; background-color:rgba(91,141,239,0.08); }
+    ${TEXT_SELECTOR}:focus{ outline-color:#4CAF6D; background-color:rgba(76,175,109,0.10); }
+    ${IMAGE_SELECTOR}{ cursor:pointer !important; }
+    ${IMAGE_SELECTOR}:hover{ outline:3px dashed #5B8DEF; outline-offset:-3px; filter:brightness(.85); }
+    .occupation__info, .occupation__info *{ pointer-events:auto !important; }
+  `;
+  doc.head.appendChild(style);
 
-  if(!doc.getElementById("editor-injected-style")){
-    const style = doc.createElement("style");
-    style.id = "editor-injected-style";
-    style.textContent = `
-      ${TEXT_SELECTOR}{ transition:outline-color .15s ease, background-color .15s ease; outline:2px dashed transparent; outline-offset:2px; }
-      ${IMAGE_SELECTOR}, ${LINK_SELECTOR}, ${DELETE_SELECTOR}{ transition:outline-color .15s ease; outline:2px dashed transparent; outline-offset:-2px; }
-      .occupation__info, .occupation__info *{ pointer-events:auto !important; }
-      .editor-add-tag{
-        font-family:'JetBrains Mono',monospace; font-size:11px; font-weight:700;
-        color:#5B8DEF; background:transparent; border:1.5px dashed #5B8DEF;
-        border-radius:100px; padding:3px 9px; cursor:pointer; opacity:.75;
-      }
-      .editor-add-tag:hover{ opacity:1; background:rgba(91,141,239,.12); }
-      .editor-img-badge{
-        position:absolute; top:8px; right:8px; z-index:20;
-        width:28px; height:28px; border-radius:50%;
-        background:rgba(20,20,24,.75); border:1.5px solid #5B8DEF;
-        color:#fff; font-size:13px; line-height:1;
-        display:flex; align-items:center; justify-content:center;
-        cursor:pointer; opacity:.85;
-      }
-      .editor-img-badge:hover{ opacity:1; background:#5B8DEF; }
-      ${DBLCLICK_TEXT_SELECTOR}{ position:relative; }
-      ${DBLCLICK_TEXT_SELECTOR}::after{
-        content:"✎"; position:absolute; top:-6px; right:-6px;
-        width:15px; height:15px; border-radius:50%;
-        background:#5B8DEF; color:#fff; font-size:8px;
-        display:flex; align-items:center; justify-content:center;
-        opacity:0; transition:opacity .15s ease; pointer-events:none;
-      }
-      ${DBLCLICK_TEXT_SELECTOR}:hover::after{ opacity:.9; }
-    `;
-    doc.head.appendChild(style);
-  }
+  doc.querySelectorAll(TEXT_SELECTOR).forEach(el => {
+    el.setAttribute("contenteditable", "true");
+    el.addEventListener("paste", (e) => {
+      e.preventDefault();
+      const text = (e.clipboardData || doc.defaultView.clipboardData).getData("text/plain");
+      doc.execCommand("insertText", false, text);
+    });
+    el.addEventListener("input", scheduleSave);
+  });
 
-  doc.querySelectorAll(TEXT_SELECTOR).forEach(wireTextElement);
-  doc.querySelectorAll(DBLCLICK_TEXT_SELECTOR).forEach(wireDoubleClickEditable);
+  // Interception en phase de capture : bloque les handlers du site
+  // (tabs, pills, occupations...) tant qu'un mode d'édition est actif.
+  doc.addEventListener("click", (e) => {
+    const textTarget = e.target.closest(TEXT_SELECTOR);
+    const imageTarget = e.target.closest(IMAGE_SELECTOR);
 
-  // "+" pour ajouter un tag, injecté une seule fois par conteneur
-  doc.querySelectorAll(".page__tags").forEach(row => addTagButton(row, false));
-  doc.querySelectorAll(".stack-row").forEach(row => addTagButton(row, true));
-
-  // Badge caméra dédié par hobby : le clic normal sur le panneau continue
-  // de changer de hobbie, seul ce badge déclenche l'upload d'image.
-  doc.querySelectorAll(OCCUPATION_IMAGE_SELECTOR).forEach(addOccupationImageBadge);
-
-  // Interception en phase de capture, selon le mode actif
-  if(!doc._editorClickBound){
-    doc._editorClickBound = true;
-    doc.addEventListener("click", onFrameClick, true);
-    doc.addEventListener("keydown", onFrameKeydown, true);
-  }
+    if(textModeOn && textTarget){
+      e.stopPropagation();
+      textTarget.focus();
+      return;
+    }
+    if(imageModeOn && imageTarget){
+      e.stopPropagation();
+      e.preventDefault();
+      openImagePicker(imageTarget);
+    }
+  }, true);
 
   applyColorsToFrame();
-  updateModeOutlines(doc);
-  pushHistory();
-  updateUndoRedoButtons();
 }
-
-function updateModeOutlines(doc){
-  // met en évidence, via une classe, les éléments concernés par le mode actif
-  doc.body.classList.remove("mode-text", "mode-images", "mode-links", "mode-delete");
-  doc.body.classList.add("mode-" + activeMode);
-}
-modeButtons.forEach(btn => btn.addEventListener("click", () => {
-  const doc = frame.contentDocument;
-  if(doc) updateModeOutlines(doc);
-}));
-
-function wireTextElement(el){
-  if(el._wired) return;
-  el._wired = true;
-  el.setAttribute("contenteditable", "true");
-  const doc = el.ownerDocument;
-  el.addEventListener("paste", (e) => {
-    e.preventDefault();
-    const text = (e.clipboardData || doc.defaultView.clipboardData).getData("text/plain");
-    doc.execCommand("insertText", false, text);
-  });
-  el.addEventListener("input", () => {
-    syncLangAttribute(el);
-    scheduleSave();
-  });
-}
-
-// Garde data-fr / data-en synchronisés avec ce qui est visible et édité
-function syncLangAttribute(el){
-  if(el.dataset.fr === undefined || el.dataset.en === undefined) return;
-  const doc = el.ownerDocument;
-  const lang = doc.documentElement.lang === "en" ? "en" : "fr";
-  el.dataset[lang] = el.innerHTML;
-}
-
-// Badge caméra sur chaque hobby : indépendant des modes, ne bloque jamais
-// le clic normal du panneau (qui doit continuer à changer de hobbie).
-function addOccupationImageBadge(occEl){
-  if(occEl.querySelector(":scope > .editor-img-badge")) return;
-  const doc = occEl.ownerDocument;
-  const badge = doc.createElement("span");
-  badge.className = "editor-img-badge";
-  badge.textContent = "🖼";
-  badge.title = "Changer l'image de fond";
-  badge.addEventListener("click", (e) => {
-    e.stopPropagation();
-    e.preventDefault();
-    openImagePicker(occEl);
-  });
-  occEl.appendChild(badge);
-}
-
-// Édition par double-clic pour les éléments qui sont AUSSI des contrôles de
-// navigation (tabs, pills) : le simple clic garde son comportement normal
-// (changer d'onglet / ouvrir un projet), seul le double-clic édite le texte.
-function wireDoubleClickEditable(el){
-  if(el._dblWired) return;
-  el._dblWired = true;
-  const doc = el.ownerDocument;
-
-  el.addEventListener("dblclick", (e) => {
-    e.stopPropagation();
-    e.preventDefault();
-    el.setAttribute("contenteditable", "true");
-    el.focus();
-    const range = doc.createRange();
-    range.selectNodeContents(el);
-    const sel = doc.defaultView.getSelection();
-    sel.removeAllRanges();
-    sel.addRange(range);
-  });
-
-  el.addEventListener("blur", () => {
-    if(el.getAttribute("contenteditable") !== "true") return;
-    el.removeAttribute("contenteditable");
-    syncLangAttribute(el);
-    pushHistory(); saveDraft();
-  });
-
-  el.addEventListener("paste", (e) => {
-    if(el.getAttribute("contenteditable") !== "true") return;
-    e.preventDefault();
-    const text = (e.clipboardData || doc.defaultView.clipboardData).getData("text/plain");
-    doc.execCommand("insertText", false, text);
-  });
-}
-
-// ---------------------------------------------------------------
-// Clic dans l'iframe, selon le mode actif
-// ---------------------------------------------------------------
-function onFrameClick(e){
-  const doc = frame.contentDocument;
-
-  if(activeMode === "text"){
-    const t = e.target.closest(TEXT_SELECTOR);
-    if(t){ e.stopPropagation(); t.focus(); }
-    return;
-  }
-
-  if(activeMode === "images"){
-    const t = e.target.closest(IMAGE_SELECTOR);
-    if(t){ e.stopPropagation(); e.preventDefault(); openImagePicker(t); }
-    return;
-  }
-
-  if(activeMode === "links"){
-    const t = e.target.closest(LINK_SELECTOR);
-    if(t){
-      e.stopPropagation(); e.preventDefault();
-      const current = t.getAttribute("href") || "";
-      const next = prompt("Nouvelle URL pour ce bouton :", current);
-      if(next !== null && next.trim() !== ""){
-        t.setAttribute("href", next.trim());
-        pushHistory(); saveDraft();
-        toast("Lien mis à jour");
-      }
-    }
-    return;
-  }
-
-  if(activeMode === "delete"){
-    const t = e.target.closest(DELETE_SELECTOR);
-    if(t){
-      e.stopPropagation(); e.preventDefault();
-      if(t.classList.contains("pill")){
-        removeProject(t.dataset.project);
-      }else{
-        t.remove();
-        pushHistory(); saveDraft();
-        toast("Élément supprimé");
-      }
-    }
-    return;
-  }
-}
-
-function onFrameKeydown(e){
-  const key = e.key.toLowerCase();
-  if((e.ctrlKey || e.metaKey) && key === "z"){
-    e.preventDefault();
-    if(e.shiftKey) redo(); else undo();
-  }
-  if((e.ctrlKey || e.metaKey) && key === "y"){
-    e.preventDefault();
-    redo();
-  }
-}
-document.addEventListener("keydown", onFrameKeydown);
 
 // ---------------------------------------------------------------
 // Upload d'image → redimensionnement → data URL
@@ -333,148 +147,13 @@ fileInput.addEventListener("change", () => {
       }else{
         currentImageTarget.style.backgroundImage = `url('${dataUrl}')`;
       }
-      pushHistory(); saveDraft();
+      scheduleSave();
       toast("Image mise à jour");
     };
     img.src = e.target.result;
   };
   reader.readAsDataURL(file);
 });
-
-// ---------------------------------------------------------------
-// Ajout d'un tag (page__tags ou stack-row)
-// ---------------------------------------------------------------
-function addTagButton(row, isStack){
-  if(row.querySelector(".editor-add-tag")) return;
-  const doc = row.ownerDocument;
-  const btn = doc.createElement("button");
-  btn.type = "button";
-  btn.className = "editor-add-tag";
-  btn.textContent = "+ tag";
-  btn.addEventListener("click", (e) => {
-    e.stopPropagation();
-    const span = doc.createElement("span");
-    if(isStack) span.className = "stack-tag";
-    span.textContent = "Nouveau";
-    span.dataset.fr = "Nouveau";
-    span.dataset.en = "New";
-    row.insertBefore(span, btn);
-    wireTextElement(span);
-    span.focus();
-    const range = doc.createRange();
-    range.selectNodeContents(span);
-    const sel = doc.defaultView.getSelection();
-    sel.removeAllRanges();
-    sel.addRange(range);
-    pushHistory(); saveDraft();
-  });
-  row.appendChild(btn);
-}
-
-// ---------------------------------------------------------------
-// Ajout / suppression de projets (pill + tiroir de 4 pages)
-// ---------------------------------------------------------------
-function nextProjectId(doc){
-  const ids = [...doc.querySelectorAll(".project-drawer")].map(d => d.dataset.drawer);
-  let n = 1;
-  while(ids.includes("p" + n)) n++;
-  return "p" + n;
-}
-
-function projectTemplate(id){
-  return `
-    <div class="page">
-      <div class="page__text">
-        <p class="page__pitch" data-fr="Résumé du projet en une phrase." data-en="One-sentence project summary.">Résumé du projet en une phrase.</p>
-        <h3 data-fr="Nom du projet" data-en="Project name">Nom du projet</h3>
-        <p class="page__tags">
-          <span data-fr="Tag 1" data-en="Tag 1">Tag 1</span><span data-fr="Tag 2" data-en="Tag 2">Tag 2</span><span data-fr="Année" data-en="Year">Année</span>
-        </p>
-        <p data-fr="Lorem ipsum dolor sit amet, consectetur adipiscing elit. Décris ici le projet." data-en="Lorem ipsum dolor sit amet, consectetur adipiscing elit. Describe the project here.">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Décris ici le projet.</p>
-        <a href="#" class="itch-link" data-fr="Voir sur itch.io ↗" data-en="View on itch.io ↗">Voir sur itch.io ↗</a>
-      </div>
-      <img class="page__img" src="https://placehold.co/460x300/1B2A4A/F7F3EC?text=Overview" alt="">
-    </div>
-    <div class="page">
-      <div class="page__text">
-        <h3 data-fr="Fonctionnalités clés" data-en="Key Features">Fonctionnalités clés</h3>
-        <ul class="page__list">
-          <li data-fr="<strong>Feature 1 —</strong> description courte." data-en="<strong>Feature 1 —</strong> short description."><strong>Feature 1 —</strong> description courte.</li>
-          <li data-fr="<strong>Feature 2 —</strong> description courte." data-en="<strong>Feature 2 —</strong> short description."><strong>Feature 2 —</strong> description courte.</li>
-          <li data-fr="<strong>Feature 3 —</strong> description courte." data-en="<strong>Feature 3 —</strong> short description."><strong>Feature 3 —</strong> description courte.</li>
-        </ul>
-        <a href="#" class="itch-link" data-fr="Voir sur itch.io ↗" data-en="View on itch.io ↗">Voir sur itch.io ↗</a>
-      </div>
-      <img class="page__img" src="https://placehold.co/460x300/E4483F/1B2A4A?text=Features" alt="">
-    </div>
-    <div class="page">
-      <div class="page__text">
-        <h3 data-fr="Mon rôle" data-en="My Role">Mon rôle</h3>
-        <p class="page__meta" data-fr="Équipe · durée" data-en="Team · duration">Équipe · durée</p>
-        <ul class="page__list">
-          <li data-fr="Mission 1" data-en="Task 1">Mission 1</li>
-          <li data-fr="Mission 2" data-en="Task 2">Mission 2</li>
-        </ul>
-        <a href="#" class="itch-link" data-fr="Voir sur itch.io ↗" data-en="View on itch.io ↗">Voir sur itch.io ↗</a>
-      </div>
-      <img class="page__img" src="https://placehold.co/460x300/F2C94C/1B2A4A?text=Role" alt="">
-    </div>
-    <div class="page">
-      <div class="page__text">
-        <h3 data-fr="Résultats" data-en="Results">Résultats</h3>
-        <div class="page__stats">
-          <div class="stat"><strong>0</strong><span data-fr="métrique" data-en="metric">métrique</span></div>
-          <div class="stat"><strong>0</strong><span data-fr="métrique" data-en="metric">métrique</span></div>
-        </div>
-        <p data-fr="Bilan et enseignements du projet." data-en="Recap and lessons learned.">Bilan et enseignements du projet.</p>
-      </div>
-      <img class="page__img" src="https://placehold.co/460x300/1B2A4A/F7F3EC?text=Results" alt="">
-    </div>
-  `;
-}
-
-btnAddProject.addEventListener("click", () => {
-  const doc = frame.contentDocument;
-  const id = nextProjectId(doc);
-  const pillRow = doc.querySelector(".pill-row");
-  const stage = doc.getElementById("projectsStage");
-
-  const pill = doc.createElement("button");
-  pill.className = "pill";
-  pill.dataset.project = id;
-  pill.textContent = "Nouveau projet";
-  pillRow.appendChild(pill);
-
-  const drawer = doc.createElement("div");
-  drawer.className = "project-drawer";
-  drawer.dataset.drawer = id;
-  drawer.innerHTML = `<div class="drawer__scroll">${projectTemplate(id)}</div><div class="scrollbar-track"><div class="scrollbar-thumb"></div></div>`;
-  stage.appendChild(drawer);
-
-  reloadFromCurrentState();
-  toast("Nouveau projet ajouté — clique dessus pour le remplir");
-});
-
-function removeProject(id){
-  if(!confirm("Supprimer ce projet et ses 4 pages ? C'est irréversible (sauf Ctrl+Z).")) return;
-  const doc = frame.contentDocument;
-  doc.querySelector(`.pill[data-project="${id}"]`)?.remove();
-  doc.querySelector(`.project-drawer[data-drawer="${id}"]`)?.remove();
-  reloadFromCurrentState();
-  toast("Projet supprimé");
-}
-
-// Recharge le document depuis son état courant : nécessaire après une
-// modification de structure pour que main.js re-détecte les éléments
-// (nouveaux tiroirs, pills...) et rebranche ses propres écouteurs.
-function reloadFromCurrentState(){
-  const doc = frame.contentDocument;
-  const html = "<!DOCTYPE html>\n" + doc.documentElement.outerHTML;
-  doc.open();
-  doc.write(html);
-  doc.close();
-  injectEditing();
-}
 
 // ---------------------------------------------------------------
 // Couleurs — appliquées en direct sur :root de l'iframe
@@ -487,14 +166,6 @@ function applyColorsToFrame(){
   });
 }
 
-function syncColorInputsFromFrame(doc){
-  const computed = doc.defaultView.getComputedStyle(doc.documentElement);
-  Object.entries(colorInputs).forEach(([varName, input]) => {
-    const val = computed.getPropertyValue(varName).trim();
-    if(/^#[0-9a-f]{6}$/i.test(val)) input.value = val;
-  });
-}
-
 Object.values(colorInputs).forEach(input => {
   input.addEventListener("input", () => {
     applyColorsToFrame();
@@ -503,57 +174,12 @@ Object.values(colorInputs).forEach(input => {
 });
 
 // ---------------------------------------------------------------
-// Undo / redo
-// ---------------------------------------------------------------
-function pushHistory(){
-  if(isRestoring) return;
-  const doc = frame.contentDocument;
-  if(!doc) return;
-  const html = doc.documentElement.outerHTML;
-  if(historyStack[historyIndex] === html) return;
-  historyStack = historyStack.slice(0, historyIndex + 1);
-  historyStack.push(html);
-  if(historyStack.length > HISTORY_LIMIT) historyStack.shift();
-  historyIndex = historyStack.length - 1;
-  updateUndoRedoButtons();
-}
-
-function restoreSnapshot(html){
-  isRestoring = true;
-  const doc = frame.contentDocument;
-  doc.open();
-  doc.write("<!DOCTYPE html>\n" + html);
-  doc.close();
-  injectEditing();
-  isRestoring = false;
-  saveDraft();
-  updateUndoRedoButtons();
-}
-
-function undo(){
-  if(historyIndex <= 0){ toast("Rien à annuler"); return; }
-  historyIndex--;
-  restoreSnapshot(historyStack[historyIndex]);
-}
-function redo(){
-  if(historyIndex >= historyStack.length - 1){ toast("Rien à rétablir"); return; }
-  historyIndex++;
-  restoreSnapshot(historyStack[historyIndex]);
-}
-function updateUndoRedoButtons(){
-  btnUndo.disabled = historyIndex <= 0;
-  btnRedo.disabled = historyIndex >= historyStack.length - 1;
-}
-btnUndo.addEventListener("click", undo);
-btnRedo.addEventListener("click", redo);
-
-// ---------------------------------------------------------------
 // Autosave (localStorage) — avec garde-fou si le quota est dépassé
 // ---------------------------------------------------------------
 function scheduleSave(){
   saveStatus.textContent = "Sauvegarde…";
   clearTimeout(saveTimer);
-  saveTimer = setTimeout(() => { pushHistory(); saveDraft(); }, 500);
+  saveTimer = setTimeout(saveDraft, 500);
 }
 
 function saveDraft(){
@@ -569,6 +195,18 @@ function saveDraft(){
 }
 
 // ---------------------------------------------------------------
+// Toggles des modes
+// ---------------------------------------------------------------
+btnText.addEventListener("click", () => {
+  textModeOn = !textModeOn;
+  btnText.classList.toggle("is-active", textModeOn);
+});
+btnImages.addEventListener("click", () => {
+  imageModeOn = !imageModeOn;
+  btnImages.classList.toggle("is-active", imageModeOn);
+});
+
+// ---------------------------------------------------------------
 // Téléchargement du site final (nettoyé des artefacts de l'éditeur)
 // ---------------------------------------------------------------
 btnDownload.addEventListener("click", () => {
@@ -576,8 +214,6 @@ btnDownload.addEventListener("click", () => {
   const clone = doc.documentElement.cloneNode(true);
 
   clone.querySelectorAll("[contenteditable]").forEach(el => el.removeAttribute("contenteditable"));
-  clone.querySelectorAll(".editor-add-tag").forEach(el => el.remove());
-  clone.querySelectorAll(".editor-img-badge").forEach(el => el.remove());
   clone.querySelector("#editor-injected-style")?.remove();
 
   const html = "<!DOCTYPE html>\n" + clone.outerHTML;
@@ -597,7 +233,6 @@ btnDownload.addEventListener("click", () => {
 btnReset.addEventListener("click", () => {
   if(!confirm("Effacer toutes les modifications en cours et repartir du site actuel ?")) return;
   localStorage.removeItem(DRAFT_KEY);
-  historyStack = []; historyIndex = -1;
   frame.removeEventListener("load", onFrameLoad);
   frame.addEventListener("load", () => injectEditing(), { once: true });
   frame.src = "../index.html?_=" + Date.now();
