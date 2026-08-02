@@ -16,17 +16,13 @@
     <span>SITE EDITOR</span>
   </div>
 
-  <div class="toolbar__group" id="modeGroup">
-    <button id="btnText" class="tbtn is-active" data-mode="text" title="Cliquer un texte pour l'éditer">✎ Texte</button>
-    <button id="btnImages" class="tbtn" data-mode="images" title="Cliquer une image pour la remplacer">🖼 Images</button>
-    <button id="btnLinks" class="tbtn" data-mode="links" title="Cliquer un bouton/lien pour changer son URL">🔗 Liens</button>
-    <button id="btnDelete" class="tbtn" data-mode="delete" title="Cliquer un élément pour le supprimer">🗑 Supprimer</button>
-  </div>
+  <p class="toolbar__hint">
+    Clique un texte pour l'éditer. Survole une image, un lien ou un tag pour voir apparaître un petit bouton d'action — un clic dessus fait exactement une chose.
+  </p>
 
   <div class="toolbar__group">
-    <button id="btnUndo" class="tbtn tbtn--icon" title="Annuler (Ctrl+Z)">↶</button>
-    <button id="btnRedo" class="tbtn tbtn--icon" title="Rétablir (Ctrl+Maj+Z)">↷</button>
-    <button id="btnAddProject" class="tbtn" title="Ajoute un nouveau projet (pill + 4 pages) à partir d'un template">+ Projet</button>
+    <button id="btnUndo" class="tbtn tbtn--icon" title="Annuler (Ctrl+Z)">↶ Annuler</button>
+    <button id="btnAddProject" class="tbtn" title="Ajoute un nouveau projet à partir d'un template">+ Projet</button>
   </div>
 
   <div class="toolbar__group toolbar__colors">
@@ -39,22 +35,16 @@
 
   <div class="toolbar__group toolbar__right">
     <span id="saveStatus" class="save-status">Brouillon à jour</span>
-    <button id="btnReset" class="tbtn tbtn--ghost">Réinitialiser</button>
+    <button id="btnReset" class="tbtn tbtn--ghost">Repartir de zéro</button>
     <button id="btnDownload" class="tbtn tbtn--primary">⬇ Télécharger le site</button>
   </div>
 </header>
-
-<div class="hint-bar" id="hintBar">
-  Un seul mode actif à la fois. <strong>Texte</strong> : clique pour éditer. <strong>Images</strong> : clique pour uploader. <strong>Liens</strong> : clique un bouton pour changer son URL. <strong>Supprimer</strong> : clique un élément pour le retirer. Ctrl+Z annule, quelle que soit l'action. Pour éditer la version anglaise, bascule le switch FR/EN du site lui-même puis édite normalement — chaque langue se sauvegarde séparément.
-</div>
 
 <main class="editor-stage">
   <iframe id="siteFrame" src="../index.html" title="Aperçu éditable du site"></iframe>
 </main>
 
-<!-- input caché, réutilisé pour chaque upload d'image -->
 <input type="file" id="fileInput" accept="image/*" hidden>
-
 <div class="toast" id="toast"></div>
 
 <script src="edit.js"></script>

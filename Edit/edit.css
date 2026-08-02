@@ -11,7 +11,6 @@
 }
 
 *{ box-sizing:border-box; margin:0; padding:0; }
-
 html, body{ height:100%; }
 
 body{
@@ -23,11 +22,8 @@ body{
   overflow:hidden;
 }
 
-/* ==================================================================
-   TOOLBAR
-================================================================== */
 .toolbar{
-  display:flex; align-items:center; gap:22px;
+  display:flex; align-items:center; gap:18px;
   padding:12px 20px;
   background:var(--panel);
   border-bottom:1px solid var(--line);
@@ -41,8 +37,12 @@ body{
 }
 .toolbar__brand .dot{
   width:8px; height:8px; border-radius:50%;
-  background:var(--green);
-  box-shadow:0 0 6px var(--green);
+  background:var(--green); box-shadow:0 0 6px var(--green);
+}
+
+.toolbar__hint{
+  font-size:0.78rem; color:var(--muted);
+  max-width:420px; line-height:1.4;
 }
 
 .toolbar__group{ display:flex; align-items:center; gap:8px; }
@@ -51,21 +51,20 @@ body{
 .tbtn{
   font-family:var(--font-mono); font-size:0.78rem; font-weight:500;
   padding:8px 14px; border-radius:7px;
-  background:#242835; color:var(--muted);
+  background:#242835; color:var(--text);
   border:1px solid var(--line);
   cursor:pointer;
-  transition:background .15s ease, color .15s ease, border-color .15s ease;
+  transition:background .15s ease, border-color .15s ease, opacity .15s ease;
 }
-.tbtn:hover{ border-color:var(--accent); color:var(--text); }
-.tbtn.is-active{ background:var(--accent); color:#fff; border-color:var(--accent); }
+.tbtn:hover{ border-color:var(--accent); }
+.tbtn:disabled{ opacity:.4; cursor:not-allowed; }
+.tbtn:disabled:hover{ border-color:var(--line); }
 .tbtn--ghost{ background:transparent; }
 .tbtn--primary{ background:var(--green); color:#0D1310; border-color:var(--green); font-weight:700; }
 .tbtn--primary:hover{ filter:brightness(1.1); border-color:var(--green); color:#0D1310; }
-.tbtn--icon{ padding:8px 11px; font-size:0.95rem; }
 
 .toolbar__label{ font-family:var(--font-mono); font-size:0.72rem; color:var(--muted); margin-right:2px; }
-
-.swatch{ position:relative; width:26px; height:26px; cursor:pointer; }
+.swatch{ position:relative; width:24px; height:24px; cursor:pointer; }
 .swatch input{ position:absolute; inset:0; opacity:0; cursor:pointer; }
 .swatch span{
   display:block; width:100%; height:100%; border-radius:6px;
@@ -78,42 +77,15 @@ body{
   font-family:var(--font-mono); font-size:0.72rem; color:var(--muted);
   display:flex; align-items:center; gap:6px;
 }
-.save-status::before{
-  content:""; width:6px; height:6px; border-radius:50%; background:var(--green);
-}
+.save-status::before{ content:""; width:6px; height:6px; border-radius:50%; background:var(--green); }
 
-/* ==================================================================
-   HINT BAR
-================================================================== */
-.hint-bar{
-  flex:0 0 auto;
-  padding:8px 20px;
-  background:#1A2E22;
-  color:#9FD8B4;
-  font-family:var(--font-mono); font-size:0.74rem;
-  border-bottom:1px solid #24402D;
-}
-
-/* ==================================================================
-   STAGE
-================================================================== */
 .editor-stage{
   flex:1; min-height:0;
   display:flex;
-  background:
-    repeating-conic-gradient(#20232B 0% 25%, #191B21 0% 50%) 50% / 24px 24px;
+  background:repeating-conic-gradient(#20232B 0% 25%, #191B21 0% 50%) 50% / 24px 24px;
 }
-#siteFrame{
-  flex:1;
-  border:none;
-  width:100%;
-  height:100%;
-  background:#fff;
-}
+#siteFrame{ flex:1; border:none; width:100%; height:100%; background:#fff; }
 
-/* ==================================================================
-   TOAST
-================================================================== */
 .toast{
   position:fixed; bottom:24px; left:50%;
   transform:translateX(-50%) translateY(20px);
@@ -128,8 +100,7 @@ body{
 }
 .toast.is-visible{ opacity:1; transform:translateX(-50%) translateY(0); }
 
-@media (max-width:760px){
-  .toolbar{ gap:12px; }
+@media (max-width:900px){
+  .toolbar__hint{ display:none; }
   .toolbar__right{ width:100%; justify-content:flex-end; margin-left:0; order:10; }
-  .hint-bar{ font-size:0.68rem; }
 }
