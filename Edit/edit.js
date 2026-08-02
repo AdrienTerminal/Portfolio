@@ -19,7 +19,7 @@
    ⚠️ Doit tourner sur http(s):// — pas en double-clic sur le fichier.
 ================================================================== */
 
-const DRAFT_KEY = "portfolio_editor_draft_v2";
+const DRAFT_KEY = "portfolio_editor_draft_v3";
 
 const frame        = document.getElementById("siteFrame");
 const btnDownload   = document.getElementById("btnDownload");
@@ -80,6 +80,75 @@ document.addEventListener("keydown", (e) => {
 });
 
 // ---------------------------------------------------------------
+// Aide — repliée par défaut, affichée seulement au clic
+// ---------------------------------------------------------------
+const btnHelp = document.getElementById("btnHelp");
+const helpPopover = document.getElementById("helpPopover");
+btnHelp.addEventListener("click", (e) => {
+  e.stopPropagation();
+  helpPopover.hidden = !helpPopover.hidden;
+});
+document.addEventListener("click", (e) => {
+  if(!helpPopover.hidden && !helpPopover.contains(e.target) && e.target !== btnHelp){
+    helpPopover.hidden = true;
+  }
+});
+
+// ---------------------------------------------------------------
+// Palettes prêtes à l'emploi — chacune pensée en couleurs
+// complémentaires, avec assez de contraste pour rester lisible.
+// ---------------------------------------------------------------
+const PALETTES = [
+  { name:"Corail & Nuit",   red:"#e4483f", ink:"#1b2a4a", yellow:"#f2c94c", paper:"#f2e9d8" },
+  { name:"Émeraude",        red:"#e07a3f", ink:"#123524", yellow:"#d4a24c", paper:"#eef2e6" },
+  { name:"Violet Néon",     red:"#8b5cf6", ink:"#1e1b3a", yellow:"#f2c94c", paper:"#f3efff" },
+  { name:"Corail Chaud",    red:"#ff6b4a", ink:"#2b1b17", yellow:"#ffb84d", paper:"#fff3e8" },
+  { name:"Bleu Glacier",    red:"#3b82f6", ink:"#0f2942", yellow:"#e8965a", paper:"#eaf3fa" },
+  { name:"Rose Poudré",     red:"#d1495b", ink:"#2e2532", yellow:"#e8b4bc", paper:"#faf1ee" },
+];
+
+const btnPalettes = document.getElementById("btnPalettes");
+const palettePopover = document.getElementById("palettePopover");
+
+function buildPalettePopover(){
+  palettePopover.innerHTML = "";
+  PALETTES.forEach(p => {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "palette-swatch";
+    btn.innerHTML = `
+      <span class="palette-swatch__preview">
+        <span style="background:${p.paper}"></span><span style="background:${p.ink}"></span><span style="background:${p.red}"></span><span style="background:${p.yellow}"></span>
+      </span>
+      <span class="palette-swatch__name">${p.name}</span>
+    `;
+    btn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      colorInputs["--red"].value = p.red;
+      colorInputs["--ink"].value = p.ink;
+      colorInputs["--yellow"].value = p.yellow;
+      colorInputs["--paper"].value = p.paper;
+      applyColorsToFrame();
+      scheduleSave();
+      palettePopover.hidden = true;
+      toast(`Palette "${p.name}" appliquée`);
+    });
+    palettePopover.appendChild(btn);
+  });
+}
+buildPalettePopover();
+
+btnPalettes.addEventListener("click", (e) => {
+  e.stopPropagation();
+  palettePopover.hidden = !palettePopover.hidden;
+});
+document.addEventListener("click", (e) => {
+  if(!palettePopover.hidden && !palettePopover.contains(e.target) && e.target !== btnPalettes){
+    palettePopover.hidden = true;
+  }
+});
+
+// ---------------------------------------------------------------
 // Chargement fiable de l'iframe (vraie navigation vers un Blob avec
 // <base> explicite, pour que style.css / main.js se chargent toujours)
 // ---------------------------------------------------------------
@@ -95,6 +164,23 @@ function loadHtmlIntoFrame(html, callback){
   function onLoad(){
     frame.removeEventListener("load", onLoad);
     URL.revokeObjectURL(url);
+
+    // Filet de sécurité : si la structure de base n'est plus là après le
+    // chargement, la page serait cassée à l'écran — on prévient plutôt
+    // que de l'afficher telle quelle.
+    const doc = frame.contentDocument;
+    const looksValid = doc && doc.querySelector(".card__topbar") && doc.querySelector(".card__body") && doc.querySelector(".pill-row");
+    if(!looksValid){
+      toast("⚠ La page semblait cassée après ce changement — annulé automatiquement");
+      const lastGood = localStorage.getItem(DRAFT_KEY);
+      if(lastGood && lastGood !== finalHtml){
+        loadHtmlIntoFrame(lastGood, callback);
+      }else{
+        frame.addEventListener("load", callback, { once: true });
+        frame.src = "../index.html?_=" + Date.now();
+      }
+      return;
+    }
     callback();
   }
   frame.addEventListener("load", onLoad, { once: true });

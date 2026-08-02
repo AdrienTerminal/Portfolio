@@ -16,17 +16,18 @@
     <span>SITE EDITOR</span>
   </div>
 
-  <p class="toolbar__hint">
-    Clique un texte pour l'éditer. Survole une image, un lien ou un tag pour voir apparaître un petit bouton d'action — un clic dessus fait exactement une chose.
-  </p>
-
   <div class="toolbar__group">
+    <button id="btnHelp" class="tbtn tbtn--icon" title="Comment utiliser l'éditeur">🎮 Aide</button>
     <button id="btnUndo" class="tbtn tbtn--icon" title="Annuler (Ctrl+Z)">↶ Annuler</button>
     <button id="btnAddProject" class="tbtn" title="Ajoute un nouveau projet à partir d'un template">+ Projet</button>
   </div>
 
   <div class="toolbar__group toolbar__colors">
-    <span class="toolbar__label">Couleurs</span>
+    <div class="palette-picker">
+      <button id="btnPalettes" class="tbtn" title="Choisir une palette prête à l'emploi">🎨 Palettes</button>
+      <div class="palette-popover" id="palettePopover" hidden></div>
+    </div>
+    <span class="toolbar__label">Perso</span>
     <label class="swatch" title="Rouge / accent"><input type="color" id="colorRed" value="#e4483f"><span style="background:#e4483f"></span></label>
     <label class="swatch" title="Encre / texte"><input type="color" id="colorInk" value="#1b2a4a"><span style="background:#1b2a4a"></span></label>
     <label class="swatch" title="Jaune / accent secondaire"><input type="color" id="colorYellow" value="#f2c94c"><span style="background:#f2c94c"></span></label>
@@ -39,6 +40,13 @@
     <button id="btnDownload" class="tbtn tbtn--primary">⬇ Télécharger le site</button>
   </div>
 </header>
+
+<div class="help-popover" id="helpPopover" hidden>
+  <p><strong>Texte</strong> — clique n'importe quel texte pour l'éditer directement.</p>
+  <p><strong>Survole</strong> une image, un lien, un tag, un onglet ou un projet pour voir apparaître un petit badge d'action (🖼 image, 🔗 lien, ✕ supprimer, ✎ renommer). Un clic dessus fait exactement une chose.</p>
+  <p><strong>Ctrl+Z</strong> annule ta dernière modification de texte, image, lien ou tag. L'ajout/suppression de projet n'est pas annulable (une confirmation te protège à la place).</p>
+  <p>Pour éditer la version anglaise d'un texte, bascule d'abord le switch FR/EN du site lui-même, puis édite normalement.</p>
+</div>
 
 <main class="editor-stage">
   <iframe id="siteFrame" src="../index.html" title="Aperçu éditable du site"></iframe>

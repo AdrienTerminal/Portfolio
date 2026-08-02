@@ -40,11 +40,6 @@ body{
   background:var(--green); box-shadow:0 0 6px var(--green);
 }
 
-.toolbar__hint{
-  font-size:0.78rem; color:var(--muted);
-  max-width:420px; line-height:1.4;
-}
-
 .toolbar__group{ display:flex; align-items:center; gap:8px; }
 .toolbar__right{ margin-left:auto; }
 
@@ -72,6 +67,38 @@ body{
   transition:border-color .15s ease, transform .15s ease;
 }
 .swatch:hover span{ border-color:var(--accent); transform:scale(1.08); }
+
+.help-popover{
+  position:fixed; top:56px; left:20px; z-index:2000;
+  width:360px; max-width:calc(100vw - 40px);
+  background:var(--panel); border:1px solid var(--line); border-radius:10px;
+  padding:16px 18px; box-shadow:0 16px 40px rgba(0,0,0,.5);
+}
+.help-popover p{ font-size:0.82rem; line-height:1.5; color:var(--text); margin-bottom:10px; }
+.help-popover p:last-child{ margin-bottom:0; }
+.help-popover strong{ color:var(--accent); }
+
+.palette-picker{ position:relative; }
+.palette-popover{
+  position:absolute; top:calc(100% + 8px); left:0; z-index:2000;
+  background:var(--panel); border:1px solid var(--line); border-radius:10px;
+  padding:10px; box-shadow:0 16px 40px rgba(0,0,0,.5);
+  display:grid; grid-template-columns:repeat(3, 1fr); gap:8px;
+  width:280px;
+}
+.palette-swatch{
+  display:flex; flex-direction:column; align-items:center; gap:6px;
+  padding:8px; border-radius:8px; border:1px solid var(--line);
+  background:transparent; cursor:pointer;
+  transition:border-color .15s ease, background .15s ease;
+}
+.palette-swatch:hover{ border-color:var(--accent); background:rgba(91,141,239,.08); }
+.palette-swatch__preview{
+  width:100%; height:28px; border-radius:5px; overflow:hidden;
+  display:flex;
+}
+.palette-swatch__preview span{ flex:1; }
+.palette-swatch__name{ font-family:var(--font-mono); font-size:0.65rem; color:var(--muted); }
 
 .save-status{
   font-family:var(--font-mono); font-size:0.72rem; color:var(--muted);
@@ -101,6 +128,5 @@ body{
 .toast.is-visible{ opacity:1; transform:translateX(-50%) translateY(0); }
 
 @media (max-width:900px){
-  .toolbar__hint{ display:none; }
   .toolbar__right{ width:100%; justify-content:flex-end; margin-left:0; order:10; }
 }

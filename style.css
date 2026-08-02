@@ -30,13 +30,13 @@
    noir/blanc pur (pas d'arrache-yeux). Tout le reste du CSS réutilise
    ces variables, donc rien d'autre n'a besoin de changer. */
 html[data-theme="dark"]{
-  --paper:    #14171F;
-  --card-bg:  #1C212C;
-  --ink:      #EDEAE2;
-  --red:      #FF6B5E;
+  --paper:    #12141C;
+  --card-bg:  #1A1D28;
+  --ink:      #F0EEE6;
+  --red:      #FF6259;
   --red-dark: #E4483F;
-  --yellow:   #F2C94C;
-  --muted:    #8B90A3;
+  --yellow:   #FFD166;
+  --muted:    #9096A8;
 }
 html[data-theme="dark"] body{
   background:
