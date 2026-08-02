@@ -22,7 +22,28 @@
      plus bas, qui décale légèrement la carte vers le haut en plus). */
   --body-h:       600px;
   --body-h-about: 780px;
+
+  transition:background-color .35s ease;
 }
+
+/* Mode sombre : mêmes variables, palette chaude et douce plutôt que du
+   noir/blanc pur (pas d'arrache-yeux). Tout le reste du CSS réutilise
+   ces variables, donc rien d'autre n'a besoin de changer. */
+html[data-theme="dark"]{
+  --paper:    #1B1912;
+  --card-bg:  #242019;
+  --ink:      #EDE6D6;
+  --red:      #FF6B5E;
+  --red-dark: #E4483F;
+  --yellow:   #F2C94C;
+  --muted:    #A39B87;
+}
+html[data-theme="dark"] body{
+  background:
+    radial-gradient(circle, var(--ink) 1px, transparent 1px) 0 0/26px 26px,
+    var(--paper);
+}
+html[data-theme="dark"] img{ filter:brightness(.92) contrast(1.02); }
 
 *{ box-sizing:border-box; margin:0; padding:0; }
 
@@ -93,6 +114,20 @@ button{ font:inherit; color:inherit; background:none; border:none; cursor:pointe
 .lang-switch__btn + .lang-switch__btn{ border-left:2.5px solid var(--ink); }
 .lang-switch__btn.is-active{ background:var(--ink); color:#fff; }
 .lang-switch__btn:not(.is-active):hover{ background:var(--yellow); color:var(--ink); }
+
+.theme-switch{
+  display:flex; border:2.5px solid var(--ink); border-radius:var(--radius);
+  overflow:hidden;
+}
+.theme-switch__btn{
+  font-size:0.9rem; line-height:1;
+  padding:7px 11px;
+  background:var(--card-bg); color:var(--muted);
+  transition:background .15s var(--ease), color .15s var(--ease);
+}
+.theme-switch__btn + .theme-switch__btn{ border-left:2.5px solid var(--ink); }
+.theme-switch__btn.is-active{ background:var(--ink); color:#fff; }
+.theme-switch__btn:not(.is-active):hover{ background:var(--yellow); color:var(--ink); }
 
 .card__tabs{ display:flex; gap:12px; }
 .tab{

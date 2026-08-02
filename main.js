@@ -290,3 +290,28 @@ langButtons.forEach(btn => {
     sfx.tab();
   });
 });
+
+
+/* ==================================================================
+   5) SWITCH CLAIR / SOMBRE — mémorisé d'une visite à l'autre
+================================================================== */
+const THEME_KEY = "portfolio_theme";
+const themeButtons = document.querySelectorAll(".theme-switch__btn");
+
+function applyTheme(theme){
+  document.documentElement.setAttribute("data-theme", theme);
+  themeButtons.forEach(b => b.classList.toggle("is-active", b.dataset.theme === theme));
+}
+
+const savedTheme = localStorage.getItem(THEME_KEY);
+if(savedTheme) applyTheme(savedTheme);
+
+themeButtons.forEach(btn => {
+  btn.addEventListener("click", () => {
+    if(btn.classList.contains("is-active")) return;
+    const theme = btn.dataset.theme;
+    applyTheme(theme);
+    localStorage.setItem(THEME_KEY, theme);
+    sfx.tab();
+  });
+});

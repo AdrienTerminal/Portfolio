@@ -36,16 +36,20 @@ let isRestoring = false;
 let historyStack = [];
 let historyIndex = -1;
 
+// Tout ce qui se modifie au clic simple, en mode Texte
 const TEXT_SELECTOR = [
   ".card__brand", ".role", ".about-bio",
-  ".page__text h3", ".page__pitch", ".page__meta", ".page__list li", ".page__tags span",
+  ".page__text h3", ".page__text p", ".page__list li", ".page__tags span",
   ".stat", ".occupation__label", ".occupation__info h3", ".occupation__info p",
   ".occupation__stat", ".stack-tag", ".itch-link",
 ].join(", ");
 
+// Contrôles de navigation : le texte ne s'édite qu'au double-clic,
+// le simple clic garde son comportement normal (changer d'onglet, etc.)
+const DBLCLICK_TEXT_SELECTOR = ".tab, .pill";
+
 const IMAGE_SELECTOR = "img.avatar, img.page__img";
 const OCCUPATION_IMAGE_SELECTOR = ".occupation";
-const DBLCLICK_TEXT_SELECTOR = ".tab, .pill";
 const LINK_SELECTOR  = ".itch-link, .resume-btn, .socials a";
 const DELETE_SELECTOR = ".itch-link, .socials li, .page__tags span, .stack-tag, .pill";
 
@@ -63,8 +67,40 @@ modeButtons.forEach(btn => {
   btn.addEventListener("click", () => {
     activeMode = btn.dataset.mode;
     modeButtons.forEach(b => b.classList.toggle("is-active", b === btn));
+    const doc = frame.contentDocument;
+    if(doc) updateModeOutlines(doc);
   });
 });
+
+function updateModeOutlines(doc){
+  doc.body.classList.remove("mode-text", "mode-images", "mode-links", "mode-delete");
+  doc.body.classList.add("mode-" + activeMode);
+}
+
+// ---------------------------------------------------------------
+// Rechargement fiable de l'iframe — remplace document.write(), qui
+// casse parfois le chargement de style.css / main.js selon les
+// navigateurs. On passe par une vraie navigation (Blob + <base>),
+// ce qui garantit que les chemins relatifs se résolvent toujours
+// correctement et qu'on attend un vrai évènement "load".
+// ---------------------------------------------------------------
+function loadHtmlIntoFrame(html, callback){
+  let finalHtml = /^\s*<!doctype/i.test(html) ? html : "<!DOCTYPE html>\n" + html;
+  const baseUrl = new URL("../index.html", window.location.href).href;
+  if(!/<base[\s>]/i.test(finalHtml)){
+    finalHtml = finalHtml.replace(/<head(\s[^>]*)?>/i, (m) => `${m}\n<base href="${baseUrl}">`);
+  }
+  const blob = new Blob([finalHtml], { type: "text/html" });
+  const url = URL.createObjectURL(blob);
+
+  function onLoad(){
+    frame.removeEventListener("load", onLoad);
+    URL.revokeObjectURL(url);
+    callback();
+  }
+  frame.addEventListener("load", onLoad);
+  frame.src = url;
+}
 
 // ---------------------------------------------------------------
 // Chargement initial : reprend le brouillon localStorage s'il existe
@@ -74,13 +110,13 @@ frame.addEventListener("load", onFrameLoad, { once: true });
 function onFrameLoad(){
   const draft = localStorage.getItem(DRAFT_KEY);
   if(draft){
-    const doc = frame.contentDocument;
-    doc.open();
-    doc.write(draft);
-    doc.close();
-    toast("Brouillon précédent restauré");
+    loadHtmlIntoFrame(draft, () => {
+      toast("Brouillon précédent restauré");
+      injectEditing();
+    });
+  }else{
+    injectEditing();
   }
-  injectEditing();
 }
 
 // ---------------------------------------------------------------
@@ -96,9 +132,43 @@ function injectEditing(){
     const style = doc.createElement("style");
     style.id = "editor-injected-style";
     style.textContent = `
-      ${TEXT_SELECTOR}{ transition:outline-color .15s ease, background-color .15s ease; outline:2px dashed transparent; outline-offset:2px; }
-      ${IMAGE_SELECTOR}, ${LINK_SELECTOR}, ${DELETE_SELECTOR}{ transition:outline-color .15s ease; outline:2px dashed transparent; outline-offset:-2px; }
+      ${TEXT_SELECTOR}, ${DBLCLICK_TEXT_SELECTOR}, ${LINK_SELECTOR}, ${DELETE_SELECTOR}{
+        transition:outline-color .15s ease, background-color .15s ease, filter .15s ease;
+        outline:2px dashed transparent; outline-offset:2px;
+      }
       .occupation__info, .occupation__info *{ pointer-events:auto !important; }
+
+      /* --- feedback par mode : seul le mode actif montre quelque chose au survol --- */
+      body.mode-text ${TEXT_SELECTOR}:hover{ outline-color:#5B8DEF; background-color:rgba(91,141,239,.08); cursor:text; }
+      body.mode-text ${DBLCLICK_TEXT_SELECTOR}:hover{ outline-color:#5B8DEF; outline-style:dashed; cursor:text; }
+      body.mode-text ${TEXT_SELECTOR}:hover::before,
+      body.mode-text ${DBLCLICK_TEXT_SELECTOR}:hover::before{
+        position:absolute; top:-24px; left:0; z-index:60;
+        font-family:'JetBrains Mono',monospace; font-size:10px; font-weight:700;
+        color:#fff; background:#5B8DEF; padding:3px 8px; border-radius:4px;
+        white-space:nowrap; pointer-events:none;
+      }
+      body.mode-text ${TEXT_SELECTOR}:hover::before{ content:"✎ cliquer pour éditer"; }
+      body.mode-text ${DBLCLICK_TEXT_SELECTOR}:hover::before{ content:"✎ double-clic pour éditer"; }
+
+      body.mode-images ${IMAGE_SELECTOR}:hover{ outline:3px dashed #A855F7; outline-offset:-3px; filter:brightness(.82); cursor:pointer; }
+
+      body.mode-links ${LINK_SELECTOR}:hover{ outline-color:#4CAF6D; outline-style:dashed; outline-offset:-2px; cursor:pointer; }
+      body.mode-links ${LINK_SELECTOR}:hover::before{
+        content:"🔗 changer l'URL"; position:absolute; top:-24px; left:0; z-index:60;
+        font-family:'JetBrains Mono',monospace; font-size:10px; font-weight:700;
+        color:#08150D; background:#4CAF6D; padding:3px 8px; border-radius:4px;
+        white-space:nowrap; pointer-events:none;
+      }
+
+      body.mode-delete ${DELETE_SELECTOR}:hover{ outline:3px solid #E4483F; outline-offset:-2px; background-color:rgba(228,72,63,.10); cursor:not-allowed; }
+      body.mode-delete ${DELETE_SELECTOR}:hover::before{
+        content:"🗑 supprimer"; position:absolute; top:-24px; left:0; z-index:60;
+        font-family:'JetBrains Mono',monospace; font-size:10px; font-weight:700;
+        color:#fff; background:#E4483F; padding:3px 8px; border-radius:4px;
+        white-space:nowrap; pointer-events:none;
+      }
+
       .editor-add-tag{
         font-family:'JetBrains Mono',monospace; font-size:11px; font-weight:700;
         color:#5B8DEF; background:transparent; border:1.5px dashed #5B8DEF;
@@ -108,24 +178,24 @@ function injectEditing(){
       .editor-img-badge{
         position:absolute; top:8px; right:8px; z-index:20;
         width:28px; height:28px; border-radius:50%;
-        background:rgba(20,20,24,.75); border:1.5px solid #5B8DEF;
+        background:rgba(20,20,24,.75); border:1.5px solid #A855F7;
         color:#fff; font-size:13px; line-height:1;
         display:flex; align-items:center; justify-content:center;
         cursor:pointer; opacity:.85;
       }
-      .editor-img-badge:hover{ opacity:1; background:#5B8DEF; }
-      ${DBLCLICK_TEXT_SELECTOR}{ position:relative; }
-      ${DBLCLICK_TEXT_SELECTOR}::after{
-        content:"✎"; position:absolute; top:-6px; right:-6px;
-        width:15px; height:15px; border-radius:50%;
-        background:#5B8DEF; color:#fff; font-size:8px;
-        display:flex; align-items:center; justify-content:center;
-        opacity:0; transition:opacity .15s ease; pointer-events:none;
-      }
-      ${DBLCLICK_TEXT_SELECTOR}:hover::after{ opacity:.9; }
+      .editor-img-badge:hover{ opacity:1; background:#A855F7; }
     `;
     doc.head.appendChild(style);
   }
+
+  // Garantit un contexte de positionnement pour les badges/étiquettes,
+  // sans jamais écraser un positionnement déjà défini par le site lui-même.
+  doc.querySelectorAll(`${TEXT_SELECTOR}, ${DBLCLICK_TEXT_SELECTOR}, ${LINK_SELECTOR}, ${DELETE_SELECTOR}`)
+    .forEach(el => {
+      if(doc.defaultView.getComputedStyle(el).position === "static"){
+        el.style.position = "relative";
+      }
+    });
 
   doc.querySelectorAll(TEXT_SELECTOR).forEach(wireTextElement);
   doc.querySelectorAll(DBLCLICK_TEXT_SELECTOR).forEach(wireDoubleClickEditable);
@@ -150,16 +220,6 @@ function injectEditing(){
   pushHistory();
   updateUndoRedoButtons();
 }
-
-function updateModeOutlines(doc){
-  // met en évidence, via une classe, les éléments concernés par le mode actif
-  doc.body.classList.remove("mode-text", "mode-images", "mode-links", "mode-delete");
-  doc.body.classList.add("mode-" + activeMode);
-}
-modeButtons.forEach(btn => btn.addEventListener("click", () => {
-  const doc = frame.contentDocument;
-  if(doc) updateModeOutlines(doc);
-}));
 
 function wireTextElement(el){
   if(el._wired) return;
@@ -203,8 +263,7 @@ function addOccupationImageBadge(occEl){
 }
 
 // Édition par double-clic pour les éléments qui sont AUSSI des contrôles de
-// navigation (tabs, pills) : le simple clic garde son comportement normal
-// (changer d'onglet / ouvrir un projet), seul le double-clic édite le texte.
+// navigation (tabs, pills) : le simple clic garde son comportement normal.
 function wireDoubleClickEditable(el){
   if(el._dblWired) return;
   el._dblWired = true;
@@ -241,8 +300,6 @@ function wireDoubleClickEditable(el){
 // Clic dans l'iframe, selon le mode actif
 // ---------------------------------------------------------------
 function onFrameClick(e){
-  const doc = frame.contentDocument;
-
   if(activeMode === "text"){
     const t = e.target.closest(TEXT_SELECTOR);
     if(t){ e.stopPropagation(); t.focus(); }
@@ -381,7 +438,7 @@ function nextProjectId(doc){
   return "p" + n;
 }
 
-function projectTemplate(id){
+function projectTemplate(){
   return `
     <div class="page">
       <div class="page__text">
@@ -448,11 +505,10 @@ btnAddProject.addEventListener("click", () => {
   const drawer = doc.createElement("div");
   drawer.className = "project-drawer";
   drawer.dataset.drawer = id;
-  drawer.innerHTML = `<div class="drawer__scroll">${projectTemplate(id)}</div><div class="scrollbar-track"><div class="scrollbar-thumb"></div></div>`;
+  drawer.innerHTML = `<div class="drawer__scroll">${projectTemplate()}</div><div class="scrollbar-track"><div class="scrollbar-thumb"></div></div>`;
   stage.appendChild(drawer);
 
-  reloadFromCurrentState();
-  toast("Nouveau projet ajouté — clique dessus pour le remplir");
+  reloadFromCurrentState(() => toast("Nouveau projet ajouté — clique dessus pour le remplir"));
 });
 
 function removeProject(id){
@@ -460,20 +516,20 @@ function removeProject(id){
   const doc = frame.contentDocument;
   doc.querySelector(`.pill[data-project="${id}"]`)?.remove();
   doc.querySelector(`.project-drawer[data-drawer="${id}"]`)?.remove();
-  reloadFromCurrentState();
-  toast("Projet supprimé");
+  reloadFromCurrentState(() => toast("Projet supprimé"));
 }
 
 // Recharge le document depuis son état courant : nécessaire après une
 // modification de structure pour que main.js re-détecte les éléments
 // (nouveaux tiroirs, pills...) et rebranche ses propres écouteurs.
-function reloadFromCurrentState(){
+function reloadFromCurrentState(afterCallback){
   const doc = frame.contentDocument;
-  const html = "<!DOCTYPE html>\n" + doc.documentElement.outerHTML;
-  doc.open();
-  doc.write(html);
-  doc.close();
-  injectEditing();
+  const html = doc.documentElement.outerHTML;
+  loadHtmlIntoFrame(html, () => {
+    injectEditing();
+    saveDraft();
+    afterCallback && afterCallback();
+  });
 }
 
 // ---------------------------------------------------------------
@@ -520,14 +576,12 @@ function pushHistory(){
 
 function restoreSnapshot(html){
   isRestoring = true;
-  const doc = frame.contentDocument;
-  doc.open();
-  doc.write("<!DOCTYPE html>\n" + html);
-  doc.close();
-  injectEditing();
-  isRestoring = false;
-  saveDraft();
-  updateUndoRedoButtons();
+  loadHtmlIntoFrame(html, () => {
+    injectEditing();
+    isRestoring = false;
+    saveDraft();
+    updateUndoRedoButtons();
+  });
 }
 
 function undo(){
@@ -559,7 +613,7 @@ function scheduleSave(){
 function saveDraft(){
   try{
     const doc = frame.contentDocument;
-    const html = "<!DOCTYPE html>\n" + doc.documentElement.outerHTML;
+    const html = doc.documentElement.outerHTML;
     localStorage.setItem(DRAFT_KEY, html);
     saveStatus.textContent = "Brouillon à jour";
   }catch(err){
@@ -579,6 +633,11 @@ btnDownload.addEventListener("click", () => {
   clone.querySelectorAll(".editor-add-tag").forEach(el => el.remove());
   clone.querySelectorAll(".editor-img-badge").forEach(el => el.remove());
   clone.querySelector("#editor-injected-style")?.remove();
+  clone.querySelector("base[href]")?.remove();
+  // retire les position:relative que l'éditeur a pu ajouter en style inline
+  clone.querySelectorAll('[style*="position: relative"]').forEach(el => {
+    if(el.getAttribute("style").trim() === "position: relative;") el.removeAttribute("style");
+  });
 
   const html = "<!DOCTYPE html>\n" + clone.outerHTML;
   const blob = new Blob([html], { type: "text/html" });
@@ -593,13 +652,13 @@ btnDownload.addEventListener("click", () => {
 
 // ---------------------------------------------------------------
 // Réinitialiser : efface le brouillon et recharge le vrai site
+// (vraie navigation vers le fichier réel, pas de reconstruction)
 // ---------------------------------------------------------------
 btnReset.addEventListener("click", () => {
   if(!confirm("Effacer toutes les modifications en cours et repartir du site actuel ?")) return;
   localStorage.removeItem(DRAFT_KEY);
   historyStack = []; historyIndex = -1;
-  frame.removeEventListener("load", onFrameLoad);
-  frame.addEventListener("load", () => injectEditing(), { once: true });
+  const onLoad = () => { injectEditing(); toast("Brouillon effacé"); };
+  frame.addEventListener("load", onLoad, { once: true });
   frame.src = "../index.html?_=" + Date.now();
-  toast("Brouillon effacé");
 });
