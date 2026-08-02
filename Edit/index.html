@@ -17,15 +17,27 @@
   </div>
 
   <div class="toolbar__group">
-    <button id="btnHelp" class="tbtn tbtn--icon" title="Comment utiliser l'éditeur">🎮 Aide</button>
+    <button id="btnHelp" class="tbtn tbtn--icon" title="Comment utiliser l'éditeur">
+      <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 0 1 4.9.8c0 1.7-2.4 2-2.4 3.5"/><circle cx="12" cy="17" r="0.6" fill="currentColor" stroke="none"/></svg>
+      Aide
+    </button>
     <button id="btnUndo" class="tbtn tbtn--icon" title="Annuler (Ctrl+Z)">↶ Annuler</button>
     <button id="btnAddProject" class="tbtn" title="Ajoute un nouveau projet à partir d'un template">+ Projet</button>
   </div>
 
   <div class="toolbar__group toolbar__colors">
     <div class="palette-picker">
-      <button id="btnPalettes" class="tbtn" title="Choisir une palette prête à l'emploi">🎨 Palettes</button>
-      <div class="palette-popover" id="palettePopover" hidden></div>
+      <button id="btnPalettes" class="tbtn" title="Choisir une palette prête à l'emploi">
+        <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a10 10 0 1 0 0 20c1.1 0 2-.9 2-2 0-.5-.2-1-.5-1.3-.3-.4-.5-.8-.5-1.2 0-.9.7-1.5 1.5-1.5H16a4 4 0 0 0 4-4c0-5.5-4.9-10-8-10Z"/><circle cx="7.5" cy="10.5" r="1.1" fill="currentColor" stroke="none"/><circle cx="11" cy="7" r="1.1" fill="currentColor" stroke="none"/><circle cx="15.5" cy="8" r="1.1" fill="currentColor" stroke="none"/></svg>
+        Palettes
+      </button>
+      <div class="palette-popover" id="palettePopover" hidden>
+        <div class="popover__head">
+          <span id="paletteContext">Palettes — clair</span>
+          <button class="popover__close" id="paletteClose" title="Fermer">✕</button>
+        </div>
+        <div class="palette-popover__grid" id="paletteGrid"></div>
+      </div>
     </div>
     <span class="toolbar__label">Perso</span>
     <label class="swatch" title="Rouge / accent"><input type="color" id="colorRed" value="#e4483f"><span style="background:#e4483f"></span></label>
@@ -42,15 +54,45 @@
 </header>
 
 <div class="help-popover" id="helpPopover" hidden>
+  <div class="popover__head">
+    <span>Comment ça marche</span>
+    <button class="popover__close" id="helpClose" title="Fermer">✕</button>
+  </div>
   <p><strong>Texte</strong> — clique n'importe quel texte pour l'éditer directement.</p>
-  <p><strong>Survole</strong> une image, un lien, un tag, un onglet ou un projet pour voir apparaître un petit badge d'action (🖼 image, 🔗 lien, ✕ supprimer, ✎ renommer). Un clic dessus fait exactement une chose.</p>
-  <p><strong>Ctrl+Z</strong> annule ta dernière modification de texte, image, lien ou tag. L'ajout/suppression de projet n'est pas annulable (une confirmation te protège à la place).</p>
+  <p><strong>Survole</strong> une image, un lien, un onglet ou un projet pour voir apparaître un petit badge d'action. Un clic dessus fait exactement une chose.</p>
+  <p><strong>Projets</strong> — le badge ✎ sur une pill de projet ouvre un panneau complet : ajoute, réordonne ou supprime des pages, des tags, des listes, des stats, des liens, des images, en totale liberté.</p>
+  <p><strong>Ctrl+Z</strong> annule ta dernière modification de texte, image ou lien. L'ajout/suppression de projet n'est pas annulable (une confirmation te protège à la place).</p>
   <p>Pour éditer la version anglaise d'un texte, bascule d'abord le switch FR/EN du site lui-même, puis édite normalement.</p>
 </div>
 
 <main class="editor-stage">
   <iframe id="siteFrame" src="../index.html" title="Aperçu éditable du site"></iframe>
 </main>
+
+<!-- ============================================================
+     PANNEAU D'ÉDITION DE PROJET — liberté complète sur les pages
+============================================================ -->
+<div class="project-editor" id="projectEditor" hidden>
+  <div class="project-editor__backdrop" id="peBackdrop"></div>
+  <div class="project-editor__panel">
+    <header class="project-editor__head">
+      <div>
+        <span class="toolbar__label">Nom de la pill</span>
+        <input type="text" id="peProjectLabel" class="pe-input pe-input--title" placeholder="Project 1">
+      </div>
+      <button class="tbtn tbtn--ghost" id="peCloseBtn">✕ Fermer</button>
+    </header>
+
+    <div class="project-editor__body" id="pePagesList"></div>
+
+    <button class="tbtn" id="peAddPage" style="margin:14px 22px;">+ Ajouter une page</button>
+
+    <footer class="project-editor__foot">
+      <span class="toolbar__label">Les changements s'appliquent en direct sur l'aperçu</span>
+      <button class="tbtn tbtn--primary" id="peApply">✓ Appliquer</button>
+    </footer>
+  </div>
+</div>
 
 <input type="file" id="fileInput" accept="image/*" hidden>
 <div class="toast" id="toast"></div>
