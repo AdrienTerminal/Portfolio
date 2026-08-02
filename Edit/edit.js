@@ -225,8 +225,6 @@ function injectEditing(){
       { icon:"✕", title:"Supprimer ce projet", danger:true, onClick:() => removeProject(pill.dataset.project) },
     ]);
   });
-
-  applyColorsToFrame();
 }
 
 // <img> ne peut pas avoir d'enfants : on l'enveloppe pour pouvoir y
@@ -250,12 +248,16 @@ function addBadges(hostEl, actions){
   if(hostEl.querySelector(":scope > .editor-badges")) return;
   const doc = hostEl.ownerDocument;
   hostEl.style.position = "relative";
-  const wrap = doc.createElement("div");
+  const wrap = doc.createElement("span");
   wrap.className = "editor-badges";
   wrap.setAttribute("contenteditable", "false");
   actions.forEach(a => {
-    const btn = doc.createElement("button");
-    btn.type = "button";
+    // volontairement un <span>, pas un <button> : ces badges finissent
+    // parfois à l'intérieur d'un <button> ou d'un <a> (pill, tab,
+    // itch-link...) et un bouton imbriqué dans un bouton est du HTML
+    // invalide — le navigateur "corrige" ça en cassant la page au
+    // rechargement. Un <span> avec juste un clic JS reste valide partout.
+    const btn = doc.createElement("span");
     btn.className = "editor-badge" + (a.danger ? " editor-badge--danger" : "");
     btn.textContent = a.icon;
     btn.title = a.title;
