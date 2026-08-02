@@ -14,6 +14,7 @@
   <div class="toolbar__brand">
     <span class="dot"></span>
     <span>SITE EDITOR</span>
+    <span class="version-badge" title="Vérifie que ce numéro correspond bien à la dernière version que Claude t'a donnée">v5</span>
   </div>
 
   <div class="toolbar__group">
@@ -60,27 +61,25 @@
   </div>
   <p><strong>Texte</strong> — clique n'importe quel texte pour l'éditer directement.</p>
   <p><strong>Survole</strong> une image, un lien, un onglet ou un projet pour voir apparaître un petit badge d'action. Un clic dessus fait exactement une chose.</p>
-  <p><strong>Projets</strong> — le badge ✎ sur une pill de projet ouvre un panneau complet : ajoute, réordonne ou supprime des pages, des tags, des listes, des stats, des liens, des images, en totale liberté.</p>
+  <p><strong>Projets</strong> — le badge ✎ sur une pill de projet ouvre, juste en dessous de l'aperçu, un panneau complet : ajoute, glisse-dépose pour réordonner, ou supprime des pages, des tags, des listes, des stats, des liens, des images (GIF compris), en totale liberté.</p>
   <p><strong>Ctrl+Z</strong> annule ta dernière modification de texte, image ou lien. L'ajout/suppression de projet n'est pas annulable (une confirmation te protège à la place).</p>
   <p>Pour éditer la version anglaise d'un texte, bascule d'abord le switch FR/EN du site lui-même, puis édite normalement.</p>
 </div>
 
 <main class="editor-stage">
   <iframe id="siteFrame" src="../index.html" title="Aperçu éditable du site"></iframe>
-</main>
 
-<!-- ============================================================
-     PANNEAU D'ÉDITION DE PROJET — liberté complète sur les pages
-============================================================ -->
-<div class="project-editor" id="projectEditor" hidden>
-  <div class="project-editor__backdrop" id="peBackdrop"></div>
-  <div class="project-editor__panel">
+  <!-- ============================================================
+       PANNEAU D'ÉDITION DE PROJET — section intégrée sous l'aperçu,
+       pas un tiroir qui recouvre tout. Repliée par défaut.
+  ============================================================ -->
+  <section class="project-editor" id="projectEditor" hidden>
     <header class="project-editor__head">
       <div>
         <span class="toolbar__label">Nom de la pill</span>
         <input type="text" id="peProjectLabel" class="pe-input pe-input--title" placeholder="Project 1">
       </div>
-      <button class="tbtn tbtn--ghost" id="peCloseBtn">✕ Fermer</button>
+      <button class="tbtn tbtn--ghost" id="peCloseBtn">✕ Fermer le panneau</button>
     </header>
 
     <div class="project-editor__body" id="pePagesList"></div>
@@ -88,11 +87,11 @@
     <button class="tbtn" id="peAddPage" style="margin:14px 22px;">+ Ajouter une page</button>
 
     <footer class="project-editor__foot">
-      <span class="toolbar__label">Les changements s'appliquent en direct sur l'aperçu</span>
+      <span class="toolbar__label">Glisse les poignées ⠿ pour réordonner. Les changements s'appliquent au clic sur Appliquer.</span>
       <button class="tbtn tbtn--primary" id="peApply">✓ Appliquer</button>
     </footer>
-  </div>
-</div>
+  </section>
+</main>
 
 <input type="file" id="fileInput" accept="image/*" hidden>
 <div class="toast" id="toast"></div>

@@ -514,9 +514,25 @@ fileInput.addEventListener("change", () => {
   const target = currentImageTarget;
   const isImg = target.tagName === "IMG";
   const prevValue = isImg ? target.src : target.style.backgroundImage;
+  const isGif = file.type === "image/gif";
+
+  const finish = (dataUrl) => {
+    if(isImg) target.src = dataUrl; else target.style.backgroundImage = `url('${dataUrl}')`;
+    recordUndo(() => { if(isImg) target.src = prevValue; else target.style.backgroundImage = prevValue; });
+    saveDraft();
+    toast(isGif ? "GIF mis à jour (animation conservée)" : "Image mise à jour");
+  };
+
+  const reader = new FileReader();
+  if(isGif){
+    // Un canvas ne capture qu'une image fixe : pour un GIF, on garde
+    // le fichier tel quel afin de préserver l'animation.
+    reader.onload = (e) => finish(e.target.result);
+    reader.readAsDataURL(file);
+    return;
+  }
 
   const img = new Image();
-  const reader = new FileReader();
   reader.onload = (e) => {
     img.onload = () => {
       const MAX = 640;
@@ -528,12 +544,7 @@ fileInput.addEventListener("change", () => {
       const canvas = document.createElement("canvas");
       canvas.width = width; canvas.height = height;
       canvas.getContext("2d").drawImage(img, 0, 0, width, height);
-      const dataUrl = canvas.toDataURL("image/jpeg", 0.85);
-
-      if(isImg) target.src = dataUrl; else target.style.backgroundImage = `url('${dataUrl}')`;
-      recordUndo(() => { if(isImg) target.src = prevValue; else target.style.backgroundImage = prevValue; });
-      saveDraft();
-      toast("Image mise à jour");
+      finish(canvas.toDataURL("image/jpeg", 0.85));
     };
     img.src = e.target.result;
   };
@@ -576,7 +587,7 @@ function addTagButton(row){
    et "Appliquer" réécrit le tiroir du projet en une fois.
 ================================================================== */
 const projectEditor   = document.getElementById("projectEditor");
-const peBackdrop       = document.getElementById("peBackdrop");
+const editorStage       = document.querySelector(".editor-stage");
 const peCloseBtn        = document.getElementById("peCloseBtn");
 const pePagesList        = document.getElementById("pePagesList");
 const peAddPage           = document.getElementById("peAddPage");
@@ -684,10 +695,15 @@ function openProjectEditor(projectId){
   peProjectLabel.value = peState.pillLabel;
   renderPanel();
   projectEditor.hidden = false;
+  editorStage.classList.add("has-panel");
+  projectEditor.scrollIntoView({ behavior:"smooth", block:"end" });
 }
-function closeProjectEditor(){ projectEditor.hidden = true; peState = null; }
+function closeProjectEditor(){
+  projectEditor.hidden = true;
+  editorStage.classList.remove("has-panel");
+  peState = null;
+}
 peCloseBtn.addEventListener("click", closeProjectEditor);
-peBackdrop.addEventListener("click", closeProjectEditor);
 
 // ---- Rendu du panneau depuis peState ----
 function renderPanel(){
@@ -702,10 +718,21 @@ function renderPageCard(page, pageIndex){
   const card = doc.createElement("div");
   card.className = "pe-page";
 
-  // en-tête : n° de page + réordonner + supprimer la page
+  // en-tête : poignée de glisser-déposer + n° de page + réordonner + supprimer
   const head = doc.createElement("div");
   head.className = "pe-page__head";
-  head.innerHTML = `<span>Page ${pageIndex + 1} / ${peState.pages.length}</span>`;
+  const headLeft = doc.createElement("div");
+  headLeft.className = "pe-page__head-left";
+  const handle = doc.createElement("span");
+  handle.className = "pe-drag-handle";
+  handle.textContent = "⠿";
+  handle.title = "Glisser pour réordonner";
+  headLeft.appendChild(handle);
+  const labelSpan = doc.createElement("span");
+  labelSpan.textContent = `Page ${pageIndex + 1} / ${peState.pages.length}`;
+  headLeft.appendChild(labelSpan);
+  head.appendChild(headLeft);
+
   const actions = doc.createElement("div");
   actions.className = "pe-page__actions";
   actions.appendChild(peIconBtn("↑", "Monter", pageIndex === 0, () => movePage(pageIndex, -1)));
@@ -713,6 +740,12 @@ function renderPageCard(page, pageIndex){
   actions.appendChild(peIconBtn("✕", "Supprimer la page", peState.pages.length <= 1, () => removePage(pageIndex), true));
   head.appendChild(actions);
   card.appendChild(head);
+
+  wireDragReorder(handle, card, pageIndex, (from, to) => {
+    const [p] = peState.pages.splice(from, 1);
+    peState.pages.splice(to, 0, p);
+    renderPanel();
+  });
 
   // image de la page
   const imgRow = doc.createElement("div");
@@ -728,7 +761,10 @@ function renderPageCard(page, pageIndex){
     fileInput.value = "";
     fileInput.click();
   });
-  imgRow.appendChild(thumb); imgRow.appendChild(changeBtn);
+  const hint = doc.createElement("span");
+  hint.className = "pe-hint";
+  hint.textContent = "JPG, PNG ou GIF (les GIF gardent leur animation)";
+  imgRow.appendChild(thumb); imgRow.appendChild(changeBtn); imgRow.appendChild(hint);
   card.appendChild(imgRow);
 
   // blocs
@@ -758,6 +794,28 @@ function renderPageCard(page, pageIndex){
 
 let peImageTargetPage = null;
 let peImageTargetThumb = null;
+
+// Glisser-déposer natif : la poignée démarre le drag, mais c'est la
+// carte entière qui sert de zone de dépôt (plus facile à viser).
+function wireDragReorder(handleEl, containerEl, index, onReorder){
+  handleEl.draggable = true;
+  handleEl.addEventListener("dragstart", (e) => {
+    e.dataTransfer.effectAllowed = "move";
+    e.dataTransfer.setData("text/plain", String(index));
+    try{ e.dataTransfer.setDragImage(containerEl, 14, 14); }catch(err){}
+    containerEl.classList.add("is-dragging");
+  });
+  handleEl.addEventListener("dragend", () => containerEl.classList.remove("is-dragging"));
+
+  containerEl.addEventListener("dragover", (e) => { e.preventDefault(); containerEl.classList.add("is-drop-target"); });
+  containerEl.addEventListener("dragleave", () => containerEl.classList.remove("is-drop-target"));
+  containerEl.addEventListener("drop", (e) => {
+    e.preventDefault();
+    containerEl.classList.remove("is-drop-target");
+    const fromIndex = parseInt(e.dataTransfer.getData("text/plain"), 10);
+    if(!Number.isNaN(fromIndex) && fromIndex !== index) onReorder(fromIndex, index);
+  });
+}
 
 function peIconBtn(label, title, disabled, onClick, danger){
   const b = document.createElement("button");
@@ -790,16 +848,30 @@ function renderBlock(page, block, blockIndex){
 
   const head = doc.createElement("div");
   head.className = "pe-block__head";
+  const headLeft = doc.createElement("div");
+  headLeft.className = "pe-block__head-left";
+  const handle = doc.createElement("span");
+  handle.className = "pe-drag-handle";
+  handle.textContent = "⠿";
+  handle.title = "Glisser pour réordonner";
   const label = doc.createElement("span");
   label.className = "pe-block__label";
   label.textContent = BLOCK_DEFS[block.type]?.label || block.type;
+  headLeft.appendChild(handle); headLeft.appendChild(label);
+
   const actions = doc.createElement("div");
   actions.className = "pe-page__actions";
   actions.appendChild(peIconBtn("↑", "Monter", blockIndex === 0, () => { swapBlocks(page, blockIndex, blockIndex - 1); }));
   actions.appendChild(peIconBtn("↓", "Descendre", blockIndex === page.blocks.length - 1, () => { swapBlocks(page, blockIndex, blockIndex + 1); }));
   actions.appendChild(peIconBtn("✕", "Supprimer ce bloc", false, () => { page.blocks.splice(blockIndex, 1); renderPanel(); }, true));
-  head.appendChild(label); head.appendChild(actions);
+  head.appendChild(headLeft); head.appendChild(actions);
   wrap.appendChild(head);
+
+  wireDragReorder(handle, wrap, blockIndex, (from, to) => {
+    const [b] = page.blocks.splice(from, 1);
+    page.blocks.splice(to, 0, b);
+    renderPanel();
+  });
 
   wrap.appendChild(renderBlockBody(block));
   return wrap;
@@ -923,8 +995,23 @@ fileInput.addEventListener("change", () => {
   if(!peImageTargetPage) return;
   const file = fileInput.files[0];
   if(!file) return;
-  const img = new Image();
+  const isGif = file.type === "image/gif";
   const reader = new FileReader();
+
+  const finish = (dataUrl) => {
+    peImageTargetPage.imgSrc = dataUrl;
+    if(peImageTargetThumb) peImageTargetThumb.src = dataUrl;
+    peImageTargetPage = null; peImageTargetThumb = null;
+    if(isGif) toast("GIF ajouté (animation conservée)");
+  };
+
+  if(isGif){
+    reader.onload = (e) => finish(e.target.result);
+    reader.readAsDataURL(file);
+    return;
+  }
+
+  const img = new Image();
   reader.onload = (e) => {
     img.onload = () => {
       const MAX = 640;
@@ -936,10 +1023,7 @@ fileInput.addEventListener("change", () => {
       const canvas = document.createElement("canvas");
       canvas.width = width; canvas.height = height;
       canvas.getContext("2d").drawImage(img, 0, 0, width, height);
-      const dataUrl = canvas.toDataURL("image/jpeg", 0.85);
-      peImageTargetPage.imgSrc = dataUrl;
-      if(peImageTargetThumb) peImageTargetThumb.src = dataUrl;
-      peImageTargetPage = null; peImageTargetThumb = null;
+      finish(canvas.toDataURL("image/jpeg", 0.85));
     };
     img.src = e.target.result;
   };
