@@ -6,7 +6,7 @@
 <title>Éditeur — Adrien Terminal Portfolio</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="edit.css?v=9">
+<link rel="stylesheet" href="edit.css?v=10">
 </head>
 <body>
 
@@ -14,7 +14,7 @@
   <div class="toolbar__brand">
     <span class="dot"></span>
     <span>SITE EDITOR</span>
-    <span class="version-badge" title="Vérifie que ce numéro correspond bien à la dernière version que Claude t'a donnée">v9</span>
+    <span class="version-badge" title="Vérifie que ce numéro correspond bien à la dernière version que Claude t'a donnée">v10</span>
   </div>
 
   <div class="toolbar__group">
@@ -61,7 +61,7 @@
   </div>
   <p><strong>Texte</strong> — clique n'importe quel texte pour l'éditer directement.</p>
   <p><strong>Survole</strong> une image, un lien, un onglet ou un projet pour voir apparaître un petit badge d'action. Un clic dessus fait exactement une chose.</p>
-  <p><strong>Projets</strong> — le badge ✎ sur une pill de projet ouvre, juste en dessous de l'aperçu, un panneau complet : ajoute, glisse-dépose pour réordonner, ou supprime des pages, des tags, des listes, des stats, des liens, des images (GIF compris), en totale liberté.</p>
+  <p><strong>Projets</strong> — le badge ✎ sur une pill de projet ouvre un panneau complet à droite : ajoute, glisse-dépose pour réordonner, ou supprime des pages, des tags, des listes, des stats, des liens, des images/vidéos, en totale liberté. Les modifications s'affichent en direct sur le site à gauche ; rien n'est définitif avant "Appliquer" — fermer le panneau sans appliquer annule tout.</p>
   <p><strong>Ctrl+Z</strong> annule ta dernière modification de texte, image ou lien. L'ajout/suppression de projet n'est pas annulable (une confirmation te protège à la place).</p>
   <p>Pour éditer la version anglaise d'un texte, bascule d'abord le switch FR/EN du site lui-même, puis édite normalement.</p>
 </div>
@@ -82,11 +82,8 @@
       <button class="tbtn tbtn--ghost" id="peCloseBtn">✕ Fermer le panneau</button>
     </header>
 
-    <div class="pe-preview">
-      <span class="pe-preview__label">Aperçu en direct — ne s'applique au vrai site qu'au clic sur "Appliquer"</span>
-      <div class="pe-preview__frame-wrap">
-        <iframe id="previewFrame" class="pe-preview__frame" src="preview.html" title="Aperçu en direct de la page"></iframe>
-      </div>
+    <div class="pe-panel-hint">
+      <span>Les modifications s'affichent en direct sur le site à gauche. Rien n'est définitif avant "Appliquer".</span>
     </div>
 
     <div class="pe-page-tabs" id="pePageTabs"></div>
@@ -110,6 +107,6 @@
 <input type="file" id="videoInput" accept="video/mp4,video/webm,video/*" hidden>
 <div class="toast" id="toast"></div>
 
-<script src="edit.js?v=9"></script>
+<script src="edit.js?v=10"></script>
 </body>
 </html>

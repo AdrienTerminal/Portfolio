@@ -124,7 +124,7 @@ body{
 ================================================================== */
 .project-editor[hidden]{ display:none !important; }
 .project-editor{
-  position:relative; width:min(640px, 46vw);
+  position:relative; width:min(420px, 36vw);
   flex:0 0 auto;
   --pe-paper: #F2E9D8;
   --pe-card:  #FFFCF5;
@@ -136,7 +136,7 @@ body{
   --pe-muted: #8A8368;
   background:var(--pe-paper); border-left:3px solid var(--pe-ink);
   display:flex; flex-direction:column;
-  height:100%; min-width:380px;
+  height:100%; min-width:360px;
   font-family:var(--font-body); color:var(--pe-ink);
 }
 .project-editor__head{
@@ -146,20 +146,12 @@ body{
 }
 .project-editor__head .toolbar__label{ color:var(--pe-muted); }
 
-/* ---- preview en direct ---- */
-.pe-preview{
-  padding:14px 20px; background:var(--pe-card); border-bottom:2px dashed var(--pe-ink);
+/* ---- rappel compact : les modifs sont déjà en direct sur le site ---- */
+.pe-panel-hint{
+  padding:10px 20px; background:var(--pe-card); border-bottom:2px dashed var(--pe-ink);
   flex:0 0 auto;
+  font-family:var(--font-mono); font-size:0.68rem; color:var(--pe-muted);
 }
-.pe-preview__label{
-  display:block; font-family:var(--font-mono); font-size:0.65rem; color:var(--pe-muted);
-  margin-bottom:8px;
-}
-.pe-preview__frame-wrap{
-  border:2px solid var(--pe-ink); border-radius:10px; overflow:hidden;
-  height:260px; background:var(--pe-paper);
-}
-.pe-preview__frame{ width:100%; height:100%; border:none; }
 
 /* ---- onglets de pages ---- */
 .pe-page-tabs{
@@ -181,13 +173,13 @@ body{
 
 /* ---- palette de modules à glisser ---- */
 .pe-palette{
-  display:flex; align-items:center; gap:8px; flex-wrap:wrap;
-  padding:10px 20px; background:var(--pe-paper); border-bottom:2px dashed var(--pe-ink);
+  display:flex; align-items:center; gap:5px; flex-wrap:wrap;
+  padding:8px 16px; background:var(--pe-paper); border-bottom:2px dashed var(--pe-ink);
 }
-.pe-palette__label{ font-family:var(--font-mono); font-size:0.68rem; color:var(--pe-muted); margin-right:4px; }
+.pe-palette__label{ font-family:var(--font-mono); font-size:0.62rem; color:var(--pe-muted); width:100%; margin-bottom:2px; }
 .pe-palette-chip{
-  font-family:'Fredoka', sans-serif; font-weight:600; font-size:0.78rem;
-  padding:7px 14px; border-radius:100px; border:2px dashed var(--chip-color, var(--pe-blue));
+  font-family:'Fredoka', sans-serif; font-weight:600; font-size:0.7rem;
+  padding:5px 10px; border-radius:100px; border:1.5px dashed var(--chip-color, var(--pe-blue));
   background:var(--pe-card); color:var(--chip-color, var(--pe-blue));
   cursor:grab; user-select:none;
 }
@@ -204,14 +196,14 @@ body{
 .pe-palette-chip[data-type="image"]{ --chip-color:#9C5FE0; }
 .pe-palette-chip[data-type="video"]{ --chip-color:#2AA198; }
 
-/* ---- canevas quadrillé ---- */
+/* ---- canevas quadrillé : une colonne, cohérent avec un panneau resserré ---- */
 .pe-canvas{
   min-height:220px;
   background-image:radial-gradient(circle, rgba(27,42,74,0.18) 1px, transparent 1px);
   background-size:22px 22px;
   border:2px dashed rgba(27,42,74,0.3); border-radius:14px;
-  padding:16px;
-  display:grid; grid-template-columns:repeat(auto-fill, minmax(240px, 1fr)); gap:14px;
+  padding:14px;
+  display:grid; grid-template-columns:1fr; gap:12px;
   align-content:start;
   transition:background-color .15s ease, border-color .15s ease;
 }
@@ -220,7 +212,7 @@ body{
   grid-column:1 / -1; text-align:center; padding:30px 10px;
   font-family:var(--font-mono); font-size:0.78rem; color:var(--pe-muted);
 }
-.project-editor__body{ flex:1; min-height:0; overflow-y:auto; padding:20px; }
+.project-editor__body{ flex:1; min-height:0; overflow-y:auto; padding:16px; }
 .project-editor__foot{
   display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;
   padding:14px 22px; border-top:2px dashed var(--pe-ink); background:var(--pe-card);

@@ -594,6 +594,7 @@ const pePalette           = document.getElementById("pePalette");
 const peCanvas              = document.getElementById("peCanvas");
 const peApply                 = document.getElementById("peApply");
 const peProjectLabel            = document.getElementById("peProjectLabel");
+peProjectLabel.addEventListener("input", () => liveUpdateSite());
 
 let peState = null;        // { projectId, pillLabel, activePage, pages:[{imgSrc, imgSize, blocks:[...]}] }
 let peCurrentPillEl = null;
@@ -759,23 +760,44 @@ function buildPageElement(doc, pageData){
 }
 
 // ---- Ouverture / fermeture ----
+let peOriginalHtml = null;
+let peOriginalLabel = null;
+
 function openProjectEditor(projectId){
   peState = readProjectState(projectId);
   peCurrentPillEl = frame.contentDocument.querySelector(`.pill[data-project="${projectId}"]`);
+
+  const drawer = frame.contentDocument.querySelector(`.project-drawer[data-drawer="${projectId}"]`);
+  peOriginalHtml = drawer.querySelector(".drawer__scroll").innerHTML;
+  peOriginalLabel = peCurrentPillEl.textContent;
+
   peProjectLabel.value = peState.pillLabel;
   renderPanel();
   projectEditor.hidden = false;
   editorStage.classList.add("has-panel");
-  projectEditor.scrollIntoView({ behavior:"smooth", block:"end" });
 }
-function closeProjectEditor(){
+
+// discard=true : referme SANS garder les modifs (retour à l'état d'avant ouverture)
+// discard=false : referme en gardant l'état actuel, déjà affiché en direct sur le site
+function closeProjectEditor(discard){
+  if(discard && peOriginalHtml !== null && peState){
+    const doc = frame.contentDocument;
+    const drawer = doc.querySelector(`.project-drawer[data-drawer="${peState.projectId}"]`);
+    if(drawer){
+      drawer.querySelector(".drawer__scroll").innerHTML = peOriginalHtml;
+      if(peCurrentPillEl) peCurrentPillEl.textContent = peOriginalLabel;
+      injectEditing();
+    }
+  }
   projectEditor.hidden = true;
   editorStage.classList.remove("has-panel");
   peState = null;
+  peOriginalHtml = null;
+  peOriginalLabel = null;
 }
-peCloseBtn.addEventListener("click", closeProjectEditor);
+peCloseBtn.addEventListener("click", () => closeProjectEditor(true));
 document.addEventListener("keydown", (e) => {
-  if(e.key === "Escape" && !projectEditor.hidden) closeProjectEditor();
+  if(e.key === "Escape" && !projectEditor.hidden) closeProjectEditor(true);
 });
 
 // ---- Rendu global ----
@@ -902,23 +924,39 @@ function renderCanvas(){
     }
   });
 
-  updateLivePreview();
+  liveUpdateSite();
 }
 
-// ---- Preview en direct : rend la page active avec le VRAI CSS du
-// site, dans un iframe séparé qui ne touche jamais le site réel.
-// Rien n'est appliqué pour de vrai avant le clic sur "Appliquer".
-const previewFrame = document.getElementById("previewFrame");
-let previewReady = false;
-previewFrame.addEventListener("load", () => { previewReady = true; updateLivePreview(); });
+// ---- Mise à jour en direct SUR LE VRAI SITE : chaque page éditée est
+// reconstruite et remplacée à sa place dans le vrai tiroir, pendant
+// qu'on édite — sans jamais recharger la page ni casser le scroll.
+// Rien n'est définitif : si on ferme sans "Appliquer", tout revient
+// à l'état d'avant ouverture du panneau (voir closeProjectEditor).
+function liveUpdateSite(){
+  if(!peState) return;
+  const doc = frame.contentDocument;
+  const drawer = doc.querySelector(`.project-drawer[data-drawer="${peState.projectId}"]`);
+  if(!drawer) return;
+  const scrollWrap = drawer.querySelector(".drawer__scroll");
+  const existingPages = [...scrollWrap.children];
 
-function updateLivePreview(){
-  if(!previewReady || !peState) return;
-  const pdoc = previewFrame.contentDocument;
-  const mount = pdoc && pdoc.getElementById("mount");
-  if(!mount) return;
-  mount.innerHTML = "";
-  mount.appendChild(buildPageElement(pdoc, peState.pages[peState.activePage]));
+  peState.pages.forEach((pageData, i) => {
+    const freshPage = buildPageElement(doc, pageData);
+    if(existingPages[i]){
+      scrollWrap.replaceChild(freshPage, existingPages[i]);
+    }else{
+      scrollWrap.appendChild(freshPage);
+    }
+  });
+  // des pages ont pu être supprimées : retirer les excédents
+  while(scrollWrap.children.length > peState.pages.length){
+    scrollWrap.removeChild(scrollWrap.lastChild);
+  }
+
+  const newLabel = peProjectLabel.value.trim();
+  if(newLabel && peCurrentPillEl) peCurrentPillEl.textContent = newLabel;
+
+  injectEditing();
 }
 
 // Glisser-déposer natif : la poignée démarre le drag, mais c'est la
@@ -1048,7 +1086,7 @@ function renderRichTextEditor(block){
       editable.focus();
       doc.execCommand("foreColor", false, c);
       block.fr = editable.innerHTML;
-      updateLivePreview();
+      liveUpdateSite();
     });
     colorsWrap.appendChild(dot);
   });
@@ -1062,7 +1100,7 @@ function renderRichTextEditor(block){
   editable.addEventListener("input", () => {
     block.fr = editable.innerHTML;
     if(block.en === undefined) block.en = editable.innerHTML;
-    updateLivePreview();
+    liveUpdateSite();
   });
   wrap.appendChild(editable);
 
@@ -1071,7 +1109,7 @@ function renderRichTextEditor(block){
     editable.focus();
     doc.execCommand("bold");
     block.fr = editable.innerHTML;
-    updateLivePreview();
+    liveUpdateSite();
   });
 
   return wrap;
@@ -1084,7 +1122,7 @@ function renderBlockBody(block){
   if(["title","meta"].includes(block.type)){
     const input = doc.createElement("input");
     input.className = "pe-input"; input.type = "text"; input.value = block.fr;
-    input.addEventListener("input", () => { block.fr = input.value; block.en = block.en === undefined ? input.value : block.en; updateLivePreview(); });
+    input.addEventListener("input", () => { block.fr = input.value; block.en = block.en === undefined ? input.value : block.en; liveUpdateSite(); });
     body.appendChild(input);
     return body;
   }
@@ -1150,7 +1188,7 @@ function renderBlockBody(block){
       urlInput.className = "pe-input"; urlInput.type = "text";
       urlInput.placeholder = "https://www.youtube.com/watch?v=...";
       if(block.youtubeId) urlInput.value = `https://youtu.be/${block.youtubeId}`;
-      urlInput.addEventListener("input", () => { block.youtubeId = extractYouTubeId(urlInput.value); updateLivePreview(); });
+      urlInput.addEventListener("input", () => { block.youtubeId = extractYouTubeId(urlInput.value); liveUpdateSite(); });
       body.appendChild(urlInput);
       if(block.youtubeId){
         const preview = doc.createElement("img");
@@ -1188,11 +1226,11 @@ function renderBlockBody(block){
     const labelInput = doc.createElement("input");
     labelInput.className = "pe-input"; labelInput.type = "text"; labelInput.value = block.fr;
     labelInput.placeholder = "Texte du bouton";
-    labelInput.addEventListener("input", () => { block.fr = labelInput.value; updateLivePreview(); });
+    labelInput.addEventListener("input", () => { block.fr = labelInput.value; liveUpdateSite(); });
     const hrefInput = doc.createElement("input");
     hrefInput.className = "pe-input"; hrefInput.type = "text"; hrefInput.value = block.href;
     hrefInput.placeholder = "https://...";
-    hrefInput.addEventListener("input", () => { block.href = hrefInput.value; updateLivePreview(); });
+    hrefInput.addEventListener("input", () => { block.href = hrefInput.value; liveUpdateSite(); });
     body.appendChild(labelInput); body.appendChild(hrefInput);
     return body;
   }
@@ -1208,7 +1246,7 @@ function renderBlockBody(block){
         chip.appendChild(doc.createTextNode(t.fr + " "));
         const x = doc.createElement("button");
         x.type = "button"; x.textContent = "✕";
-        x.addEventListener("click", () => { block.items.splice(i, 1); renderTags(); updateLivePreview(); });
+        x.addEventListener("click", () => { block.items.splice(i, 1); renderTags(); liveUpdateSite(); });
         chip.appendChild(x);
         editor.appendChild(chip);
       });
@@ -1218,7 +1256,7 @@ function renderBlockBody(block){
         if(e.key === "Enter" && input.value.trim()){
           block.items.push({ fr:input.value.trim(), en:input.value.trim() });
           renderTags();
-          updateLivePreview();
+          liveUpdateSite();
         }
       });
       editor.appendChild(input);
@@ -1235,14 +1273,14 @@ function renderBlockBody(block){
       block.items.forEach((li, i) => {
         const row = doc.createElement("div"); row.className = "pe-list-item";
         const input = doc.createElement("input"); input.className = "pe-input"; input.type = "text"; input.value = li.fr;
-        input.addEventListener("input", () => { li.fr = input.value; li.en = input.value; updateLivePreview(); });
+        input.addEventListener("input", () => { li.fr = input.value; li.en = input.value; liveUpdateSite(); });
         row.appendChild(input);
-        row.appendChild(peIconBtn("✕", "Retirer", false, () => { block.items.splice(i, 1); renderItems(); updateLivePreview(); }, true));
+        row.appendChild(peIconBtn("✕", "Retirer", false, () => { block.items.splice(i, 1); renderItems(); liveUpdateSite(); }, true));
         editor.appendChild(row);
       });
       const addBtn = doc.createElement("button");
       addBtn.type = "button"; addBtn.className = "pe-add-small"; addBtn.textContent = "+ ligne";
-      addBtn.addEventListener("click", () => { block.items.push({ fr:"Nouvel élément", en:"New item" }); renderItems(); updateLivePreview(); });
+      addBtn.addEventListener("click", () => { block.items.push({ fr:"Nouvel élément", en:"New item" }); renderItems(); liveUpdateSite(); });
       editor.appendChild(addBtn);
     }
     renderItems();
@@ -1257,16 +1295,16 @@ function renderBlockBody(block){
       block.items.forEach((s, i) => {
         const row = doc.createElement("div"); row.className = "pe-stat-item";
         const num = doc.createElement("input"); num.className = "pe-input"; num.type = "text"; num.value = s.number; num.placeholder = "1.2K";
-        num.addEventListener("input", () => { s.number = num.value; updateLivePreview(); });
+        num.addEventListener("input", () => { s.number = num.value; liveUpdateSite(); });
         const lbl = doc.createElement("input"); lbl.className = "pe-input"; lbl.type = "text"; lbl.value = s.fr; lbl.placeholder = "libellé";
-        lbl.addEventListener("input", () => { s.fr = lbl.value; s.en = lbl.value; updateLivePreview(); });
+        lbl.addEventListener("input", () => { s.fr = lbl.value; s.en = lbl.value; liveUpdateSite(); });
         row.appendChild(num); row.appendChild(lbl);
-        row.appendChild(peIconBtn("✕", "Retirer", false, () => { block.items.splice(i, 1); renderStats(); updateLivePreview(); }, true));
+        row.appendChild(peIconBtn("✕", "Retirer", false, () => { block.items.splice(i, 1); renderStats(); liveUpdateSite(); }, true));
         editor.appendChild(row);
       });
       const addBtn = doc.createElement("button");
       addBtn.type = "button"; addBtn.className = "pe-add-small"; addBtn.textContent = "+ statistique";
-      addBtn.addEventListener("click", () => { block.items.push({ number:"0", fr:"métrique", en:"metric" }); renderStats(); updateLivePreview(); });
+      addBtn.addEventListener("click", () => { block.items.push({ number:"0", fr:"métrique", en:"metric" }); renderStats(); liveUpdateSite(); });
       editor.appendChild(addBtn);
     }
     renderStats();
@@ -1320,27 +1358,21 @@ fileInput.addEventListener("change", () => {
 });
 
 peApply.addEventListener("click", () => {
-  const doc = frame.contentDocument;
-  const drawer = doc.querySelector(`.project-drawer[data-drawer="${peState.projectId}"]`);
-  const scrollWrap = drawer.querySelector(".drawer__scroll");
-  const prevHtml = scrollWrap.innerHTML;
-  const prevLabel = peCurrentPillEl.textContent;
-
-  scrollWrap.innerHTML = "";
-  peState.pages.forEach(p => scrollWrap.appendChild(buildPageElement(doc, p)));
-
-  const newLabel = peProjectLabel.value.trim() || prevLabel;
-  peCurrentPillEl.textContent = newLabel;
+  const prevHtml = peOriginalHtml;
+  const prevLabel = peOriginalLabel;
+  const drawerId = peState.projectId;
 
   recordUndo(() => {
-    scrollWrap.innerHTML = prevHtml;
-    peCurrentPillEl.textContent = prevLabel;
+    const doc = frame.contentDocument;
+    const drawer = doc.querySelector(`.project-drawer[data-drawer="${drawerId}"]`);
+    if(drawer) drawer.querySelector(".drawer__scroll").innerHTML = prevHtml;
+    const pill = doc.querySelector(`.pill[data-project="${drawerId}"]`);
+    if(pill) pill.textContent = prevLabel;
     injectEditing();
   });
 
-  injectEditing();
   saveDraft();
-  closeProjectEditor();
+  closeProjectEditor(false); // false : on garde l'état actuel, déjà en direct sur le site
   toast("Projet mis à jour");
 });
 
