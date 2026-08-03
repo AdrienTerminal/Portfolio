@@ -607,9 +607,21 @@ const BLOCK_DEFS = {
   list:   { label:"Liste",        make:() => ({ type:"list", items:[{fr:"Élément", en:"Item"}] }) },
   stats:  { label:"Statistiques", make:() => ({ type:"stats", items:[{number:"0", fr:"métrique", en:"metric"}] }) },
   link:   { label:"Lien itch.io", make:() => ({ type:"link", href:"#", fr:"Voir sur itch.io ↗", en:"View on itch.io ↗" }) },
+  photo:  { label:"Photo",        make:() => ({ type:"photo", src:"" }) },
+  video:  { label:"Vidéo",        make:() => ({ type:"video", mode:"youtube", src:"", youtubeId:"" }) },
 };
 
 // ---- Lecture du DOM vers l'état JS du panneau ----
+function readAccent(el){
+  const v = el.style.getPropertyValue("--accent-color");
+  return v ? v.trim() : null;
+}
+
+function extractYouTubeId(url){
+  const m = String(url || "").match(/(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{6,})/);
+  return m ? m[1] : "";
+}
+
 function readProjectState(projectId){
   const doc = frame.contentDocument;
   const pill = doc.querySelector(`.pill[data-project="${projectId}"]`);
@@ -623,21 +635,30 @@ function readProjectState(projectId){
     [...textEl.children].forEach(child => {
       if(child.classList.contains("editor-badges")) return;
       if(child.tagName === "H3"){
-        blocks.push({ type:"title", fr:child.dataset.fr || child.textContent, en:child.dataset.en || child.textContent });
+        blocks.push({ type:"title", fr:child.dataset.fr || child.textContent, en:child.dataset.en || child.textContent, accentColor:readAccent(child) });
       }else if(child.classList.contains("page__pitch")){
-        blocks.push({ type:"pitch", fr:child.dataset.fr || child.textContent, en:child.dataset.en || child.textContent });
+        blocks.push({ type:"pitch", fr:child.dataset.fr || child.innerHTML, en:child.dataset.en || child.innerHTML, accentColor:readAccent(child) });
       }else if(child.classList.contains("page__meta")){
         blocks.push({ type:"meta", fr:child.dataset.fr || child.textContent, en:child.dataset.en || child.textContent });
       }else if(child.classList.contains("page__tags")){
-        blocks.push({ type:"tags", items:[...child.children].filter(c=>!c.classList.contains("editor-badges")).map(s => ({ fr:s.dataset.fr || s.textContent, en:s.dataset.en || s.textContent })) });
+        blocks.push({ type:"tags", accentColor:readAccent(child), items:[...child.children].filter(c=>!c.classList.contains("editor-badges")).map(s => ({ fr:s.dataset.fr || s.textContent, en:s.dataset.en || s.textContent })) });
       }else if(child.classList.contains("page__list")){
-        blocks.push({ type:"list", items:[...child.children].map(li => ({ fr:(li.dataset.fr || li.textContent).replace(/<\/?strong>/g,""), en:(li.dataset.en || li.textContent).replace(/<\/?strong>/g,"") })) });
+        blocks.push({ type:"list", accentColor:readAccent(child), items:[...child.children].map(li => ({ fr:(li.dataset.fr || li.textContent).replace(/<\/?strong>/g,""), en:(li.dataset.en || li.textContent).replace(/<\/?strong>/g,"") })) });
       }else if(child.classList.contains("page__stats")){
-        blocks.push({ type:"stats", items:[...child.children].map(s => ({ number:s.querySelector("strong")?.textContent || "", fr:s.querySelector("span")?.dataset.fr || s.querySelector("span")?.textContent || "", en:s.querySelector("span")?.dataset.en || s.querySelector("span")?.textContent || "" })) });
+        blocks.push({ type:"stats", accentColor:readAccent(child), items:[...child.children].map(s => ({ number:s.querySelector("strong")?.textContent || "", fr:s.querySelector("span")?.dataset.fr || s.querySelector("span")?.textContent || "", en:s.querySelector("span")?.dataset.en || s.querySelector("span")?.textContent || "" })) });
       }else if(child.classList.contains("itch-link")){
-        blocks.push({ type:"link", href:child.getAttribute("href") || "#", fr:child.dataset.fr || child.textContent, en:child.dataset.en || child.textContent });
+        blocks.push({ type:"link", href:child.getAttribute("href") || "#", fr:child.dataset.fr || child.textContent, en:child.dataset.en || child.textContent, accentColor:readAccent(child) });
+      }else if(child.classList.contains("page__photo")){
+        blocks.push({ type:"photo", src:child.src });
+      }else if(child.classList.contains("page__video")){
+        const v = child.querySelector("video");
+        blocks.push({ type:"video", mode:"upload", src: v ? v.src : "", youtubeId:"" });
+      }else if(child.classList.contains("page__video-embed")){
+        const ifr = child.querySelector("iframe");
+        const src = ifr ? ifr.src : "";
+        blocks.push({ type:"video", mode:"youtube", src:"", youtubeId: extractYouTubeId(src) || (src.split("/embed/")[1] || "").split("?")[0] });
       }else if(child.tagName === "P"){
-        blocks.push({ type:"text", fr:child.dataset.fr || child.textContent, en:child.dataset.en || child.textContent });
+        blocks.push({ type:"text", fr:child.dataset.fr || child.innerHTML, en:child.dataset.en || child.innerHTML });
       }
     });
     return { imgSrc: img ? img.src : "", imgSize, blocks };
@@ -647,6 +668,13 @@ function readProjectState(projectId){
 
 // ---- Construction d'éléments DOM depuis l'état (jamais de HTML texte : pas de risque d'échappement) ----
 const IMG_SIZE_COLUMNS = { small:"1fr 220px", normal:"1fr 320px", large:"1fr 420px" };
+
+function applyAccent(el, block){
+  if(block.accentColor){
+    el.dataset.accent = "1";
+    el.style.setProperty("--accent-color", block.accentColor);
+  }
+}
 
 function buildPageElement(doc, pageData){
   const page = doc.createElement("div");
@@ -659,17 +687,19 @@ function buildPageElement(doc, pageData){
 
   pageData.blocks.forEach(b => {
     let el = null;
-    if(b.type === "title"){ el = doc.createElement("h3"); el.textContent = b.fr; el.dataset.fr = b.fr; el.dataset.en = b.en; }
-    else if(b.type === "pitch"){ el = doc.createElement("p"); el.className = "page__pitch"; el.textContent = b.fr; el.dataset.fr = b.fr; el.dataset.en = b.en; }
+    if(b.type === "title"){ el = doc.createElement("h3"); el.textContent = b.fr; el.dataset.fr = b.fr; el.dataset.en = b.en; applyAccent(el, b); }
+    else if(b.type === "pitch"){ el = doc.createElement("p"); el.className = "page__pitch"; el.innerHTML = b.fr; el.dataset.fr = b.fr; el.dataset.en = b.en; applyAccent(el, b); }
     else if(b.type === "meta"){ el = doc.createElement("p"); el.className = "page__meta"; el.textContent = b.fr; el.dataset.fr = b.fr; el.dataset.en = b.en; }
-    else if(b.type === "text"){ el = doc.createElement("p"); el.textContent = b.fr; el.dataset.fr = b.fr; el.dataset.en = b.en; }
+    else if(b.type === "text"){ el = doc.createElement("p"); el.innerHTML = b.fr; el.dataset.fr = b.fr; el.dataset.en = b.en; }
     else if(b.type === "tags"){
       el = doc.createElement("p"); el.className = "page__tags";
       b.items.forEach(t => { const s = doc.createElement("span"); s.textContent = t.fr; s.dataset.fr = t.fr; s.dataset.en = t.en; el.appendChild(s); });
+      applyAccent(el, b);
     }
     else if(b.type === "list"){
       el = doc.createElement("ul"); el.className = "page__list";
       b.items.forEach(li => { const l = doc.createElement("li"); l.textContent = li.fr; l.dataset.fr = li.fr; l.dataset.en = li.en; el.appendChild(l); });
+      applyAccent(el, b);
     }
     else if(b.type === "stats"){
       el = doc.createElement("div"); el.className = "page__stats";
@@ -679,10 +709,31 @@ function buildPageElement(doc, pageData){
         const span = doc.createElement("span"); span.textContent = s.fr; span.dataset.fr = s.fr; span.dataset.en = s.en;
         d.appendChild(strong); d.appendChild(span); el.appendChild(d);
       });
+      applyAccent(el, b);
     }
     else if(b.type === "link"){
       el = doc.createElement("a"); el.className = "itch-link"; el.href = b.href || "#";
       el.textContent = b.fr; el.dataset.fr = b.fr; el.dataset.en = b.en;
+      applyAccent(el, b);
+    }
+    else if(b.type === "photo"){
+      if(b.src){ el = doc.createElement("img"); el.className = "page__photo"; el.src = b.src; el.alt = ""; }
+    }
+    else if(b.type === "video"){
+      if(b.mode === "youtube" && b.youtubeId){
+        el = doc.createElement("div"); el.className = "page__video-embed";
+        const ifr = doc.createElement("iframe");
+        ifr.src = `https://www.youtube.com/embed/${b.youtubeId}`;
+        ifr.title = "Vidéo YouTube";
+        ifr.allow = "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture";
+        ifr.allowFullscreen = true;
+        el.appendChild(ifr);
+      }else if(b.mode === "upload" && b.src){
+        el = doc.createElement("div"); el.className = "page__video";
+        const v = doc.createElement("video");
+        v.src = b.src; v.controls = true;
+        el.appendChild(v);
+      }
     }
     if(el) textWrap.appendChild(el);
   });
@@ -788,6 +839,28 @@ function renderPalette(){
 // ---- Canevas de la page active ----
 let peImageTargetPage = null;
 let peImageTargetThumb = null;
+let peImageTargetBlock = null;
+let peVideoTargetBlock = null;
+const videoInput = document.getElementById("videoInput");
+
+videoInput.addEventListener("change", () => {
+  if(!peVideoTargetBlock) return;
+  const file = videoInput.files[0];
+  if(!file) return;
+  const MAX_MB = 15;
+  if(file.size > MAX_MB * 1024 * 1024){
+    toast(`Vidéo trop lourde (${(file.size/1024/1024).toFixed(1)} Mo) — ${MAX_MB} Mo max conseillé`);
+    return;
+  }
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    peVideoTargetBlock.src = e.target.result;
+    peVideoTargetBlock = null;
+    renderPanel();
+    toast("Vidéo ajoutée");
+  };
+  reader.readAsDataURL(file);
+});
 
 function renderCanvas(){
   const page = peState.pages[peState.activePage];
@@ -839,6 +912,7 @@ function renderImageTile(page){
   changeBtn.type = "button"; changeBtn.className = "tbtn"; changeBtn.textContent = "Changer l'image";
   changeBtn.addEventListener("click", () => {
     currentImageTarget = null;
+    peImageTargetBlock = null;
     peImageTargetPage = page;
     peImageTargetThumb = thumb;
     fileInput.value = "";
@@ -905,6 +979,34 @@ function peIconBtn(label, title, disabled, onClick, danger){
   return b;
 }
 
+const ACCENT_SUPPORTED = ["title", "pitch", "tags", "list", "stats", "link"];
+
+function renderAccentControl(block){
+  const wrap = document.createElement("div");
+  wrap.className = "pe-accent-control";
+  wrap.style.display = "flex"; wrap.style.alignItems = "center"; wrap.style.gap = "4px";
+
+  const swatch = document.createElement("label");
+  swatch.className = "pe-accent-swatch" + (block.accentColor ? " has-custom" : "");
+  if(block.accentColor) swatch.style.setProperty("--custom-accent", block.accentColor);
+  swatch.title = "Couleur personnalisée pour ce bloc";
+  const input = document.createElement("input");
+  input.type = "color";
+  input.value = block.accentColor || "#5B8DEF";
+  input.addEventListener("input", () => { block.accentColor = input.value; renderPanel(); });
+  swatch.appendChild(input);
+  wrap.appendChild(swatch);
+
+  if(block.accentColor){
+    const clear = document.createElement("button");
+    clear.type = "button"; clear.className = "pe-accent-clear"; clear.textContent = "défaut";
+    clear.title = "Revenir à la couleur par défaut";
+    clear.addEventListener("click", () => { block.accentColor = null; renderPanel(); });
+    wrap.appendChild(clear);
+  }
+  return wrap;
+}
+
 function renderBlock(page, block, blockIndex){
   const doc = document;
   const wrap = doc.createElement("div");
@@ -923,6 +1025,7 @@ function renderBlock(page, block, blockIndex){
   label.className = "pe-block__label";
   label.textContent = BLOCK_DEFS[block.type]?.label || block.type;
   headLeft.appendChild(handle); headLeft.appendChild(label);
+  if(ACCENT_SUPPORTED.includes(block.type)) headLeft.appendChild(renderAccentControl(block));
 
   const actions = doc.createElement("div");
   actions.className = "pe-page__actions";
@@ -940,17 +1043,145 @@ function renderBlock(page, block, blockIndex){
   return wrap;
 }
 
+const RICH_COLORS = ["#1B2A4A", "#E4483F", "#4CAF6D", "#5B8DEF", "#D4A017"];
+
+function renderRichTextEditor(block){
+  const doc = document;
+  const wrap = doc.createElement("div");
+
+  const toolbar = doc.createElement("div");
+  toolbar.className = "pe-richtoolbar";
+
+  const boldBtn = doc.createElement("button");
+  boldBtn.type = "button"; boldBtn.className = "pe-rt-btn"; boldBtn.innerHTML = "<strong>G</strong>";
+  boldBtn.title = "Mettre en gras le texte sélectionné";
+  toolbar.appendChild(boldBtn);
+
+  const colorsWrap = doc.createElement("div");
+  colorsWrap.className = "pe-rt-colors";
+  RICH_COLORS.forEach(c => {
+    const dot = doc.createElement("button");
+    dot.type = "button"; dot.className = "pe-rt-color"; dot.style.background = c;
+    dot.title = "Colorer le texte sélectionné";
+    dot.addEventListener("mousedown", (e) => e.preventDefault()); // ne pas perdre la sélection en cours
+    dot.addEventListener("click", () => {
+      editable.focus();
+      doc.execCommand("foreColor", false, c);
+      block.fr = editable.innerHTML;
+    });
+    colorsWrap.appendChild(dot);
+  });
+  toolbar.appendChild(colorsWrap);
+  wrap.appendChild(toolbar);
+
+  const editable = doc.createElement("div");
+  editable.className = "pe-richtext";
+  editable.contentEditable = "true";
+  editable.innerHTML = block.fr;
+  editable.addEventListener("input", () => {
+    block.fr = editable.innerHTML;
+    if(block.en === undefined) block.en = editable.innerHTML;
+  });
+  wrap.appendChild(editable);
+
+  boldBtn.addEventListener("mousedown", (e) => e.preventDefault());
+  boldBtn.addEventListener("click", () => {
+    editable.focus();
+    doc.execCommand("bold");
+    block.fr = editable.innerHTML;
+  });
+
+  return wrap;
+}
+
 function renderBlockBody(block){
   const doc = document;
   const body = doc.createElement("div");
 
-  if(["title","text","pitch","meta"].includes(block.type)){
-    const input = block.type === "text" ? doc.createElement("textarea") : doc.createElement("input");
-    input.className = block.type === "text" ? "pe-textarea" : "pe-input";
-    if(input.tagName === "INPUT") input.type = "text";
-    input.value = block.fr;
+  if(["title","meta"].includes(block.type)){
+    const input = doc.createElement("input");
+    input.className = "pe-input"; input.type = "text"; input.value = block.fr;
     input.addEventListener("input", () => { block.fr = input.value; block.en = block.en === undefined ? input.value : block.en; });
     body.appendChild(input);
+    return body;
+  }
+
+  if(["text","pitch"].includes(block.type)){
+    body.appendChild(renderRichTextEditor(block));
+    return body;
+  }
+
+  if(block.type === "photo"){
+    const thumb = doc.createElement("img");
+    thumb.className = "pe-image-preview";
+    thumb.src = block.src || "https://placehold.co/300x150/9C5FE0/F7F3EC?text=Photo";
+    body.appendChild(thumb);
+
+    const changeBtn = doc.createElement("button");
+    changeBtn.type = "button"; changeBtn.className = "tbtn"; changeBtn.textContent = block.src ? "Changer la photo" : "Choisir une photo";
+    changeBtn.addEventListener("click", () => {
+      currentImageTarget = null; peImageTargetPage = null; peImageTargetThumb = null;
+      peImageTargetBlock = block;
+      fileInput.value = "";
+      fileInput.click();
+    });
+    body.appendChild(changeBtn);
+
+    const hint = doc.createElement("span");
+    hint.className = "pe-hint";
+    hint.textContent = "JPG, PNG ou GIF (les GIF gardent leur animation)";
+    body.appendChild(hint);
+    return body;
+  }
+
+  if(block.type === "video"){
+    const modes = doc.createElement("div");
+    modes.className = "pe-video-modes";
+    [["youtube","Lien YouTube"], ["upload","Fichier MP4"]].forEach(([m, label]) => {
+      const b = doc.createElement("button");
+      b.type = "button"; b.className = "pe-video-mode-btn" + (block.mode === m ? " is-active" : "");
+      b.textContent = label;
+      b.addEventListener("click", () => { block.mode = m; renderPanel(); });
+      modes.appendChild(b);
+    });
+    body.appendChild(modes);
+
+    if(block.mode === "youtube"){
+      const urlInput = doc.createElement("input");
+      urlInput.className = "pe-input"; urlInput.type = "text";
+      urlInput.placeholder = "https://www.youtube.com/watch?v=...";
+      if(block.youtubeId) urlInput.value = `https://youtu.be/${block.youtubeId}`;
+      urlInput.addEventListener("input", () => { block.youtubeId = extractYouTubeId(urlInput.value); });
+      body.appendChild(urlInput);
+      if(block.youtubeId){
+        const preview = doc.createElement("img");
+        preview.className = "pe-video-preview";
+        preview.src = `https://img.youtube.com/vi/${block.youtubeId}/mqdefault.jpg`;
+        preview.alt = "Aperçu YouTube";
+        body.appendChild(preview);
+      }
+    }else{
+      if(block.src){
+        const preview = doc.createElement("div");
+        preview.className = "pe-video-preview";
+        const v = doc.createElement("video");
+        v.src = block.src; v.controls = true;
+        preview.appendChild(v);
+        body.appendChild(preview);
+      }
+      const uploadBtn = doc.createElement("button");
+      uploadBtn.type = "button"; uploadBtn.className = "tbtn"; uploadBtn.textContent = block.src ? "Changer la vidéo" : "Choisir un MP4";
+      uploadBtn.addEventListener("click", () => {
+        peVideoTargetBlock = block;
+        videoInput.value = "";
+        videoInput.click();
+      });
+      body.appendChild(uploadBtn);
+      const hint = doc.createElement("span");
+      hint.className = "pe-hint";
+      hint.textContent = "MP4, 15 Mo max conseillé (au-delà, la sauvegarde auto peut échouer)";
+      body.appendChild(hint);
+    }
     return body;
   }
 
@@ -1046,19 +1277,25 @@ function renderBlockBody(block){
   return body;
 }
 
-// upload d'image ciblé sur une page du panneau (distinct de l'upload
-// "rapide" sur le site en direct — même logique de redimensionnement)
+// upload d'image ciblé sur une page ou un bloc Photo du panneau
+// (distinct de l'upload "rapide" sur le site en direct — même logique
+// de redimensionnement)
 fileInput.addEventListener("change", () => {
-  if(!peImageTargetPage) return;
+  if(!peImageTargetPage && !peImageTargetBlock) return;
   const file = fileInput.files[0];
   if(!file) return;
   const isGif = file.type === "image/gif";
   const reader = new FileReader();
 
   const finish = (dataUrl) => {
-    peImageTargetPage.imgSrc = dataUrl;
-    if(peImageTargetThumb) peImageTargetThumb.src = dataUrl;
-    peImageTargetPage = null; peImageTargetThumb = null;
+    if(peImageTargetPage){
+      peImageTargetPage.imgSrc = dataUrl;
+      if(peImageTargetThumb) peImageTargetThumb.src = dataUrl;
+    }else if(peImageTargetBlock){
+      peImageTargetBlock.src = dataUrl;
+      renderPanel();
+    }
+    peImageTargetPage = null; peImageTargetThumb = null; peImageTargetBlock = null;
     if(isGif) toast("GIF ajouté (animation conservée)");
   };
 
