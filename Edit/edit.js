@@ -298,6 +298,15 @@ function injectEditing(){
   const doc = frame.contentDocument;
   if(!doc) return;
 
+  try{
+    injectEditingInner(doc);
+  }catch(err){
+    console.error("injectEditing() a rencontré une erreur :", err);
+    toast("⚠ Un problème est survenu pendant le branchement de l'éditeur — regarde la console (F12) si des contrôles ne répondent plus");
+  }
+}
+
+function injectEditingInner(doc){
   syncColorInputsFromFrame(doc);
   renderColorOverrideStyle(doc);
   watchThemeChanges(doc);
@@ -627,8 +636,8 @@ function readProjectState(projectId){
   const drawer = doc.querySelector(`.project-drawer[data-drawer="${projectId}"]`);
   const lang = doc.documentElement.lang === "en" ? "en" : "fr";
   const pages = [...drawer.querySelectorAll(".page")].map(page => {
-    const heroImg = page.querySelector(":scope > .page__img");
-    const heroVideo = page.querySelector(":scope > .page__hero-media");
+    const heroImg = page.querySelector(".page__img");
+    const heroVideo = page.querySelector(".page__hero-media");
     const textEl = page.querySelector(".page__text");
     const cols = page.style.gridTemplateColumns || "";
     const imgSize = cols.includes("220px") ? "small" : cols.includes("420px") ? "large" : "normal";
@@ -695,27 +704,34 @@ function buildPageElement(doc, pageData){
   const textWrap = doc.createElement("div");
   textWrap.className = "page__text";
 
+  // Affiche toujours le texte dans la langue ACTUELLEMENT active sur le
+  // document cible (site réel ou copie en mémoire) — data-fr/data-en
+  // restent tous les deux posés pour que le switch FR/EN du site
+  // continue de fonctionner normalement ensuite.
+  const lang = doc.documentElement.lang === "en" ? "en" : "fr";
+  const pick = (obj) => (obj[lang] !== undefined && obj[lang] !== "" ? obj[lang] : obj.fr);
+
   let hero = null; // le premier bloc "image" OU "vidéo" rencontré devient le média principal (colonne fixe)
 
   pageData.blocks.forEach(b => {
     let el = null;
-    if(b.type === "title"){ el = doc.createElement("h3"); el.textContent = b.fr; el.dataset.fr = b.fr; el.dataset.en = b.en; applyAccent(el, b); }
+    if(b.type === "title"){ el = doc.createElement("h3"); el.textContent = pick(b); el.dataset.fr = b.fr; el.dataset.en = b.en; applyAccent(el, b); }
     else if(b.type === "text"){
       el = doc.createElement("p");
       if(b.style === "accent") el.className = "page__pitch";
       else if(b.style === "discret") el.className = "page__meta";
-      if(b.style === "discret") el.textContent = b.fr; else el.innerHTML = b.fr;
+      if(b.style === "discret") el.textContent = pick(b); else el.innerHTML = pick(b);
       el.dataset.fr = b.fr; el.dataset.en = b.en;
       if(b.style === "accent") applyAccent(el, b);
     }
     else if(b.type === "tags"){
       el = doc.createElement("p"); el.className = "page__tags";
-      b.items.forEach(t => { const s = doc.createElement("span"); s.textContent = t.fr; s.dataset.fr = t.fr; s.dataset.en = t.en; el.appendChild(s); });
+      b.items.forEach(t => { const s = doc.createElement("span"); s.textContent = pick(t); s.dataset.fr = t.fr; s.dataset.en = t.en; el.appendChild(s); });
       applyAccent(el, b);
     }
     else if(b.type === "list"){
       el = doc.createElement("ul"); el.className = "page__list";
-      b.items.forEach(li => { const l = doc.createElement("li"); l.textContent = li.fr; l.dataset.fr = li.fr; l.dataset.en = li.en; el.appendChild(l); });
+      b.items.forEach(li => { const l = doc.createElement("li"); l.textContent = pick(li); l.dataset.fr = li.fr; l.dataset.en = li.en; el.appendChild(l); });
       applyAccent(el, b);
     }
     else if(b.type === "stats"){
@@ -723,14 +739,14 @@ function buildPageElement(doc, pageData){
       b.items.forEach(s => {
         const d = doc.createElement("div"); d.className = "stat";
         const strong = doc.createElement("strong"); strong.textContent = s.number;
-        const span = doc.createElement("span"); span.textContent = s.fr; span.dataset.fr = s.fr; span.dataset.en = s.en;
+        const span = doc.createElement("span"); span.textContent = pick(s); span.dataset.fr = s.fr; span.dataset.en = s.en;
         d.appendChild(strong); d.appendChild(span); el.appendChild(d);
       });
       applyAccent(el, b);
     }
     else if(b.type === "link"){
       el = doc.createElement("a"); el.className = "itch-link"; el.href = b.href || "#";
-      el.textContent = b.fr; el.dataset.fr = b.fr; el.dataset.en = b.en;
+      el.textContent = pick(b); el.dataset.fr = b.fr; el.dataset.en = b.en;
       applyAccent(el, b);
     }
     else if(b.type === "image"){
@@ -877,6 +893,19 @@ peLangBadge.addEventListener("click", () => {
   }, 60);
 });
 
+// ---- Aide propre au panneau (tutoriels regroupés ici, hors du canevas) ----
+const peHelpBtn = document.getElementById("peHelpBtn");
+const peHelpPopover = document.getElementById("peHelpPopover");
+peHelpBtn.addEventListener("click", (e) => {
+  e.stopPropagation();
+  peHelpPopover.hidden = !peHelpPopover.hidden;
+});
+document.addEventListener("click", (e) => {
+  if(!peHelpPopover.hidden && !peHelpPopover.contains(e.target) && e.target !== peHelpBtn){
+    peHelpPopover.hidden = true;
+  }
+});
+
 // ---- Onglets de pages ----
 function renderPageTabs(){
   pePageTabs.innerHTML = "";
@@ -940,7 +969,7 @@ function syncSiteNavigation(){
 
 // ---- Palette de modules à glisser ----
 function renderPalette(){
-  pePalette.innerHTML = '<span class="pe-palette__label">Glisse un module sur le canevas :</span>';
+  pePalette.innerHTML = "";
   Object.entries(BLOCK_DEFS).forEach(([key, def]) => {
     const chip = document.createElement("div");
     chip.className = "pe-palette-chip";

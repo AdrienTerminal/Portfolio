@@ -6,7 +6,7 @@
 <title>Éditeur — Adrien Terminal Portfolio</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="edit.css?v=11">
+<link rel="stylesheet" href="edit.css?v=12">
 </head>
 <body>
 
@@ -14,7 +14,7 @@
   <div class="toolbar__brand">
     <span class="dot"></span>
     <span>SITE EDITOR</span>
-    <span class="version-badge" title="Vérifie que ce numéro correspond bien à la dernière version que Claude t'a donnée">v11</span>
+    <span class="version-badge" title="Vérifie que ce numéro correspond bien à la dernière version que Claude t'a donnée">v12</span>
   </div>
 
   <div class="toolbar__group">
@@ -75,34 +75,30 @@
   ============================================================ -->
   <section class="project-editor" id="projectEditor" hidden>
     <header class="project-editor__head">
-      <div>
-        <span class="toolbar__label">Nom de la pill</span>
-        <input type="text" id="peProjectLabel" class="pe-input pe-input--title" placeholder="Project 1">
+      <input type="text" id="peProjectLabel" class="pe-input pe-input--title" placeholder="Project 1">
+      <div class="pe-head-actions">
+        <button class="pe-lang-badge" id="peLangBadge" title="Cliquer pour éditer l'autre langue">FR</button>
+        <button class="pe-help-btn" id="peHelpBtn" title="Comment utiliser ce panneau">?</button>
+        <button class="pe-close-btn" id="peCloseBtn" title="Fermer le panneau">✕</button>
       </div>
-      <button class="tbtn tbtn--ghost" id="peCloseBtn">✕ Fermer le panneau</button>
     </header>
 
-    <div class="pe-lang-bar">
-      <span class="pe-lang-bar__label">Tu édites en ce moment :</span>
-      <button class="pe-lang-badge" id="peLangBadge" title="Cliquer pour éditer l'autre langue">FR</button>
-    </div>
-
-    <div class="pe-panel-hint">
-      <span>Les modifications s'affichent en direct sur le site à gauche. Rien n'est définitif avant "Appliquer".</span>
+    <div class="pe-help-popover" id="peHelpPopover" hidden>
+      <p>Les modifications s'affichent en direct sur le site à gauche. Rien n'est définitif avant <strong>Appliquer</strong> — fermer sans appliquer annule tout.</p>
+      <p>Glisse un module de la palette sur le canevas pour l'ajouter (ou clique dessus).</p>
+      <p>Glisse les poignées <strong>⠿</strong> pour réordonner blocs et pages.</p>
+      <p>Le badge <strong>FR / EN</strong> montre la langue en cours d'édition — clique pour basculer.</p>
     </div>
 
     <div class="pe-page-tabs" id="pePageTabs"></div>
 
-    <div class="pe-palette" id="pePalette">
-      <span class="pe-palette__label">Glisse un module sur le canevas :</span>
-    </div>
+    <div class="pe-palette" id="pePalette"></div>
 
     <div class="project-editor__body">
       <div class="pe-canvas" id="peCanvas"></div>
     </div>
 
     <footer class="project-editor__foot">
-      <span class="toolbar__label">Glisse les poignées ⠿ pour réordonner, glisse la palette pour ajouter.</span>
       <button class="tbtn tbtn--primary" id="peApply">✓ Appliquer</button>
     </footer>
   </section>
@@ -112,6 +108,6 @@
 <input type="file" id="videoInput" accept="video/mp4,video/webm,video/*" hidden>
 <div class="toast" id="toast"></div>
 
-<script src="edit.js?v=11"></script>
+<script src="edit.js?v=12"></script>
 </body>
 </html>

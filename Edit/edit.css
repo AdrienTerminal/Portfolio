@@ -125,7 +125,7 @@ body{
 ================================================================== */
 .project-editor[hidden]{ display:none !important; }
 .project-editor{
-  position:relative; width:min(480px, 40vw);
+  position:relative; width:min(620px, 50vw);
   flex:0 0 auto;
   --pe-paper: #F2E9D8;
   --pe-card:  #FFFCF5;
@@ -137,36 +137,48 @@ body{
   --pe-muted: #8A8368;
   background:var(--pe-paper); border-left:3px solid var(--pe-ink);
   display:flex; flex-direction:column;
-  height:100%; min-width:360px;
+  height:100%; min-width:460px;
   font-family:var(--font-body); color:var(--pe-ink);
 }
 .project-editor__head{
-  display:flex; align-items:flex-end; justify-content:space-between; gap:16px;
-  padding:16px 22px; border-bottom:2px dashed var(--pe-ink); background:var(--pe-card);
+  display:flex; align-items:center; justify-content:space-between; gap:12px;
+  padding:14px 20px; border-bottom:2px dashed var(--pe-ink); background:var(--pe-card);
   flex:0 0 auto;
 }
-.project-editor__head .toolbar__label{ color:var(--pe-muted); }
+.project-editor__head .pe-input--title{ flex:1; min-width:0; }
 
-/* ---- bandeau langue : toujours visible, jamais ambigu ---- */
-.pe-lang-bar{
-  display:flex; align-items:center; gap:8px;
-  padding:8px 20px; background:var(--pe-ink); border-bottom:2px dashed var(--pe-ink);
-}
-.pe-lang-bar__label{ font-family:var(--font-mono); font-size:0.68rem; color:rgba(255,255,255,.7); }
+.pe-head-actions{ display:flex; align-items:center; gap:8px; flex:0 0 auto; }
+
 .pe-lang-badge{
   font-family:'Fredoka', sans-serif; font-weight:700; font-size:0.8rem;
-  padding:4px 14px; border-radius:100px; border:2px solid #fff;
+  padding:6px 14px; border-radius:100px; border:2px solid var(--pe-ink);
   background:var(--pe-red); color:#fff; cursor:pointer;
   letter-spacing:.03em;
 }
-.pe-lang-badge:hover{ background:#fff; color:var(--pe-red); }
+.pe-lang-badge:hover{ filter:brightness(1.1); }
 
-/* ---- rappel compact : les modifs sont déjà en direct sur le site ---- */
-.pe-panel-hint{
-  padding:10px 20px; background:var(--pe-card); border-bottom:2px dashed var(--pe-ink);
-  flex:0 0 auto;
-  font-family:var(--font-mono); font-size:0.68rem; color:var(--pe-muted);
+.pe-help-btn{
+  width:30px; height:30px; border-radius:50%; border:2px solid var(--pe-ink);
+  background:var(--pe-card); color:var(--pe-ink); font-family:'Fredoka', sans-serif; font-weight:700;
+  cursor:pointer; flex:0 0 auto;
 }
+.pe-help-btn:hover{ background:var(--pe-blue); border-color:var(--pe-blue); color:#fff; }
+
+.pe-close-btn{
+  width:30px; height:30px; border-radius:50%; border:2px solid var(--pe-ink);
+  background:var(--pe-red); color:#fff; font-weight:700; cursor:pointer; flex:0 0 auto;
+}
+.pe-close-btn:hover{ filter:brightness(1.1); }
+
+/* ---- popover d'aide propre à ce panneau ---- */
+.pe-help-popover{
+  position:absolute; top:56px; right:20px; z-index:50;
+  width:300px; background:var(--pe-card); border:2px solid var(--pe-ink); border-radius:12px;
+  padding:14px 16px; box-shadow:6px 6px 0 rgba(27,42,74,0.2);
+}
+.pe-help-popover p{ font-family:var(--font-body); font-size:0.8rem; line-height:1.5; margin-bottom:8px; }
+.pe-help-popover p:last-child{ margin-bottom:0; }
+.pe-help-popover strong{ color:var(--pe-red); }
 
 /* ---- onglets de pages ---- */
 .pe-page-tabs{
@@ -191,7 +203,6 @@ body{
   display:flex; align-items:center; gap:5px; flex-wrap:wrap;
   padding:8px 16px; background:var(--pe-paper); border-bottom:2px dashed var(--pe-ink);
 }
-.pe-palette__label{ font-family:var(--font-mono); font-size:0.62rem; color:var(--pe-muted); width:100%; margin-bottom:2px; }
 .pe-palette-chip{
   font-family:'Fredoka', sans-serif; font-weight:600; font-size:0.7rem;
   padding:5px 10px; border-radius:100px; border:1.5px dashed var(--chip-color, var(--pe-blue));
@@ -216,7 +227,7 @@ body{
   background-size:22px 22px;
   border:2px dashed rgba(27,42,74,0.3); border-radius:14px;
   padding:14px;
-  display:grid; grid-template-columns:1fr; gap:12px;
+  display:grid; grid-template-columns:repeat(auto-fill, minmax(220px, 1fr)); gap:12px;
   align-content:start;
   transition:background-color .15s ease, border-color .15s ease;
 }
