@@ -601,15 +601,13 @@ let peCurrentPillEl = null;
 
 const BLOCK_DEFS = {
   title:  { label:"Titre",        make:() => ({ type:"title", fr:"Titre", en:"Title" }) },
-  text:   { label:"Texte",        make:() => ({ type:"text", fr:"Lorem ipsum dolor sit amet.", en:"Lorem ipsum dolor sit amet." }) },
-  pitch:  { label:"Accroche",     make:() => ({ type:"pitch", fr:"Résumé en une phrase.", en:"One-sentence summary." }) },
-  meta:   { label:"Ligne meta",   make:() => ({ type:"meta", fr:"Équipe · durée", en:"Team · duration" }) },
+  text:   { label:"Texte",        make:() => ({ type:"text", style:"normal", fr:"Lorem ipsum dolor sit amet.", en:"Lorem ipsum dolor sit amet." }) },
   tags:   { label:"Tags",         make:() => ({ type:"tags", items:[{fr:"Tag", en:"Tag"}] }) },
   list:   { label:"Liste",        make:() => ({ type:"list", items:[{fr:"Élément", en:"Item"}] }) },
   stats:  { label:"Statistiques", make:() => ({ type:"stats", items:[{number:"0", fr:"métrique", en:"metric"}] }) },
-  link:   { label:"Lien itch.io", make:() => ({ type:"link", href:"#", fr:"Voir sur itch.io ↗", en:"View on itch.io ↗" }) },
-  image:  { label:"Image",        make:() => ({ type:"image", src:"", imgSize:"normal" }) },
-  video:  { label:"Vidéo",        make:() => ({ type:"video", mode:"youtube", src:"", youtubeId:"" }) },
+  link:   { label:"Lien",         make:() => ({ type:"link", href:"#", fr:"Voir sur itch.io ↗", en:"View on itch.io ↗" }) },
+  image:  { label:"Image",        make:() => ({ type:"image", src:"", imgSize:"normal", objectPosition:"50% 50%" }) },
+  video:  { label:"Vidéo",        make:() => ({ type:"video", mode:"youtube", src:"", youtubeId:"", objectPosition:"50% 50%" }) },
 };
 
 // ---- Lecture du DOM vers l'état JS du panneau ----
@@ -627,23 +625,33 @@ function readProjectState(projectId){
   const doc = frame.contentDocument;
   const pill = doc.querySelector(`.pill[data-project="${projectId}"]`);
   const drawer = doc.querySelector(`.project-drawer[data-drawer="${projectId}"]`);
+  const lang = doc.documentElement.lang === "en" ? "en" : "fr";
   const pages = [...drawer.querySelectorAll(".page")].map(page => {
     const heroImg = page.querySelector(":scope > .page__img");
+    const heroVideo = page.querySelector(":scope > .page__hero-media");
     const textEl = page.querySelector(".page__text");
     const cols = page.style.gridTemplateColumns || "";
     const imgSize = cols.includes("220px") ? "small" : cols.includes("420px") ? "large" : "normal";
     const blocks = [];
     if(heroImg){
-      blocks.push({ type:"image", src:heroImg.src, imgSize });
+      blocks.push({ type:"image", src:heroImg.src, imgSize, objectPosition:heroImg.style.objectPosition || "50% 50%" });
+    }else if(heroVideo){
+      const v = heroVideo.querySelector("video");
+      const ifr = heroVideo.querySelector("iframe");
+      if(v){
+        blocks.push({ type:"video", mode:"upload", src:v.src, youtubeId:"", imgSize, objectPosition:v.style.objectPosition || "50% 50%" });
+      }else if(ifr){
+        blocks.push({ type:"video", mode:"youtube", src:"", youtubeId:extractYouTubeId(ifr.src), imgSize });
+      }
     }
     [...textEl.children].forEach(child => {
       if(child.classList.contains("editor-badges")) return;
       if(child.tagName === "H3"){
         blocks.push({ type:"title", fr:child.dataset.fr || child.textContent, en:child.dataset.en || child.textContent, accentColor:readAccent(child) });
       }else if(child.classList.contains("page__pitch")){
-        blocks.push({ type:"pitch", fr:child.dataset.fr || child.innerHTML, en:child.dataset.en || child.innerHTML, accentColor:readAccent(child) });
+        blocks.push({ type:"text", style:"accent", fr:child.dataset.fr || child.innerHTML, en:child.dataset.en || child.innerHTML, accentColor:readAccent(child) });
       }else if(child.classList.contains("page__meta")){
-        blocks.push({ type:"meta", fr:child.dataset.fr || child.textContent, en:child.dataset.en || child.textContent });
+        blocks.push({ type:"text", style:"discret", fr:child.dataset.fr || child.textContent, en:child.dataset.en || child.textContent });
       }else if(child.classList.contains("page__tags")){
         blocks.push({ type:"tags", accentColor:readAccent(child), items:[...child.children].filter(c=>!c.classList.contains("editor-badges")).map(s => ({ fr:s.dataset.fr || s.textContent, en:s.dataset.en || s.textContent })) });
       }else if(child.classList.contains("page__list")){
@@ -653,21 +661,21 @@ function readProjectState(projectId){
       }else if(child.classList.contains("itch-link")){
         blocks.push({ type:"link", href:child.getAttribute("href") || "#", fr:child.dataset.fr || child.textContent, en:child.dataset.en || child.textContent, accentColor:readAccent(child) });
       }else if(child.classList.contains("page__photo")){
-        blocks.push({ type:"image", src:child.src, imgSize:"normal" });
+        blocks.push({ type:"image", src:child.src, imgSize:"normal", objectPosition:child.style.objectPosition || "50% 50%" });
       }else if(child.classList.contains("page__video")){
         const v = child.querySelector("video");
-        blocks.push({ type:"video", mode:"upload", src: v ? v.src : "", youtubeId:"" });
+        blocks.push({ type:"video", mode:"upload", src: v ? v.src : "", youtubeId:"", objectPosition: v ? (v.style.objectPosition || "50% 50%") : "50% 50%" });
       }else if(child.classList.contains("page__video-embed")){
         const ifr = child.querySelector("iframe");
         const src = ifr ? ifr.src : "";
         blocks.push({ type:"video", mode:"youtube", src:"", youtubeId: extractYouTubeId(src) || (src.split("/embed/")[1] || "").split("?")[0] });
       }else if(child.tagName === "P"){
-        blocks.push({ type:"text", fr:child.dataset.fr || child.innerHTML, en:child.dataset.en || child.innerHTML });
+        blocks.push({ type:"text", style:"normal", fr:child.dataset.fr || child.innerHTML, en:child.dataset.en || child.innerHTML });
       }
     });
     return { blocks };
   });
-  return { projectId, pillLabel: pill.textContent.trim(), activePage: 0, pages };
+  return { projectId, pillLabel: pill.textContent.trim(), activePage: 0, lang, pages };
 }
 
 // ---- Construction d'éléments DOM depuis l'état (jamais de HTML texte : pas de risque d'échappement) ----
@@ -687,14 +695,19 @@ function buildPageElement(doc, pageData){
   const textWrap = doc.createElement("div");
   textWrap.className = "page__text";
 
-  let heroImage = null; // le premier bloc "image" rencontré devient l'image principale (colonne fixe)
+  let hero = null; // le premier bloc "image" OU "vidéo" rencontré devient le média principal (colonne fixe)
 
   pageData.blocks.forEach(b => {
     let el = null;
     if(b.type === "title"){ el = doc.createElement("h3"); el.textContent = b.fr; el.dataset.fr = b.fr; el.dataset.en = b.en; applyAccent(el, b); }
-    else if(b.type === "pitch"){ el = doc.createElement("p"); el.className = "page__pitch"; el.innerHTML = b.fr; el.dataset.fr = b.fr; el.dataset.en = b.en; applyAccent(el, b); }
-    else if(b.type === "meta"){ el = doc.createElement("p"); el.className = "page__meta"; el.textContent = b.fr; el.dataset.fr = b.fr; el.dataset.en = b.en; }
-    else if(b.type === "text"){ el = doc.createElement("p"); el.innerHTML = b.fr; el.dataset.fr = b.fr; el.dataset.en = b.en; }
+    else if(b.type === "text"){
+      el = doc.createElement("p");
+      if(b.style === "accent") el.className = "page__pitch";
+      else if(b.style === "discret") el.className = "page__meta";
+      if(b.style === "discret") el.textContent = b.fr; else el.innerHTML = b.fr;
+      el.dataset.fr = b.fr; el.dataset.en = b.en;
+      if(b.style === "accent") applyAccent(el, b);
+    }
     else if(b.type === "tags"){
       el = doc.createElement("p"); el.className = "page__tags";
       b.items.forEach(t => { const s = doc.createElement("span"); s.textContent = t.fr; s.dataset.fr = t.fr; s.dataset.en = t.en; el.appendChild(s); });
@@ -721,14 +734,17 @@ function buildPageElement(doc, pageData){
       applyAccent(el, b);
     }
     else if(b.type === "image"){
-      if(!heroImage){
-        heroImage = b; // traité après la boucle : devient .page__img, hors du flux
+      if(!hero){
+        hero = b; // traité après la boucle : devient le média principal, hors du flux
       }else if(b.src){
         el = doc.createElement("img"); el.className = "page__photo"; el.src = b.src; el.alt = "";
+        el.style.objectPosition = b.objectPosition || "50% 50%";
       }
     }
     else if(b.type === "video"){
-      if(b.mode === "youtube" && b.youtubeId){
+      if(!hero && ((b.mode === "youtube" && b.youtubeId) || (b.mode === "upload" && b.src))){
+        hero = b;
+      }else if(b.mode === "youtube" && b.youtubeId){
         el = doc.createElement("div"); el.className = "page__video-embed";
         const ifr = doc.createElement("iframe");
         ifr.src = `https://www.youtube.com/embed/${b.youtubeId}`;
@@ -740,6 +756,7 @@ function buildPageElement(doc, pageData){
         el = doc.createElement("div"); el.className = "page__video";
         const v = doc.createElement("video");
         v.src = b.src; v.controls = true;
+        v.style.objectPosition = b.objectPosition || "50% 50%";
         el.appendChild(v);
       }
     }
@@ -748,14 +765,38 @@ function buildPageElement(doc, pageData){
 
   page.appendChild(textWrap);
 
-  if(heroImage && heroImage.imgSize && heroImage.imgSize !== "normal"){
-    page.style.gridTemplateColumns = IMG_SIZE_COLUMNS[heroImage.imgSize];
+  if(!hero){
+    // aucune image ni vidéo : le texte occupe toute la largeur, pas de
+    // colonne fixe imposée pour rien.
+    page.style.gridTemplateColumns = "1fr";
+  }else if(hero.type === "image"){
+    if(hero.imgSize && hero.imgSize !== "normal") page.style.gridTemplateColumns = IMG_SIZE_COLUMNS[hero.imgSize];
+    const img = doc.createElement("img");
+    img.className = "page__img";
+    img.src = hero.src || "https://placehold.co/460x300/1B2A4A/F7F3EC?text=Image";
+    img.alt = "";
+    img.style.objectPosition = hero.objectPosition || "50% 50%";
+    page.appendChild(img);
+  }else if(hero.type === "video"){
+    if(hero.imgSize && hero.imgSize !== "normal") page.style.gridTemplateColumns = IMG_SIZE_COLUMNS[hero.imgSize];
+    const wrap = doc.createElement("div");
+    wrap.className = "page__hero-media";
+    if(hero.mode === "youtube"){
+      const ifr = doc.createElement("iframe");
+      ifr.src = `https://www.youtube.com/embed/${hero.youtubeId}`;
+      ifr.title = "Vidéo YouTube";
+      ifr.allow = "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture";
+      ifr.allowFullscreen = true;
+      wrap.appendChild(ifr);
+    }else{
+      const v = doc.createElement("video");
+      v.src = hero.src; v.controls = true;
+      v.style.objectPosition = hero.objectPosition || "50% 50%";
+      wrap.appendChild(v);
+    }
+    page.appendChild(wrap);
   }
-  const img = doc.createElement("img");
-  img.className = "page__img";
-  img.src = (heroImage && heroImage.src) || "https://placehold.co/460x300/1B2A4A/F7F3EC?text=Image";
-  img.alt = "";
-  page.appendChild(img);
+
   return page;
 }
 
@@ -775,6 +816,7 @@ function openProjectEditor(projectId){
   renderPanel();
   projectEditor.hidden = false;
   editorStage.classList.add("has-panel");
+  syncSiteNavigation();
 }
 
 // discard=true : referme SANS garder les modifs (retour à l'état d'avant ouverture)
@@ -802,10 +844,38 @@ document.addEventListener("keydown", (e) => {
 
 // ---- Rendu global ----
 function renderPanel(){
+  updateLangBadge();
   renderPageTabs();
   renderPalette();
   renderCanvas();
 }
+
+// ---- Bandeau langue : indique et permet de changer la langue éditée ----
+const peLangBadge = document.getElementById("peLangBadge");
+
+function updateLangBadge(){
+  if(!peState) return;
+  peLangBadge.textContent = peState.lang === "en" ? "EN" : "FR";
+}
+
+peLangBadge.addEventListener("click", () => {
+  if(!peState) return;
+  const doc = frame.contentDocument;
+  const targetLang = peState.lang === "en" ? "fr" : "en";
+  const langBtn = doc.querySelector(`.lang-switch__btn[data-lang="${targetLang}"]`);
+  if(langBtn) langBtn.click();
+
+  // laisse le site basculer, puis relit le projet dans sa nouvelle langue
+  // (les deux langues sont déjà conservées dans le DOM, rien n'est perdu)
+  setTimeout(() => {
+    const keepPage = peState.activePage;
+    const projectId = peState.projectId;
+    peState = readProjectState(projectId);
+    peState.activePage = Math.min(keepPage, peState.pages.length - 1);
+    renderPanel();
+    toast(targetLang === "en" ? "Édition basculée en anglais" : "Édition basculée en français");
+  }, 60);
+});
 
 // ---- Onglets de pages ----
 function renderPageTabs(){
@@ -827,10 +897,11 @@ function renderPageTabs(){
         peState.pages.splice(i, 1);
         if(peState.activePage >= peState.pages.length) peState.activePage = peState.pages.length - 1;
         renderPanel();
+        syncSiteNavigation();
       });
       tab.appendChild(close);
     }
-    tab.addEventListener("click", () => { peState.activePage = i; renderPanel(); });
+    tab.addEventListener("click", () => { peState.activePage = i; renderPanel(); syncSiteNavigation(); });
     pePageTabs.appendChild(tab);
   });
 
@@ -843,8 +914,28 @@ function renderPageTabs(){
     peState.pages.push({ blocks:[BLOCK_DEFS.image.make(), BLOCK_DEFS.title.make(), BLOCK_DEFS.text.make()] });
     peState.activePage = peState.pages.length - 1;
     renderPanel();
+    syncSiteNavigation();
   });
   pePageTabs.appendChild(addTab);
+}
+
+// Ouvre le bon projet sur le vrai site s'il ne l'est pas déjà, puis
+// scrolle son tiroir jusqu'à la page actuellement éditée dans le panneau.
+function syncSiteNavigation(){
+  if(!peState) return;
+  const doc = frame.contentDocument;
+  const pill = doc.querySelector(`.pill[data-project="${peState.projectId}"]`);
+  const alreadyOpen = pill && pill.classList.contains("is-active");
+  if(pill && !alreadyOpen) pill.click();
+
+  const goToPage = () => {
+    const drawer = doc.querySelector(`.project-drawer[data-drawer="${peState.projectId}"]`);
+    const scrollWrap = drawer?.querySelector(".drawer__scroll");
+    if(scrollWrap){
+      scrollWrap.scrollTo({ left: peState.activePage * scrollWrap.clientWidth, behavior: alreadyOpen ? "smooth" : "auto" });
+    }
+  };
+  if(alreadyOpen) goToPage(); else setTimeout(goToPage, 420);
 }
 
 // ---- Palette de modules à glisser ----
@@ -997,31 +1088,65 @@ function peIconBtn(label, title, disabled, onClick, danger){
   return b;
 }
 
-const ACCENT_SUPPORTED = ["title", "pitch", "tags", "list", "stats", "link"];
+const ACCENT_SUPPORTED = ["title", "text", "tags", "list", "stats", "link"];
+
+const ACCENT_PRESETS = ["#E4483F", "#F2C94C", "#4CAF6D", "#5B8DEF", "#9C5FE0", "#2AA198", "#D1495B", "#1B2A4A"];
 
 function renderAccentControl(block){
   const wrap = document.createElement("div");
   wrap.className = "pe-accent-control";
-  wrap.style.display = "flex"; wrap.style.alignItems = "center"; wrap.style.gap = "4px";
 
   const swatch = document.createElement("label");
   swatch.className = "pe-accent-swatch" + (block.accentColor ? " has-custom" : "");
   if(block.accentColor) swatch.style.setProperty("--custom-accent", block.accentColor);
-  swatch.title = "Couleur personnalisée pour ce bloc";
+  swatch.title = "Couleur personnalisée (roue chromatique)";
+
   const input = document.createElement("input");
   input.type = "color";
   input.value = block.accentColor || "#5B8DEF";
-  input.addEventListener("input", () => { block.accentColor = input.value; renderPanel(); });
+  // "change" (pas "input") : ne se déclenche qu'une fois la sélection
+  // validée, donc on ne reconstruit rien pendant que la roue est ouverte
+  // — c'est ce qui empêchait de naviguer dedans avant.
+  input.addEventListener("change", () => {
+    block.accentColor = input.value;
+    swatch.classList.add("has-custom");
+    swatch.style.setProperty("--custom-accent", input.value);
+    clearBtn.hidden = false;
+    liveUpdateSite();
+  });
   swatch.appendChild(input);
   wrap.appendChild(swatch);
 
-  if(block.accentColor){
-    const clear = document.createElement("button");
-    clear.type = "button"; clear.className = "pe-accent-clear"; clear.textContent = "défaut";
-    clear.title = "Revenir à la couleur par défaut";
-    clear.addEventListener("click", () => { block.accentColor = null; renderPanel(); });
-    wrap.appendChild(clear);
-  }
+  const presets = document.createElement("div");
+  presets.className = "pe-accent-presets";
+  ACCENT_PRESETS.forEach(c => {
+    const dot = document.createElement("button");
+    dot.type = "button"; dot.className = "pe-accent-preset"; dot.style.background = c;
+    dot.title = c;
+    dot.addEventListener("click", () => {
+      block.accentColor = c;
+      input.value = c;
+      swatch.classList.add("has-custom");
+      swatch.style.setProperty("--custom-accent", c);
+      clearBtn.hidden = false;
+      liveUpdateSite();
+    });
+    presets.appendChild(dot);
+  });
+  wrap.appendChild(presets);
+
+  const clearBtn = document.createElement("button");
+  clearBtn.type = "button"; clearBtn.className = "pe-accent-clear"; clearBtn.textContent = "défaut";
+  clearBtn.title = "Revenir à la couleur par défaut";
+  clearBtn.hidden = !block.accentColor;
+  clearBtn.addEventListener("click", () => {
+    block.accentColor = null;
+    swatch.classList.remove("has-custom");
+    clearBtn.hidden = true;
+    liveUpdateSite();
+  });
+  wrap.appendChild(clearBtn);
+
   return wrap;
 }
 
@@ -1085,7 +1210,7 @@ function renderRichTextEditor(block){
     dot.addEventListener("click", () => {
       editable.focus();
       doc.execCommand("foreColor", false, c);
-      block.fr = editable.innerHTML;
+      setText(block, editable.innerHTML);
       liveUpdateSite();
     });
     colorsWrap.appendChild(dot);
@@ -1096,10 +1221,9 @@ function renderRichTextEditor(block){
   const editable = doc.createElement("div");
   editable.className = "pe-richtext";
   editable.contentEditable = "true";
-  editable.innerHTML = block.fr;
+  editable.innerHTML = getText(block);
   editable.addEventListener("input", () => {
-    block.fr = editable.innerHTML;
-    if(block.en === undefined) block.en = editable.innerHTML;
+    setText(block, editable.innerHTML);
     liveUpdateSite();
   });
   wrap.appendChild(editable);
@@ -1108,26 +1232,84 @@ function renderRichTextEditor(block){
   boldBtn.addEventListener("click", () => {
     editable.focus();
     doc.execCommand("bold");
-    block.fr = editable.innerHTML;
+    setText(block, editable.innerHTML);
     liveUpdateSite();
   });
 
   return wrap;
 }
 
+const REFRAME_POINTS = [
+  ["0% 0%","↖"], ["50% 0%","↑"], ["100% 0%","↗"],
+  ["0% 50%","←"], ["50% 50%","•"], ["100% 50%","→"],
+  ["0% 100%","↙"], ["50% 100%","↓"], ["100% 100%","↘"],
+];
+
+function renderReframeControl(block, previewEl){
+  const doc = document;
+  const wrap = doc.createElement("div");
+  wrap.className = "pe-reframe";
+  const label = doc.createElement("span");
+  label.className = "pe-hint"; label.textContent = "Recadrer / centrer :";
+  wrap.appendChild(label);
+  const grid = doc.createElement("div");
+  grid.className = "pe-reframe-grid";
+  REFRAME_POINTS.forEach(([pos, icon]) => {
+    const b = doc.createElement("button");
+    b.type = "button";
+    b.className = "pe-reframe-dot" + ((block.objectPosition || "50% 50%") === pos ? " is-active" : "");
+    b.textContent = icon;
+    b.title = "Centrer le cadrage ici";
+    b.addEventListener("click", () => {
+      block.objectPosition = pos;
+      if(previewEl) previewEl.style.objectPosition = pos;
+      grid.querySelectorAll(".pe-reframe-dot").forEach(d => d.classList.remove("is-active"));
+      b.classList.add("is-active");
+      liveUpdateSite();
+    });
+    grid.appendChild(b);
+  });
+  wrap.appendChild(grid);
+  return wrap;
+}
+
+// Le panneau édite toujours la langue actuellement affichée sur le
+// site (peState.lang) — jamais figée sur le français. L'autre langue
+// est préservée à côté, prête à être éditée si on bascule le switch.
+function activeLang(){ return peState ? peState.lang : "fr"; }
+function getText(obj){ const l = activeLang(); return obj[l] !== undefined ? obj[l] : (obj.fr || ""); }
+function setText(obj, value){
+  const l = activeLang();
+  obj[l] = value;
+  const other = l === "fr" ? "en" : "fr";
+  if(obj[other] === undefined || obj[other] === "") obj[other] = value;
+}
+
 function renderBlockBody(block){
   const doc = document;
   const body = doc.createElement("div");
 
-  if(["title","meta"].includes(block.type)){
+  if(block.type === "title"){
     const input = doc.createElement("input");
-    input.className = "pe-input"; input.type = "text"; input.value = block.fr;
-    input.addEventListener("input", () => { block.fr = input.value; block.en = block.en === undefined ? input.value : block.en; liveUpdateSite(); });
+    input.className = "pe-input"; input.type = "text"; input.value = getText(block);
+    input.addEventListener("input", () => { setText(block, input.value); liveUpdateSite(); });
     body.appendChild(input);
     return body;
   }
 
-  if(["text","pitch"].includes(block.type)){
+  if(block.type === "text"){
+    const styleRow = doc.createElement("div");
+    styleRow.className = "pe-text-style-row";
+    [["normal","Normal"], ["accent","Accroche"], ["discret","Discret"]].forEach(([key, label]) => {
+      const b = doc.createElement("button");
+      b.type = "button";
+      b.className = "pe-video-mode-btn" + ((block.style || "normal") === key ? " is-active" : "");
+      b.textContent = label;
+      b.title = key === "accent" ? "Gros, en couleur — pour une phrase d'accroche" : key === "discret" ? "Petit, discret — pour une ligne d'info (équipe, durée...)" : "Paragraphe normal";
+      b.addEventListener("click", () => { block.style = key; renderPanel(); });
+      styleRow.appendChild(b);
+    });
+    body.appendChild(styleRow);
     body.appendChild(renderRichTextEditor(block));
     return body;
   }
@@ -1136,6 +1318,8 @@ function renderBlockBody(block){
     const thumb = doc.createElement("img");
     thumb.className = "pe-image-preview";
     thumb.src = block.src || "https://placehold.co/300x150/9C5FE0/F7F3EC?text=Image";
+    thumb.style.objectFit = "cover";
+    thumb.style.objectPosition = block.objectPosition || "50% 50%";
     body.appendChild(thumb);
 
     const actions = doc.createElement("div");
@@ -1163,6 +1347,7 @@ function renderBlockBody(block){
     });
     actions.appendChild(sizeGroup);
     body.appendChild(actions);
+    body.appendChild(renderReframeControl(block, thumb));
 
     const hint = doc.createElement("span");
     hint.className = "pe-hint";
@@ -1203,8 +1388,10 @@ function renderBlockBody(block){
         preview.className = "pe-video-preview";
         const v = doc.createElement("video");
         v.src = block.src; v.controls = true;
+        v.style.objectFit = "cover"; v.style.objectPosition = block.objectPosition || "50% 50%";
         preview.appendChild(v);
         body.appendChild(preview);
+        body.appendChild(renderReframeControl(block, v));
       }
       const uploadBtn = doc.createElement("button");
       uploadBtn.type = "button"; uploadBtn.className = "tbtn"; uploadBtn.textContent = block.src ? "Changer la vidéo" : "Choisir un MP4";
@@ -1224,9 +1411,9 @@ function renderBlockBody(block){
 
   if(block.type === "link"){
     const labelInput = doc.createElement("input");
-    labelInput.className = "pe-input"; labelInput.type = "text"; labelInput.value = block.fr;
+    labelInput.className = "pe-input"; labelInput.type = "text"; labelInput.value = getText(block);
     labelInput.placeholder = "Texte du bouton";
-    labelInput.addEventListener("input", () => { block.fr = labelInput.value; liveUpdateSite(); });
+    labelInput.addEventListener("input", () => { setText(block, labelInput.value); liveUpdateSite(); });
     const hrefInput = doc.createElement("input");
     hrefInput.className = "pe-input"; hrefInput.type = "text"; hrefInput.value = block.href;
     hrefInput.placeholder = "https://...";
@@ -1243,7 +1430,7 @@ function renderBlockBody(block){
       block.items.forEach((t, i) => {
         const chip = doc.createElement("span");
         chip.className = "pe-tag";
-        chip.appendChild(doc.createTextNode(t.fr + " "));
+        chip.appendChild(doc.createTextNode(getText(t) + " "));
         const x = doc.createElement("button");
         x.type = "button"; x.textContent = "✕";
         x.addEventListener("click", () => { block.items.splice(i, 1); renderTags(); liveUpdateSite(); });
@@ -1272,8 +1459,8 @@ function renderBlockBody(block){
       editor.innerHTML = "";
       block.items.forEach((li, i) => {
         const row = doc.createElement("div"); row.className = "pe-list-item";
-        const input = doc.createElement("input"); input.className = "pe-input"; input.type = "text"; input.value = li.fr;
-        input.addEventListener("input", () => { li.fr = input.value; li.en = input.value; liveUpdateSite(); });
+        const input = doc.createElement("input"); input.className = "pe-input"; input.type = "text"; input.value = getText(li);
+        input.addEventListener("input", () => { setText(li, input.value); liveUpdateSite(); });
         row.appendChild(input);
         row.appendChild(peIconBtn("✕", "Retirer", false, () => { block.items.splice(i, 1); renderItems(); liveUpdateSite(); }, true));
         editor.appendChild(row);
@@ -1296,8 +1483,8 @@ function renderBlockBody(block){
         const row = doc.createElement("div"); row.className = "pe-stat-item";
         const num = doc.createElement("input"); num.className = "pe-input"; num.type = "text"; num.value = s.number; num.placeholder = "1.2K";
         num.addEventListener("input", () => { s.number = num.value; liveUpdateSite(); });
-        const lbl = doc.createElement("input"); lbl.className = "pe-input"; lbl.type = "text"; lbl.value = s.fr; lbl.placeholder = "libellé";
-        lbl.addEventListener("input", () => { s.fr = lbl.value; s.en = lbl.value; liveUpdateSite(); });
+        const lbl = doc.createElement("input"); lbl.className = "pe-input"; lbl.type = "text"; lbl.value = getText(s); lbl.placeholder = "libellé";
+        lbl.addEventListener("input", () => { setText(s, lbl.value); liveUpdateSite(); });
         row.appendChild(num); row.appendChild(lbl);
         row.appendChild(peIconBtn("✕", "Retirer", false, () => { block.items.splice(i, 1); renderStats(); liveUpdateSite(); }, true));
         editor.appendChild(row);
@@ -1392,7 +1579,8 @@ function defaultProjectPages(){
   return [
     { blocks:[
       { type:"image", src:"https://placehold.co/460x300/1B2A4A/F7F3EC?text=Overview", imgSize:"normal" },
-      BLOCK_DEFS.pitch.make(), BLOCK_DEFS.title.make(), BLOCK_DEFS.tags.make(), BLOCK_DEFS.text.make(), BLOCK_DEFS.link.make(),
+      { type:"text", style:"accent", fr:"Résumé en une phrase.", en:"One-sentence summary." },
+      BLOCK_DEFS.title.make(), BLOCK_DEFS.tags.make(), BLOCK_DEFS.text.make(), BLOCK_DEFS.link.make(),
     ]},
     { blocks:[
       { type:"image", src:"https://placehold.co/460x300/E4483F/1B2A4A?text=Features", imgSize:"normal" },
@@ -1400,7 +1588,9 @@ function defaultProjectPages(){
     ]},
     { blocks:[
       { type:"image", src:"https://placehold.co/460x300/F2C94C/1B2A4A?text=Role", imgSize:"normal" },
-      { type:"title", fr:"Mon rôle", en:"My Role" }, BLOCK_DEFS.meta.make(), BLOCK_DEFS.list.make(), BLOCK_DEFS.link.make(),
+      { type:"title", fr:"Mon rôle", en:"My Role" },
+      { type:"text", style:"discret", fr:"Équipe · durée", en:"Team · duration" },
+      BLOCK_DEFS.list.make(), BLOCK_DEFS.link.make(),
     ]},
     { blocks:[
       { type:"image", src:"https://placehold.co/460x300/1B2A4A/F7F3EC?text=Results", imgSize:"normal" },

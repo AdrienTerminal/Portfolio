@@ -6,7 +6,7 @@
 <title>Éditeur — Adrien Terminal Portfolio</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="edit.css?v=10">
+<link rel="stylesheet" href="edit.css?v=11">
 </head>
 <body>
 
@@ -14,7 +14,7 @@
   <div class="toolbar__brand">
     <span class="dot"></span>
     <span>SITE EDITOR</span>
-    <span class="version-badge" title="Vérifie que ce numéro correspond bien à la dernière version que Claude t'a donnée">v10</span>
+    <span class="version-badge" title="Vérifie que ce numéro correspond bien à la dernière version que Claude t'a donnée">v11</span>
   </div>
 
   <div class="toolbar__group">
@@ -82,6 +82,11 @@
       <button class="tbtn tbtn--ghost" id="peCloseBtn">✕ Fermer le panneau</button>
     </header>
 
+    <div class="pe-lang-bar">
+      <span class="pe-lang-bar__label">Tu édites en ce moment :</span>
+      <button class="pe-lang-badge" id="peLangBadge" title="Cliquer pour éditer l'autre langue">FR</button>
+    </div>
+
     <div class="pe-panel-hint">
       <span>Les modifications s'affichent en direct sur le site à gauche. Rien n'est définitif avant "Appliquer".</span>
     </div>
@@ -107,6 +112,6 @@
 <input type="file" id="videoInput" accept="video/mp4,video/webm,video/*" hidden>
 <div class="toast" id="toast"></div>
 
-<script src="edit.js?v=10"></script>
+<script src="edit.js?v=11"></script>
 </body>
 </html>
