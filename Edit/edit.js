@@ -503,7 +503,7 @@ function removeSimple(el){
 // ---------------------------------------------------------------
 function openImagePicker(target){
   currentImageTarget = target;
-  peImageTargetPage = null;
+  peImageTargetBlock = null;
   fileInput.value = "";
   fileInput.click();
 }
@@ -607,7 +607,7 @@ const BLOCK_DEFS = {
   list:   { label:"Liste",        make:() => ({ type:"list", items:[{fr:"Élément", en:"Item"}] }) },
   stats:  { label:"Statistiques", make:() => ({ type:"stats", items:[{number:"0", fr:"métrique", en:"metric"}] }) },
   link:   { label:"Lien itch.io", make:() => ({ type:"link", href:"#", fr:"Voir sur itch.io ↗", en:"View on itch.io ↗" }) },
-  photo:  { label:"Photo",        make:() => ({ type:"photo", src:"" }) },
+  image:  { label:"Image",        make:() => ({ type:"image", src:"", imgSize:"normal" }) },
   video:  { label:"Vidéo",        make:() => ({ type:"video", mode:"youtube", src:"", youtubeId:"" }) },
 };
 
@@ -627,11 +627,14 @@ function readProjectState(projectId){
   const pill = doc.querySelector(`.pill[data-project="${projectId}"]`);
   const drawer = doc.querySelector(`.project-drawer[data-drawer="${projectId}"]`);
   const pages = [...drawer.querySelectorAll(".page")].map(page => {
-    const img = page.querySelector(".page__img");
+    const heroImg = page.querySelector(":scope > .page__img");
     const textEl = page.querySelector(".page__text");
     const cols = page.style.gridTemplateColumns || "";
     const imgSize = cols.includes("220px") ? "small" : cols.includes("420px") ? "large" : "normal";
     const blocks = [];
+    if(heroImg){
+      blocks.push({ type:"image", src:heroImg.src, imgSize });
+    }
     [...textEl.children].forEach(child => {
       if(child.classList.contains("editor-badges")) return;
       if(child.tagName === "H3"){
@@ -649,7 +652,7 @@ function readProjectState(projectId){
       }else if(child.classList.contains("itch-link")){
         blocks.push({ type:"link", href:child.getAttribute("href") || "#", fr:child.dataset.fr || child.textContent, en:child.dataset.en || child.textContent, accentColor:readAccent(child) });
       }else if(child.classList.contains("page__photo")){
-        blocks.push({ type:"photo", src:child.src });
+        blocks.push({ type:"image", src:child.src, imgSize:"normal" });
       }else if(child.classList.contains("page__video")){
         const v = child.querySelector("video");
         blocks.push({ type:"video", mode:"upload", src: v ? v.src : "", youtubeId:"" });
@@ -661,7 +664,7 @@ function readProjectState(projectId){
         blocks.push({ type:"text", fr:child.dataset.fr || child.innerHTML, en:child.dataset.en || child.innerHTML });
       }
     });
-    return { imgSrc: img ? img.src : "", imgSize, blocks };
+    return { blocks };
   });
   return { projectId, pillLabel: pill.textContent.trim(), activePage: 0, pages };
 }
@@ -679,11 +682,11 @@ function applyAccent(el, block){
 function buildPageElement(doc, pageData){
   const page = doc.createElement("div");
   page.className = "page";
-  if(pageData.imgSize && pageData.imgSize !== "normal"){
-    page.style.gridTemplateColumns = IMG_SIZE_COLUMNS[pageData.imgSize];
-  }
+
   const textWrap = doc.createElement("div");
   textWrap.className = "page__text";
+
+  let heroImage = null; // le premier bloc "image" rencontré devient l'image principale (colonne fixe)
 
   pageData.blocks.forEach(b => {
     let el = null;
@@ -716,8 +719,12 @@ function buildPageElement(doc, pageData){
       el.textContent = b.fr; el.dataset.fr = b.fr; el.dataset.en = b.en;
       applyAccent(el, b);
     }
-    else if(b.type === "photo"){
-      if(b.src){ el = doc.createElement("img"); el.className = "page__photo"; el.src = b.src; el.alt = ""; }
+    else if(b.type === "image"){
+      if(!heroImage){
+        heroImage = b; // traité après la boucle : devient .page__img, hors du flux
+      }else if(b.src){
+        el = doc.createElement("img"); el.className = "page__photo"; el.src = b.src; el.alt = "";
+      }
     }
     else if(b.type === "video"){
       if(b.mode === "youtube" && b.youtubeId){
@@ -739,9 +746,13 @@ function buildPageElement(doc, pageData){
   });
 
   page.appendChild(textWrap);
+
+  if(heroImage && heroImage.imgSize && heroImage.imgSize !== "normal"){
+    page.style.gridTemplateColumns = IMG_SIZE_COLUMNS[heroImage.imgSize];
+  }
   const img = doc.createElement("img");
   img.className = "page__img";
-  img.src = pageData.imgSrc || "https://placehold.co/460x300/1B2A4A/F7F3EC?text=Image";
+  img.src = (heroImage && heroImage.src) || "https://placehold.co/460x300/1B2A4A/F7F3EC?text=Image";
   img.alt = "";
   page.appendChild(img);
   return page;
@@ -807,7 +818,7 @@ function renderPageTabs(){
   addTab.textContent = "+ Page";
   addTab.title = "Ajouter une page";
   addTab.addEventListener("click", () => {
-    peState.pages.push({ imgSrc:"", imgSize:"normal", blocks:[BLOCK_DEFS.title.make(), BLOCK_DEFS.text.make()] });
+    peState.pages.push({ blocks:[BLOCK_DEFS.image.make(), BLOCK_DEFS.title.make(), BLOCK_DEFS.text.make()] });
     peState.activePage = peState.pages.length - 1;
     renderPanel();
   });
@@ -837,8 +848,6 @@ function renderPalette(){
 }
 
 // ---- Canevas de la page active ----
-let peImageTargetPage = null;
-let peImageTargetThumb = null;
 let peImageTargetBlock = null;
 let peVideoTargetBlock = null;
 const videoInput = document.getElementById("videoInput");
@@ -866,8 +875,12 @@ function renderCanvas(){
   const page = peState.pages[peState.activePage];
   peCanvas.innerHTML = "";
 
-  // tuile image, toujours en premier, taille réglable
-  peCanvas.appendChild(renderImageTile(page));
+  if(page.blocks.length === 0){
+    const empty = document.createElement("div");
+    empty.className = "pe-canvas__empty";
+    empty.textContent = "Cette page est vide — glisse un module de la palette ci-dessus pour commencer.";
+    peCanvas.appendChild(empty);
+  }
 
   page.blocks.forEach((block, blockIndex) => {
     peCanvas.appendChild(renderBlock(page, block, blockIndex));
@@ -888,57 +901,24 @@ function renderCanvas(){
       renderPanel();
     }
   });
+
+  updateLivePreview();
 }
 
-function renderImageTile(page){
-  const wrap = document.createElement("div");
-  wrap.className = "pe-block";
-  wrap.dataset.blockType = "image";
+// ---- Preview en direct : rend la page active avec le VRAI CSS du
+// site, dans un iframe séparé qui ne touche jamais le site réel.
+// Rien n'est appliqué pour de vrai avant le clic sur "Appliquer".
+const previewFrame = document.getElementById("previewFrame");
+let previewReady = false;
+previewFrame.addEventListener("load", () => { previewReady = true; updateLivePreview(); });
 
-  const head = document.createElement("div");
-  head.className = "pe-block__head";
-  head.innerHTML = `<span class="pe-block__label">Image</span>`;
-  wrap.appendChild(head);
-
-  const thumb = document.createElement("img");
-  thumb.className = "pe-image-preview";
-  thumb.src = page.imgSrc || "https://placehold.co/300x150/1B2A4A/F7F3EC?text=%20";
-  wrap.appendChild(thumb);
-
-  const actions = document.createElement("div");
-  actions.className = "pe-image-actions";
-
-  const changeBtn = document.createElement("button");
-  changeBtn.type = "button"; changeBtn.className = "tbtn"; changeBtn.textContent = "Changer l'image";
-  changeBtn.addEventListener("click", () => {
-    currentImageTarget = null;
-    peImageTargetBlock = null;
-    peImageTargetPage = page;
-    peImageTargetThumb = thumb;
-    fileInput.value = "";
-    fileInput.click();
-  });
-  actions.appendChild(changeBtn);
-
-  const sizeGroup = document.createElement("div");
-  sizeGroup.className = "pe-size-group";
-  [["small","Petit"], ["normal","Normal"], ["large","Grand"]].forEach(([key, label]) => {
-    const b = document.createElement("button");
-    b.type = "button";
-    b.className = "pe-size-btn" + (page.imgSize === key ? " is-active" : "");
-    b.textContent = label;
-    b.addEventListener("click", () => { page.imgSize = key; renderCanvas(); });
-    sizeGroup.appendChild(b);
-  });
-  actions.appendChild(sizeGroup);
-
-  const hint = document.createElement("span");
-  hint.className = "pe-hint";
-  hint.textContent = "JPG, PNG ou GIF (les GIF gardent leur animation)";
-  actions.appendChild(hint);
-
-  wrap.appendChild(actions);
-  return wrap;
+function updateLivePreview(){
+  if(!previewReady || !peState) return;
+  const pdoc = previewFrame.contentDocument;
+  const mount = pdoc && pdoc.getElementById("mount");
+  if(!mount) return;
+  mount.innerHTML = "";
+  mount.appendChild(buildPageElement(pdoc, peState.pages[peState.activePage]));
 }
 
 // Glisser-déposer natif : la poignée démarre le drag, mais c'est la
@@ -1068,6 +1048,7 @@ function renderRichTextEditor(block){
       editable.focus();
       doc.execCommand("foreColor", false, c);
       block.fr = editable.innerHTML;
+      updateLivePreview();
     });
     colorsWrap.appendChild(dot);
   });
@@ -1081,6 +1062,7 @@ function renderRichTextEditor(block){
   editable.addEventListener("input", () => {
     block.fr = editable.innerHTML;
     if(block.en === undefined) block.en = editable.innerHTML;
+    updateLivePreview();
   });
   wrap.appendChild(editable);
 
@@ -1089,6 +1071,7 @@ function renderRichTextEditor(block){
     editable.focus();
     doc.execCommand("bold");
     block.fr = editable.innerHTML;
+    updateLivePreview();
   });
 
   return wrap;
@@ -1101,7 +1084,7 @@ function renderBlockBody(block){
   if(["title","meta"].includes(block.type)){
     const input = doc.createElement("input");
     input.className = "pe-input"; input.type = "text"; input.value = block.fr;
-    input.addEventListener("input", () => { block.fr = input.value; block.en = block.en === undefined ? input.value : block.en; });
+    input.addEventListener("input", () => { block.fr = input.value; block.en = block.en === undefined ? input.value : block.en; updateLivePreview(); });
     body.appendChild(input);
     return body;
   }
@@ -1111,25 +1094,41 @@ function renderBlockBody(block){
     return body;
   }
 
-  if(block.type === "photo"){
+  if(block.type === "image"){
     const thumb = doc.createElement("img");
     thumb.className = "pe-image-preview";
-    thumb.src = block.src || "https://placehold.co/300x150/9C5FE0/F7F3EC?text=Photo";
+    thumb.src = block.src || "https://placehold.co/300x150/9C5FE0/F7F3EC?text=Image";
     body.appendChild(thumb);
 
+    const actions = doc.createElement("div");
+    actions.className = "pe-image-actions";
+
     const changeBtn = doc.createElement("button");
-    changeBtn.type = "button"; changeBtn.className = "tbtn"; changeBtn.textContent = block.src ? "Changer la photo" : "Choisir une photo";
+    changeBtn.type = "button"; changeBtn.className = "tbtn"; changeBtn.textContent = block.src ? "Changer l'image" : "Choisir une image";
     changeBtn.addEventListener("click", () => {
-      currentImageTarget = null; peImageTargetPage = null; peImageTargetThumb = null;
+      currentImageTarget = null;
       peImageTargetBlock = block;
       fileInput.value = "";
       fileInput.click();
     });
-    body.appendChild(changeBtn);
+    actions.appendChild(changeBtn);
+
+    const sizeGroup = doc.createElement("div");
+    sizeGroup.className = "pe-size-group";
+    [["small","Petit"], ["normal","Normal"], ["large","Grand"]].forEach(([key, label]) => {
+      const b = doc.createElement("button");
+      b.type = "button";
+      b.className = "pe-size-btn" + ((block.imgSize || "normal") === key ? " is-active" : "");
+      b.textContent = label;
+      b.addEventListener("click", () => { block.imgSize = key; renderPanel(); });
+      sizeGroup.appendChild(b);
+    });
+    actions.appendChild(sizeGroup);
+    body.appendChild(actions);
 
     const hint = doc.createElement("span");
     hint.className = "pe-hint";
-    hint.textContent = "JPG, PNG ou GIF (les GIF gardent leur animation)";
+    hint.textContent = "JPG, PNG ou GIF (les GIF gardent leur animation). La taille ne s'applique qu'à la 1ère image de la page.";
     body.appendChild(hint);
     return body;
   }
@@ -1151,7 +1150,7 @@ function renderBlockBody(block){
       urlInput.className = "pe-input"; urlInput.type = "text";
       urlInput.placeholder = "https://www.youtube.com/watch?v=...";
       if(block.youtubeId) urlInput.value = `https://youtu.be/${block.youtubeId}`;
-      urlInput.addEventListener("input", () => { block.youtubeId = extractYouTubeId(urlInput.value); });
+      urlInput.addEventListener("input", () => { block.youtubeId = extractYouTubeId(urlInput.value); updateLivePreview(); });
       body.appendChild(urlInput);
       if(block.youtubeId){
         const preview = doc.createElement("img");
@@ -1189,11 +1188,11 @@ function renderBlockBody(block){
     const labelInput = doc.createElement("input");
     labelInput.className = "pe-input"; labelInput.type = "text"; labelInput.value = block.fr;
     labelInput.placeholder = "Texte du bouton";
-    labelInput.addEventListener("input", () => { block.fr = labelInput.value; });
+    labelInput.addEventListener("input", () => { block.fr = labelInput.value; updateLivePreview(); });
     const hrefInput = doc.createElement("input");
     hrefInput.className = "pe-input"; hrefInput.type = "text"; hrefInput.value = block.href;
     hrefInput.placeholder = "https://...";
-    hrefInput.addEventListener("input", () => { block.href = hrefInput.value; });
+    hrefInput.addEventListener("input", () => { block.href = hrefInput.value; updateLivePreview(); });
     body.appendChild(labelInput); body.appendChild(hrefInput);
     return body;
   }
@@ -1209,7 +1208,7 @@ function renderBlockBody(block){
         chip.appendChild(doc.createTextNode(t.fr + " "));
         const x = doc.createElement("button");
         x.type = "button"; x.textContent = "✕";
-        x.addEventListener("click", () => { block.items.splice(i, 1); renderTags(); });
+        x.addEventListener("click", () => { block.items.splice(i, 1); renderTags(); updateLivePreview(); });
         chip.appendChild(x);
         editor.appendChild(chip);
       });
@@ -1219,6 +1218,7 @@ function renderBlockBody(block){
         if(e.key === "Enter" && input.value.trim()){
           block.items.push({ fr:input.value.trim(), en:input.value.trim() });
           renderTags();
+          updateLivePreview();
         }
       });
       editor.appendChild(input);
@@ -1235,14 +1235,14 @@ function renderBlockBody(block){
       block.items.forEach((li, i) => {
         const row = doc.createElement("div"); row.className = "pe-list-item";
         const input = doc.createElement("input"); input.className = "pe-input"; input.type = "text"; input.value = li.fr;
-        input.addEventListener("input", () => { li.fr = input.value; li.en = input.value; });
+        input.addEventListener("input", () => { li.fr = input.value; li.en = input.value; updateLivePreview(); });
         row.appendChild(input);
-        row.appendChild(peIconBtn("✕", "Retirer", false, () => { block.items.splice(i, 1); renderItems(); }, true));
+        row.appendChild(peIconBtn("✕", "Retirer", false, () => { block.items.splice(i, 1); renderItems(); updateLivePreview(); }, true));
         editor.appendChild(row);
       });
       const addBtn = doc.createElement("button");
       addBtn.type = "button"; addBtn.className = "pe-add-small"; addBtn.textContent = "+ ligne";
-      addBtn.addEventListener("click", () => { block.items.push({ fr:"Nouvel élément", en:"New item" }); renderItems(); });
+      addBtn.addEventListener("click", () => { block.items.push({ fr:"Nouvel élément", en:"New item" }); renderItems(); updateLivePreview(); });
       editor.appendChild(addBtn);
     }
     renderItems();
@@ -1257,16 +1257,16 @@ function renderBlockBody(block){
       block.items.forEach((s, i) => {
         const row = doc.createElement("div"); row.className = "pe-stat-item";
         const num = doc.createElement("input"); num.className = "pe-input"; num.type = "text"; num.value = s.number; num.placeholder = "1.2K";
-        num.addEventListener("input", () => { s.number = num.value; });
+        num.addEventListener("input", () => { s.number = num.value; updateLivePreview(); });
         const lbl = doc.createElement("input"); lbl.className = "pe-input"; lbl.type = "text"; lbl.value = s.fr; lbl.placeholder = "libellé";
-        lbl.addEventListener("input", () => { s.fr = lbl.value; s.en = lbl.value; });
+        lbl.addEventListener("input", () => { s.fr = lbl.value; s.en = lbl.value; updateLivePreview(); });
         row.appendChild(num); row.appendChild(lbl);
-        row.appendChild(peIconBtn("✕", "Retirer", false, () => { block.items.splice(i, 1); renderStats(); }, true));
+        row.appendChild(peIconBtn("✕", "Retirer", false, () => { block.items.splice(i, 1); renderStats(); updateLivePreview(); }, true));
         editor.appendChild(row);
       });
       const addBtn = doc.createElement("button");
       addBtn.type = "button"; addBtn.className = "pe-add-small"; addBtn.textContent = "+ statistique";
-      addBtn.addEventListener("click", () => { block.items.push({ number:"0", fr:"métrique", en:"metric" }); renderStats(); });
+      addBtn.addEventListener("click", () => { block.items.push({ number:"0", fr:"métrique", en:"metric" }); renderStats(); updateLivePreview(); });
       editor.appendChild(addBtn);
     }
     renderStats();
@@ -1281,21 +1281,16 @@ function renderBlockBody(block){
 // (distinct de l'upload "rapide" sur le site en direct — même logique
 // de redimensionnement)
 fileInput.addEventListener("change", () => {
-  if(!peImageTargetPage && !peImageTargetBlock) return;
+  if(!peImageTargetBlock) return;
   const file = fileInput.files[0];
   if(!file) return;
   const isGif = file.type === "image/gif";
   const reader = new FileReader();
 
   const finish = (dataUrl) => {
-    if(peImageTargetPage){
-      peImageTargetPage.imgSrc = dataUrl;
-      if(peImageTargetThumb) peImageTargetThumb.src = dataUrl;
-    }else if(peImageTargetBlock){
-      peImageTargetBlock.src = dataUrl;
-      renderPanel();
-    }
-    peImageTargetPage = null; peImageTargetThumb = null; peImageTargetBlock = null;
+    peImageTargetBlock.src = dataUrl;
+    renderPanel();
+    peImageTargetBlock = null;
     if(isGif) toast("GIF ajouté (animation conservée)");
   };
 
@@ -1363,16 +1358,20 @@ function nextProjectId(doc){
 
 function defaultProjectPages(){
   return [
-    { imgSrc:"https://placehold.co/460x300/1B2A4A/F7F3EC?text=Overview", imgSize:"normal", blocks:[
+    { blocks:[
+      { type:"image", src:"https://placehold.co/460x300/1B2A4A/F7F3EC?text=Overview", imgSize:"normal" },
       BLOCK_DEFS.pitch.make(), BLOCK_DEFS.title.make(), BLOCK_DEFS.tags.make(), BLOCK_DEFS.text.make(), BLOCK_DEFS.link.make(),
     ]},
-    { imgSrc:"https://placehold.co/460x300/E4483F/1B2A4A?text=Features", imgSize:"normal", blocks:[
+    { blocks:[
+      { type:"image", src:"https://placehold.co/460x300/E4483F/1B2A4A?text=Features", imgSize:"normal" },
       { type:"title", fr:"Fonctionnalités clés", en:"Key Features" }, BLOCK_DEFS.list.make(), BLOCK_DEFS.link.make(),
     ]},
-    { imgSrc:"https://placehold.co/460x300/F2C94C/1B2A4A?text=Role", imgSize:"normal", blocks:[
+    { blocks:[
+      { type:"image", src:"https://placehold.co/460x300/F2C94C/1B2A4A?text=Role", imgSize:"normal" },
       { type:"title", fr:"Mon rôle", en:"My Role" }, BLOCK_DEFS.meta.make(), BLOCK_DEFS.list.make(), BLOCK_DEFS.link.make(),
     ]},
-    { imgSrc:"https://placehold.co/460x300/1B2A4A/F7F3EC?text=Results", imgSize:"normal", blocks:[
+    { blocks:[
+      { type:"image", src:"https://placehold.co/460x300/1B2A4A/F7F3EC?text=Results", imgSize:"normal" },
       { type:"title", fr:"Résultats", en:"Results" }, BLOCK_DEFS.stats.make(), BLOCK_DEFS.text.make(),
     ]},
   ];

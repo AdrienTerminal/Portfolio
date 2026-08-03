@@ -6,7 +6,7 @@
 <title>Éditeur — Adrien Terminal Portfolio</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="edit.css?v=8">
+<link rel="stylesheet" href="edit.css?v=9">
 </head>
 <body>
 
@@ -14,7 +14,7 @@
   <div class="toolbar__brand">
     <span class="dot"></span>
     <span>SITE EDITOR</span>
-    <span class="version-badge" title="Vérifie que ce numéro correspond bien à la dernière version que Claude t'a donnée">v8</span>
+    <span class="version-badge" title="Vérifie que ce numéro correspond bien à la dernière version que Claude t'a donnée">v9</span>
   </div>
 
   <div class="toolbar__group">
@@ -82,6 +82,13 @@
       <button class="tbtn tbtn--ghost" id="peCloseBtn">✕ Fermer le panneau</button>
     </header>
 
+    <div class="pe-preview">
+      <span class="pe-preview__label">Aperçu en direct — ne s'applique au vrai site qu'au clic sur "Appliquer"</span>
+      <div class="pe-preview__frame-wrap">
+        <iframe id="previewFrame" class="pe-preview__frame" src="preview.html" title="Aperçu en direct de la page"></iframe>
+      </div>
+    </div>
+
     <div class="pe-page-tabs" id="pePageTabs"></div>
 
     <div class="pe-palette" id="pePalette">
@@ -103,6 +110,6 @@
 <input type="file" id="videoInput" accept="video/mp4,video/webm,video/*" hidden>
 <div class="toast" id="toast"></div>
 
-<script src="edit.js?v=8"></script>
+<script src="edit.js?v=9"></script>
 </body>
 </html>
