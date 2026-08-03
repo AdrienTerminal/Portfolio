@@ -580,21 +580,22 @@ function addTagButton(row){
 }
 
 /* ==================================================================
-   PANNEAU D'ÉDITION DE PROJET — liberté complète sur les pages :
-   ajouter/supprimer/réordonner des pages et des blocs (titre, texte,
-   tags, liste, stats, lien, image). On lit l'état actuel depuis le
-   DOM à l'ouverture, on travaille sur une copie JS dans le panneau,
-   et "Appliquer" réécrit le tiroir du projet en une fois.
+   PANNEAU D'ÉDITION DE PROJET — un canevas quadrillé par page, une
+   palette de modules à glisser dessus, des onglets pour naviguer
+   entre les pages. On lit l'état actuel depuis le DOM à l'ouverture,
+   on travaille sur une copie JS, et "Appliquer" réécrit le tiroir du
+   projet en une fois.
 ================================================================== */
 const projectEditor   = document.getElementById("projectEditor");
 const editorStage       = document.querySelector(".editor-stage");
 const peCloseBtn        = document.getElementById("peCloseBtn");
-const pePagesList        = document.getElementById("pePagesList");
-const peAddPage           = document.getElementById("peAddPage");
-const peApply              = document.getElementById("peApply");
-const peProjectLabel        = document.getElementById("peProjectLabel");
+const pePageTabs         = document.getElementById("pePageTabs");
+const pePalette           = document.getElementById("pePalette");
+const peCanvas              = document.getElementById("peCanvas");
+const peApply                 = document.getElementById("peApply");
+const peProjectLabel            = document.getElementById("peProjectLabel");
 
-let peState = null;        // { projectId, pillLabel, pages:[{imgSrc, blocks:[...]}] }
+let peState = null;        // { projectId, pillLabel, activePage, pages:[{imgSrc, imgSize, blocks:[...]}] }
 let peCurrentPillEl = null;
 
 const BLOCK_DEFS = {
@@ -616,6 +617,8 @@ function readProjectState(projectId){
   const pages = [...drawer.querySelectorAll(".page")].map(page => {
     const img = page.querySelector(".page__img");
     const textEl = page.querySelector(".page__text");
+    const cols = page.style.gridTemplateColumns || "";
+    const imgSize = cols.includes("220px") ? "small" : cols.includes("420px") ? "large" : "normal";
     const blocks = [];
     [...textEl.children].forEach(child => {
       if(child.classList.contains("editor-badges")) return;
@@ -637,15 +640,20 @@ function readProjectState(projectId){
         blocks.push({ type:"text", fr:child.dataset.fr || child.textContent, en:child.dataset.en || child.textContent });
       }
     });
-    return { imgSrc: img ? img.src : "", blocks };
+    return { imgSrc: img ? img.src : "", imgSize, blocks };
   });
-  return { projectId, pillLabel: pill.textContent.trim(), pages };
+  return { projectId, pillLabel: pill.textContent.trim(), activePage: 0, pages };
 }
 
 // ---- Construction d'éléments DOM depuis l'état (jamais de HTML texte : pas de risque d'échappement) ----
+const IMG_SIZE_COLUMNS = { small:"1fr 220px", normal:"1fr 320px", large:"1fr 420px" };
+
 function buildPageElement(doc, pageData){
   const page = doc.createElement("div");
   page.className = "page";
+  if(pageData.imgSize && pageData.imgSize !== "normal"){
+    page.style.gridTemplateColumns = IMG_SIZE_COLUMNS[pageData.imgSize];
+  }
   const textWrap = doc.createElement("div");
   textWrap.className = "page__text";
 
@@ -708,54 +716,126 @@ document.addEventListener("keydown", (e) => {
   if(e.key === "Escape" && !projectEditor.hidden) closeProjectEditor();
 });
 
-// ---- Rendu du panneau depuis peState ----
+// ---- Rendu global ----
 function renderPanel(){
-  pePagesList.innerHTML = "";
-  peState.pages.forEach((page, pageIndex) => {
-    pePagesList.appendChild(renderPageCard(page, pageIndex));
+  renderPageTabs();
+  renderPalette();
+  renderCanvas();
+}
+
+// ---- Onglets de pages ----
+function renderPageTabs(){
+  pePageTabs.innerHTML = "";
+  peState.pages.forEach((page, i) => {
+    const tab = document.createElement("button");
+    tab.type = "button";
+    tab.className = "pe-page-tab" + (i === peState.activePage ? " is-active" : "");
+    const label = document.createElement("span");
+    label.textContent = "Page " + (i + 1);
+    tab.appendChild(label);
+    if(peState.pages.length > 1){
+      const close = document.createElement("span");
+      close.className = "pe-page-tab__close";
+      close.textContent = "✕";
+      close.title = "Supprimer cette page";
+      close.addEventListener("click", (e) => {
+        e.stopPropagation();
+        peState.pages.splice(i, 1);
+        if(peState.activePage >= peState.pages.length) peState.activePage = peState.pages.length - 1;
+        renderPanel();
+      });
+      tab.appendChild(close);
+    }
+    tab.addEventListener("click", () => { peState.activePage = i; renderPanel(); });
+    pePageTabs.appendChild(tab);
+  });
+
+  const addTab = document.createElement("button");
+  addTab.type = "button";
+  addTab.className = "pe-page-tab pe-page-tab--add";
+  addTab.textContent = "+ Page";
+  addTab.title = "Ajouter une page";
+  addTab.addEventListener("click", () => {
+    peState.pages.push({ imgSrc:"", imgSize:"normal", blocks:[BLOCK_DEFS.title.make(), BLOCK_DEFS.text.make()] });
+    peState.activePage = peState.pages.length - 1;
+    renderPanel();
+  });
+  pePageTabs.appendChild(addTab);
+}
+
+// ---- Palette de modules à glisser ----
+function renderPalette(){
+  pePalette.innerHTML = '<span class="pe-palette__label">Glisse un module sur le canevas :</span>';
+  Object.entries(BLOCK_DEFS).forEach(([key, def]) => {
+    const chip = document.createElement("div");
+    chip.className = "pe-palette-chip";
+    chip.dataset.type = key;
+    chip.textContent = "+ " + def.label;
+    chip.draggable = true;
+    chip.title = "Glisse-moi sur le canevas, ou clique pour ajouter directement";
+    chip.addEventListener("dragstart", (e) => {
+      e.dataTransfer.effectAllowed = "copy";
+      e.dataTransfer.setData("text/pe-new-block", key);
+    });
+    chip.addEventListener("click", () => {
+      peState.pages[peState.activePage].blocks.push(def.make());
+      renderPanel();
+    });
+    pePalette.appendChild(chip);
   });
 }
 
-function renderPageCard(page, pageIndex){
-  const doc = document;
-  const card = doc.createElement("div");
-  card.className = "pe-page";
+// ---- Canevas de la page active ----
+let peImageTargetPage = null;
+let peImageTargetThumb = null;
 
-  // en-tête : poignée de glisser-déposer + n° de page + réordonner + supprimer
-  const head = doc.createElement("div");
-  head.className = "pe-page__head";
-  const headLeft = doc.createElement("div");
-  headLeft.className = "pe-page__head-left";
-  const handle = doc.createElement("span");
-  handle.className = "pe-drag-handle";
-  handle.textContent = "⠿";
-  handle.title = "Glisser pour réordonner";
-  headLeft.appendChild(handle);
-  const labelSpan = doc.createElement("span");
-  labelSpan.textContent = `Page ${pageIndex + 1} / ${peState.pages.length}`;
-  headLeft.appendChild(labelSpan);
-  head.appendChild(headLeft);
+function renderCanvas(){
+  const page = peState.pages[peState.activePage];
+  peCanvas.innerHTML = "";
 
-  const actions = doc.createElement("div");
-  actions.className = "pe-page__actions";
-  actions.appendChild(peIconBtn("↑", "Monter", pageIndex === 0, () => movePage(pageIndex, -1)));
-  actions.appendChild(peIconBtn("↓", "Descendre", pageIndex === peState.pages.length - 1, () => movePage(pageIndex, 1)));
-  actions.appendChild(peIconBtn("✕", "Supprimer la page", peState.pages.length <= 1, () => removePage(pageIndex), true));
-  head.appendChild(actions);
-  card.appendChild(head);
+  // tuile image, toujours en premier, taille réglable
+  peCanvas.appendChild(renderImageTile(page));
 
-  wireDragReorder(handle, card, pageIndex, (from, to) => {
-    const [p] = peState.pages.splice(from, 1);
-    peState.pages.splice(to, 0, p);
-    renderPanel();
+  page.blocks.forEach((block, blockIndex) => {
+    peCanvas.appendChild(renderBlock(page, block, blockIndex));
   });
 
-  // image de la page
-  const imgRow = doc.createElement("div");
-  imgRow.className = "pe-page__image";
-  const thumb = doc.createElement("img");
-  thumb.src = page.imgSrc || "https://placehold.co/80x56/1B2A4A/F7F3EC?text=%20";
-  const changeBtn = doc.createElement("button");
+  peCanvas.addEventListener("dragover", (e) => {
+    if(e.dataTransfer.types.includes("text/pe-new-block")){ e.preventDefault(); peCanvas.classList.add("is-drop-ready"); }
+  });
+  peCanvas.addEventListener("dragleave", (e) => {
+    if(e.target === peCanvas) peCanvas.classList.remove("is-drop-ready");
+  });
+  peCanvas.addEventListener("drop", (e) => {
+    const key = e.dataTransfer.getData("text/pe-new-block");
+    peCanvas.classList.remove("is-drop-ready");
+    if(key && BLOCK_DEFS[key]){
+      e.preventDefault();
+      page.blocks.push(BLOCK_DEFS[key].make());
+      renderPanel();
+    }
+  });
+}
+
+function renderImageTile(page){
+  const wrap = document.createElement("div");
+  wrap.className = "pe-block";
+  wrap.dataset.blockType = "image";
+
+  const head = document.createElement("div");
+  head.className = "pe-block__head";
+  head.innerHTML = `<span class="pe-block__label">Image</span>`;
+  wrap.appendChild(head);
+
+  const thumb = document.createElement("img");
+  thumb.className = "pe-image-preview";
+  thumb.src = page.imgSrc || "https://placehold.co/300x150/1B2A4A/F7F3EC?text=%20";
+  wrap.appendChild(thumb);
+
+  const actions = document.createElement("div");
+  actions.className = "pe-image-actions";
+
+  const changeBtn = document.createElement("button");
   changeBtn.type = "button"; changeBtn.className = "tbtn"; changeBtn.textContent = "Changer l'image";
   changeBtn.addEventListener("click", () => {
     currentImageTarget = null;
@@ -764,42 +844,31 @@ function renderPageCard(page, pageIndex){
     fileInput.value = "";
     fileInput.click();
   });
-  const hint = doc.createElement("span");
+  actions.appendChild(changeBtn);
+
+  const sizeGroup = document.createElement("div");
+  sizeGroup.className = "pe-size-group";
+  [["small","Petit"], ["normal","Normal"], ["large","Grand"]].forEach(([key, label]) => {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.className = "pe-size-btn" + (page.imgSize === key ? " is-active" : "");
+    b.textContent = label;
+    b.addEventListener("click", () => { page.imgSize = key; renderCanvas(); });
+    sizeGroup.appendChild(b);
+  });
+  actions.appendChild(sizeGroup);
+
+  const hint = document.createElement("span");
   hint.className = "pe-hint";
   hint.textContent = "JPG, PNG ou GIF (les GIF gardent leur animation)";
-  imgRow.appendChild(thumb); imgRow.appendChild(changeBtn); imgRow.appendChild(hint);
-  card.appendChild(imgRow);
+  actions.appendChild(hint);
 
-  // blocs
-  const blocksWrap = doc.createElement("div");
-  blocksWrap.className = "pe-blocks";
-  page.blocks.forEach((block, blockIndex) => {
-    blocksWrap.appendChild(renderBlock(page, block, blockIndex));
-  });
-  card.appendChild(blocksWrap);
-
-  // + ajouter un bloc
-  const addRow = doc.createElement("div");
-  addRow.className = "pe-add-block-row";
-  Object.entries(BLOCK_DEFS).forEach(([key, def]) => {
-    const b = doc.createElement("button");
-    b.type = "button"; b.className = "tbtn"; b.textContent = "+ " + def.label;
-    b.addEventListener("click", () => {
-      page.blocks.push(def.make());
-      renderPanel();
-    });
-    addRow.appendChild(b);
-  });
-  card.appendChild(addRow);
-
-  return card;
+  wrap.appendChild(actions);
+  return wrap;
 }
 
-let peImageTargetPage = null;
-let peImageTargetThumb = null;
-
 // Glisser-déposer natif : la poignée démarre le drag, mais c'est la
-// carte entière qui sert de zone de dépôt (plus facile à viser).
+// tuile entière qui sert de zone de dépôt (plus facile à viser).
 function wireDragReorder(handleEl, containerEl, index, onReorder){
   handleEl.draggable = true;
   handleEl.addEventListener("dragstart", (e) => {
@@ -810,10 +879,15 @@ function wireDragReorder(handleEl, containerEl, index, onReorder){
   });
   handleEl.addEventListener("dragend", () => containerEl.classList.remove("is-dragging"));
 
-  containerEl.addEventListener("dragover", (e) => { e.preventDefault(); containerEl.classList.add("is-drop-target"); });
+  containerEl.addEventListener("dragover", (e) => {
+    if(!e.dataTransfer.types.includes("text/plain")) return;
+    e.preventDefault(); e.stopPropagation();
+    containerEl.classList.add("is-drop-target");
+  });
   containerEl.addEventListener("dragleave", () => containerEl.classList.remove("is-drop-target"));
   containerEl.addEventListener("drop", (e) => {
-    e.preventDefault();
+    if(!e.dataTransfer.types.includes("text/plain")) return;
+    e.preventDefault(); e.stopPropagation();
     containerEl.classList.remove("is-drop-target");
     const fromIndex = parseInt(e.dataTransfer.getData("text/plain"), 10);
     if(!Number.isNaN(fromIndex) && fromIndex !== index) onReorder(fromIndex, index);
@@ -829,19 +903,6 @@ function peIconBtn(label, title, disabled, onClick, danger){
   b.disabled = !!disabled;
   if(!disabled) b.addEventListener("click", onClick);
   return b;
-}
-
-function movePage(index, dir){
-  const target = index + dir;
-  if(target < 0 || target >= peState.pages.length) return;
-  const [p] = peState.pages.splice(index, 1);
-  peState.pages.splice(target, 0, p);
-  renderPanel();
-}
-function removePage(index){
-  if(peState.pages.length <= 1) return;
-  peState.pages.splice(index, 1);
-  renderPanel();
 }
 
 function renderBlock(page, block, blockIndex){
@@ -865,8 +926,6 @@ function renderBlock(page, block, blockIndex){
 
   const actions = doc.createElement("div");
   actions.className = "pe-page__actions";
-  actions.appendChild(peIconBtn("↑", "Monter", blockIndex === 0, () => { swapBlocks(page, blockIndex, blockIndex - 1); }));
-  actions.appendChild(peIconBtn("↓", "Descendre", blockIndex === page.blocks.length - 1, () => { swapBlocks(page, blockIndex, blockIndex + 1); }));
   actions.appendChild(peIconBtn("✕", "Supprimer ce bloc", false, () => { page.blocks.splice(blockIndex, 1); renderPanel(); }, true));
   head.appendChild(headLeft); head.appendChild(actions);
   wrap.appendChild(head);
@@ -879,12 +938,6 @@ function renderBlock(page, block, blockIndex){
 
   wrap.appendChild(renderBlockBody(block));
   return wrap;
-}
-
-function swapBlocks(page, i, j){
-  if(j < 0 || j >= page.blocks.length) return;
-  [page.blocks[i], page.blocks[j]] = [page.blocks[j], page.blocks[i]];
-  renderPanel();
 }
 
 function renderBlockBody(block){
@@ -1034,11 +1087,6 @@ fileInput.addEventListener("change", () => {
   reader.readAsDataURL(file);
 });
 
-peAddPage.addEventListener("click", () => {
-  peState.pages.push({ imgSrc:"", blocks:[BLOCK_DEFS.title.make(), BLOCK_DEFS.text.make()] });
-  renderPanel();
-});
-
 peApply.addEventListener("click", () => {
   const doc = frame.contentDocument;
   const drawer = doc.querySelector(`.project-drawer[data-drawer="${peState.projectId}"]`);
@@ -1078,16 +1126,16 @@ function nextProjectId(doc){
 
 function defaultProjectPages(){
   return [
-    { imgSrc:"https://placehold.co/460x300/1B2A4A/F7F3EC?text=Overview", blocks:[
+    { imgSrc:"https://placehold.co/460x300/1B2A4A/F7F3EC?text=Overview", imgSize:"normal", blocks:[
       BLOCK_DEFS.pitch.make(), BLOCK_DEFS.title.make(), BLOCK_DEFS.tags.make(), BLOCK_DEFS.text.make(), BLOCK_DEFS.link.make(),
     ]},
-    { imgSrc:"https://placehold.co/460x300/E4483F/1B2A4A?text=Features", blocks:[
+    { imgSrc:"https://placehold.co/460x300/E4483F/1B2A4A?text=Features", imgSize:"normal", blocks:[
       { type:"title", fr:"Fonctionnalités clés", en:"Key Features" }, BLOCK_DEFS.list.make(), BLOCK_DEFS.link.make(),
     ]},
-    { imgSrc:"https://placehold.co/460x300/F2C94C/1B2A4A?text=Role", blocks:[
+    { imgSrc:"https://placehold.co/460x300/F2C94C/1B2A4A?text=Role", imgSize:"normal", blocks:[
       { type:"title", fr:"Mon rôle", en:"My Role" }, BLOCK_DEFS.meta.make(), BLOCK_DEFS.list.make(), BLOCK_DEFS.link.make(),
     ]},
-    { imgSrc:"https://placehold.co/460x300/1B2A4A/F7F3EC?text=Results", blocks:[
+    { imgSrc:"https://placehold.co/460x300/1B2A4A/F7F3EC?text=Results", imgSize:"normal", blocks:[
       { type:"title", fr:"Résultats", en:"Results" }, BLOCK_DEFS.stats.make(), BLOCK_DEFS.text.make(),
     ]},
   ];

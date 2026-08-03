@@ -6,7 +6,7 @@
 <title>Éditeur — Adrien Terminal Portfolio</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="edit.css?v=6">
+<link rel="stylesheet" href="edit.css?v=7">
 </head>
 <body>
 
@@ -14,7 +14,7 @@
   <div class="toolbar__brand">
     <span class="dot"></span>
     <span>SITE EDITOR</span>
-    <span class="version-badge" title="Vérifie que ce numéro correspond bien à la dernière version que Claude t'a donnée">v6</span>
+    <span class="version-badge" title="Vérifie que ce numéro correspond bien à la dernière version que Claude t'a donnée">v7</span>
   </div>
 
   <div class="toolbar__group">
@@ -82,12 +82,18 @@
       <button class="tbtn tbtn--ghost" id="peCloseBtn">✕ Fermer le panneau</button>
     </header>
 
-    <div class="project-editor__body" id="pePagesList"></div>
+    <div class="pe-page-tabs" id="pePageTabs"></div>
 
-    <button class="tbtn" id="peAddPage" style="margin:14px 22px;">+ Ajouter une page</button>
+    <div class="pe-palette" id="pePalette">
+      <span class="pe-palette__label">Glisse un module sur le canevas :</span>
+    </div>
+
+    <div class="project-editor__body">
+      <div class="pe-canvas" id="peCanvas"></div>
+    </div>
 
     <footer class="project-editor__foot">
-      <span class="toolbar__label">Glisse les poignées ⠿ pour réordonner. Les changements s'appliquent au clic sur Appliquer.</span>
+      <span class="toolbar__label">Glisse les poignées ⠿ pour réordonner, glisse la palette pour ajouter.</span>
       <button class="tbtn tbtn--primary" id="peApply">✓ Appliquer</button>
     </footer>
   </section>
@@ -96,6 +102,6 @@
 <input type="file" id="fileInput" accept="image/*" hidden>
 <div class="toast" id="toast"></div>
 
-<script src="edit.js?v=6"></script>
+<script src="edit.js?v=7"></script>
 </body>
 </html>
