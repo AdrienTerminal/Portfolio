@@ -704,6 +704,9 @@ function closeProjectEditor(){
   peState = null;
 }
 peCloseBtn.addEventListener("click", closeProjectEditor);
+document.addEventListener("keydown", (e) => {
+  if(e.key === "Escape" && !projectEditor.hidden) closeProjectEditor();
+});
 
 // ---- Rendu du panneau depuis peState ----
 function renderPanel(){
@@ -845,6 +848,7 @@ function renderBlock(page, block, blockIndex){
   const doc = document;
   const wrap = doc.createElement("div");
   wrap.className = "pe-block";
+  wrap.dataset.blockType = block.type;
 
   const head = doc.createElement("div");
   head.className = "pe-block__head";
