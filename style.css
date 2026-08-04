@@ -466,57 +466,90 @@ h3[data-accent], .page__pitch[data-accent]{ color:var(--accent-color, var(--red-
 }
 
 /* ==================================================================
-   FRISE CHRONOLOGIQUE — parcours + appel à recrutement, juste sous
-   le texte de présentation dans About Me.
+   ABOUT ME — sous le texte de présentation : deux onglets empilés
+   verticalement (Moi / Mes passions) qui pilotent l'essentiel de la
+   zone en dessous.
 ================================================================== */
+.about-split{
+  display:flex; gap:16px;
+  flex:1; min-height:0;
+}
+.about-tabs{
+  display:flex; flex-direction:column; gap:10px;
+  flex:0 0 148px;
+}
+.about-tab{
+  font-family:var(--font-display); font-weight:600; font-size:0.9rem;
+  text-align:left; padding:14px 16px;
+  background:var(--card-bg); color:var(--ink);
+  border:var(--border) solid var(--ink); border-radius:var(--radius-lg);
+  box-shadow:4px 4px 0 var(--ink);
+  cursor:pointer;
+  transition:transform .15s var(--ease), background .15s ease, color .15s ease;
+}
+.about-tab:hover{ transform:translateX(3px); }
+.about-tab.is-active{ background:var(--red); color:#fff; }
+
+.about-content{ flex:1; min-width:0; display:flex; flex-direction:column; min-height:0; }
+.about-view{ display:none; flex:1; min-height:0; flex-direction:column; }
+.about-view.is-active{ display:flex; }
+
+/* ---- Moi : frise chronologique horizontale, plus graphique qu'une
+   simple liste — défile latéralement si le parcours s'allonge. ---- */
 .timeline{
+  flex:1; min-height:0;
+  display:flex; align-items:center;
+  overflow-x:auto; overflow-y:hidden;
+  border:var(--border) solid var(--ink); border-radius:var(--radius-lg);
+  background:var(--card-bg);
+  box-shadow:6px 6px 0 var(--ink);
+}
+.timeline__scroll{
   position:relative;
-  padding-left:30px;
-  margin-bottom:22px;
-  flex:0 0 auto;
+  display:flex; align-items:flex-start; gap:22px;
+  padding:38px 24px 22px;
+  min-width:min-content;
 }
 .timeline__track{
-  position:absolute; left:9px; top:8px; bottom:8px; width:3px;
-  background-image:linear-gradient(to bottom, var(--ink) 0 6px, transparent 6px 12px);
-  background-size:3px 12px; background-repeat:repeat-y;
-  opacity:.55;
+  position:absolute; left:24px; right:24px; top:20px; height:3px;
+  background-image:linear-gradient(to right, var(--ink) 0 6px, transparent 6px 12px);
+  background-size:12px 3px; background-repeat:repeat-x;
+  opacity:.5;
 }
-.timeline__node{ position:relative; margin-bottom:16px; }
-.timeline__node:last-child{ margin-bottom:0; }
+.timeline__node{
+  position:relative; flex:0 0 auto; width:172px;
+  display:flex; flex-direction:column; align-items:center;
+}
+.timeline__node:nth-child(even){ margin-top:30px; }
 .timeline__dot{
-  position:absolute; left:-30px; top:10px;
-  width:18px; height:18px; border-radius:50%;
+  width:15px; height:15px; border-radius:50%; flex:0 0 auto;
   background:var(--card-bg); border:3px solid var(--ink);
-  z-index:2;
+  margin-bottom:10px; z-index:2;
 }
 .timeline__card{
-  display:flex; gap:14px; align-items:flex-start;
-  background:var(--card-bg); border:var(--border) solid var(--ink);
-  border-radius:var(--radius-lg);
-  padding:12px 16px;
+  width:100%; display:flex; flex-direction:column; align-items:center; text-align:center;
+  background:var(--paper); border:var(--border) solid var(--ink);
+  border-radius:var(--radius-lg); padding:12px;
   box-shadow:4px 4px 0 var(--ink);
 }
 .timeline__photo-frame{
-  flex:0 0 auto; width:60px; height:60px; border-radius:var(--radius);
-  overflow:hidden; border:2.5px solid var(--ink); position:relative;
+  width:52px; height:52px; border-radius:var(--radius);
+  overflow:hidden; border:2.5px solid var(--ink); margin-bottom:8px;
 }
 .timeline__photo{ width:100%; height:100%; object-fit:cover; display:block; }
-.timeline__body{ flex:1; min-width:0; }
 .timeline__date{
-  display:inline-block; font-family:var(--font-mono); font-weight:700; font-size:0.72rem;
+  font-family:var(--font-mono); font-weight:700; font-size:0.7rem;
   color:var(--red); margin-bottom:3px;
 }
-.timeline__title{
-  font-family:var(--font-display); font-size:1.02rem; margin-bottom:3px;
-}
-.timeline__text{ font-size:0.85rem; line-height:1.5; opacity:.85; }
+.timeline__title{ font-family:var(--font-display); font-size:0.94rem; margin-bottom:4px; }
+.timeline__text{ font-size:0.78rem; line-height:1.45; opacity:.85; }
 
 /* étape spéciale de fin : appel à recrutement, mise en avant */
-.timeline__node--cta{ margin-top:20px; }
 .timeline__node--cta .timeline__dot{ background:var(--red); border-color:var(--red); }
 .timeline__node--cta .timeline__card{
   background:var(--ink); border-color:var(--ink);
   box-shadow:4px 4px 0 var(--red);
+  justify-content:center; min-height:100%;
 }
 .timeline__node--cta .timeline__title{ color:var(--yellow); }
 .timeline__node--cta .timeline__text{ color:var(--paper); opacity:.92; }
@@ -614,6 +647,11 @@ h3[data-accent], .page__pitch[data-accent]{ color:var(--accent-color, var(--red-
   .occupation{ min-height:64px; }
   .occupation.is-active{ flex:5; min-height:240px; }
   .occupation:hover:not(.is-active){ flex:1; }
+
+  .about-split{ flex-direction:column; }
+  .about-tabs{ flex-direction:row; flex:0 0 auto; }
+  .about-tab{ flex:1; text-align:center; }
+  .timeline{ min-height:260px; }
 }
 
 @media (prefers-reduced-motion: reduce){

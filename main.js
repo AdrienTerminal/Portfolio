@@ -77,11 +77,6 @@ tabs.forEach(tab => {
     document.querySelector(`.panel-view[data-panel="${tab.dataset.tab}"]`).classList.add("is-active");
     cardEl.classList.toggle("is-about", tab.dataset.tab === "about");
     sfx.tab();
-
-    if(tab.dataset.tab === "about" && !aboutPeekPlayed){
-      aboutPeekPlayed = true;
-      window.setTimeout(playAboutPeekSequence, 500);
-    }
   });
 });
 
@@ -291,6 +286,25 @@ function playAboutPeekSequence(){
   }
   step();
 }
+
+/* ---- Sous-onglets "Moi" / "Mes passions" ------------------------- */
+const aboutTabs = document.querySelectorAll(".about-tab");
+const aboutViews = document.querySelectorAll(".about-view");
+
+aboutTabs.forEach(tab => {
+  tab.addEventListener("click", () => {
+    if(tab.classList.contains("is-active")) return;
+    const target = tab.dataset.aboutTab;
+    aboutTabs.forEach(t => t.classList.toggle("is-active", t === tab));
+    aboutViews.forEach(v => v.classList.toggle("is-active", v.dataset.aboutView === target));
+    sfx.tab();
+
+    if(target === "passions" && !aboutPeekPlayed){
+      aboutPeekPlayed = true;
+      window.setTimeout(playAboutPeekSequence, 400);
+    }
+  });
+});
 
 
 /* ==================================================================

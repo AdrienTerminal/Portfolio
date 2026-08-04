@@ -414,10 +414,12 @@ function injectEditingInner(doc){
       }
       .editor-add-tag:hover{ opacity:1; background:rgba(91,141,239,.12); }
       .editor-add-timeline{
-        display:block; margin-top:4px;
+        flex:0 0 auto; align-self:center;
+        width:120px; height:150px;
+        display:flex; align-items:center; justify-content:center; text-align:center;
         font-family:'JetBrains Mono',monospace; font-size:11px; font-weight:700;
-        color:#5B8DEF; background:transparent; border:1.5px dashed #5B8DEF;
-        border-radius:100px; padding:6px 14px; cursor:pointer; opacity:.75;
+        color:#5B8DEF; background:transparent; border:2px dashed #5B8DEF;
+        border-radius:12px; padding:10px; cursor:pointer; opacity:.75;
       }
       .editor-add-timeline:hover{ opacity:1; background:rgba(91,141,239,.12); }
     `;
@@ -480,6 +482,13 @@ function injectEditingInner(doc){
   // Tabs : renommer seulement
   doc.querySelectorAll(".tab").forEach(tab => {
     addBadges(tab, [{ icon:"rename", title:"Renommer", onClick:() => renameSimple(tab) }]);
+  });
+
+  // Sous-onglets About Me (Moi / Mes passions) : renommer seulement,
+  // en préservant les deux langues (contrairement aux onglets
+  // principaux Projects/About me, ceux-ci sont bilingues)
+  doc.querySelectorAll(".about-tab").forEach(tab => {
+    addBadges(tab, [{ icon:"rename", title:"Renommer", onClick:() => renameBilingualTab(tab) }]);
   });
 
   // Pills : ouvre le panneau complet du projet (plus un simple prompt)
@@ -572,6 +581,23 @@ function renameSimple(el){
   if(next === null || next.trim() === "") return;
   el.textContent = next.trim();
   recordUndo(() => { el.textContent = prev; });
+  saveDraft();
+  toast("Renommé");
+}
+
+// Comme renameSimple, mais pour un bouton dont le texte est porté par un
+// <span data-fr data-en> à l'intérieur — on édite ce span et seulement
+// la langue actuellement active, pour ne jamais perdre l'autre langue.
+function renameBilingualTab(tab){
+  const span = tab.querySelector("span[data-fr]") || tab;
+  const prev = span.textContent.trim();
+  const next = prompt("Nouveau texte :", prev);
+  if(next === null || next.trim() === "") return;
+  const doc = tab.ownerDocument;
+  const lang = doc.documentElement.lang === "en" ? "en" : "fr";
+  span.textContent = next.trim();
+  span.dataset[lang] = next.trim();
+  recordUndo(() => { span.textContent = prev; span.dataset[lang] = prev; });
   saveDraft();
   toast("Renommé");
 }
@@ -679,7 +705,8 @@ function addTagButton(row){
 // Frise chronologique : bouton "+ Ajouter une étape", toujours inséré
 // juste avant l'étape finale d'appel à recrutement (qui reste la dernière).
 function addTimelineButton(timeline){
-  if(timeline.querySelector(".editor-add-timeline")) return;
+  const scroll = timeline.querySelector(".timeline__scroll");
+  if(!scroll || scroll.querySelector(".editor-add-timeline")) return;
   const doc = timeline.ownerDocument;
 
   function buildNode(){
@@ -700,8 +727,6 @@ function addTimelineButton(timeline){
     img.alt = "";
     photoFrame.appendChild(img);
 
-    const body = doc.createElement("div");
-    body.className = "timeline__body";
     const date = doc.createElement("span");
     date.className = "timeline__date";
     date.textContent = "Année"; date.dataset.fr = "Année"; date.dataset.en = "Year";
@@ -712,9 +737,8 @@ function addTimelineButton(timeline){
     text.className = "timeline__text";
     text.textContent = "Décris cette étape ici.";
     text.dataset.fr = "Décris cette étape ici."; text.dataset.en = "Describe this milestone here.";
-    body.appendChild(date); body.appendChild(title); body.appendChild(text);
 
-    card.appendChild(photoFrame); card.appendChild(body);
+    card.appendChild(photoFrame); card.appendChild(date); card.appendChild(title); card.appendChild(text);
     node.appendChild(dot); node.appendChild(card);
     return node;
   }
@@ -726,8 +750,7 @@ function addTimelineButton(timeline){
   btn.addEventListener("click", (e) => {
     e.stopPropagation();
     const node = buildNode();
-    const cta = timeline.querySelector(".timeline__node--cta");
-    if(cta) timeline.insertBefore(node, cta); else timeline.appendChild(node);
+    scroll.insertBefore(node, btn);
 
     node.querySelectorAll(TEXT_SELECTOR).forEach(wireTextElement);
     const img = node.querySelector(".timeline__photo");
@@ -735,11 +758,13 @@ function addTimelineButton(timeline){
     addBadges(wrap, [{ icon:"image", title:"Changer la photo", onClick:() => openImagePicker(img) }]);
     addBadges(node, [{ icon:"delete", title:"Supprimer cette étape", danger:true, onClick:() => removeSimple(node) }]);
 
-    node.scrollIntoView({ behavior:"smooth", block:"center" });
+    node.scrollIntoView({ behavior:"smooth", block:"nearest", inline:"center" });
     recordUndo(() => node.remove());
     saveDraft();
   });
-  timeline.appendChild(btn);
+  // insérée juste avant l'étape finale (l'appel à recrutement), qui reste toujours en dernier
+  const cta = scroll.querySelector(".timeline__node--cta");
+  if(cta) scroll.insertBefore(btn, cta); else scroll.appendChild(btn);
 }
 
 /* ==================================================================
@@ -770,7 +795,8 @@ const BLOCK_DEFS = {
   stats:  { label:"Statistiques", make:() => ({ type:"stats", items:[{number:"0", fr:"métrique", en:"metric"}] }) },
   link:   { label:"Lien",         make:() => ({ type:"link", href:"#", fr:"Voir sur itch.io ↗", en:"View on itch.io ↗" }) },
   image:  { label:"Image",        make:() => ({ type:"image", src:"", imgSize:"normal", objectPosition:"50% 50%" }) },
-  video:  { label:"Vidéo / Jeu",  make:() => ({ type:"video", mode:"youtube", src:"", youtubeId:"", itchUrl:"", objectPosition:"50% 50%" }) },
+  video:  { label:"Vidéo",        make:() => ({ type:"video", mode:"youtube", src:"", youtubeId:"", itchUrl:"", objectPosition:"50% 50%" }) },
+  game:   { label:"Jeu itch.io",  make:() => ({ type:"video", mode:"itch", src:"", youtubeId:"", itchUrl:"", objectPosition:"50% 50%" }) },
 };
 
 // ---- Lecture du DOM vers l'état JS du panneau ----
@@ -1164,6 +1190,7 @@ const PALETTE_ICONS = {
   link:   `<svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M8.5 11.5l3-3M8 6.5l1.5-1.5a2.7 2.7 0 0 1 3.8 3.8L11.8 10M12 13.5 10.5 15a2.7 2.7 0 0 1-3.8-3.8L8 9.7"/></svg>`,
   image:  `<svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="2.5" y="4" width="15" height="12" rx="1.5"/><circle cx="7" cy="8.5" r="1.3"/><path d="M3 14l4-4 3 3 2.5-2.5L17 14"/></svg>`,
   video:  `<svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="2.5" y="4.5" width="15" height="11" rx="1.5"/><path d="M8.5 8l4 2-4 2V8Z" fill="currentColor" stroke="none"/></svg>`,
+  game:   `<svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 7h8a4 4 0 0 1 4 4.8 2 2 0 0 1-3.4 1.6L13 11.8H7l-1.6 1.6A2 2 0 0 1 2 11.8 4 4 0 0 1 6 7Z"/><path d="M6.2 9.5v2M5.2 10.5h2"/><circle cx="14.5" cy="9.5" r=".6" fill="currentColor" stroke="none"/><circle cx="16" cy="11" r=".6" fill="currentColor" stroke="none"/></svg>`,
 };
 
 function renderPalette(){
@@ -1393,11 +1420,16 @@ function renderAccentControl(block){
   return wrap;
 }
 
+function blockVisualType(block){
+  // un bloc "video" en mode itch.io s'affiche comme un module à part
+  return (block.type === "video" && block.mode === "itch") ? "game" : block.type;
+}
+
 function renderBlock(page, block, blockIndex){
   const doc = document;
   const wrap = doc.createElement("div");
   wrap.className = "pe-block";
-  wrap.dataset.blockType = block.type;
+  wrap.dataset.blockType = blockVisualType(block);
 
   const head = doc.createElement("div");
   head.className = "pe-block__head";
@@ -1409,7 +1441,7 @@ function renderBlock(page, block, blockIndex){
   handle.title = "Glisser pour réordonner";
   const label = doc.createElement("span");
   label.className = "pe-block__label";
-  label.textContent = BLOCK_DEFS[block.type]?.label || block.type;
+  label.textContent = BLOCK_DEFS[blockVisualType(block)]?.label || block.type;
   headLeft.appendChild(handle); headLeft.appendChild(label);
   if(ACCENT_SUPPORTED.includes(block.type)) headLeft.appendChild(renderAccentControl(block));
 

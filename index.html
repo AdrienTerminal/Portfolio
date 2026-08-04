@@ -332,103 +332,115 @@
             </div>
           </div>
 
-          <!-- ================= FRISE CHRONOLOGIQUE — parcours + appel à recrutement ================= -->
-          <div class="timeline" id="timeline">
-            <div class="timeline__track"></div>
+          <div class="about-split">
+            <div class="about-tabs">
+              <button class="about-tab is-active" type="button" data-about-tab="me">
+                <span data-fr="Moi" data-en="Me">Moi</span>
+              </button>
+              <button class="about-tab" type="button" data-about-tab="passions">
+                <span data-fr="Mes passions" data-en="My passions">Mes passions</span>
+              </button>
+            </div>
 
-            <!-- ⚙️ À REMPLACER : une étape = une date, une photo, un titre, un texte -->
-            <div class="timeline__node">
-              <span class="timeline__dot"></span>
-              <div class="timeline__card">
-                <div class="timeline__photo-frame">
-                  <img class="timeline__photo" src="https://placehold.co/160x160/1B2A4A/F7F3EC?text=%F0%9F%93%B7" alt="">
+            <div class="about-content">
+              <!-- ================= MOI — frise chronologique horizontale ================= -->
+              <div class="about-view is-active" data-about-view="me">
+                <div class="timeline" id="timeline">
+                  <div class="timeline__scroll">
+                    <div class="timeline__track"></div>
+
+                    <!-- ⚙️ À REMPLACER : une étape = une date, une photo, un titre, un texte -->
+                    <div class="timeline__node">
+                      <span class="timeline__dot"></span>
+                      <div class="timeline__card">
+                        <div class="timeline__photo-frame">
+                          <img class="timeline__photo" src="https://placehold.co/160x160/1B2A4A/F7F3EC?text=%F0%9F%93%B7" alt="">
+                        </div>
+                        <span class="timeline__date" data-fr="2018" data-en="2018">2018</span>
+                        <h4 class="timeline__title" data-fr="Premiers pas" data-en="First steps">Premiers pas</h4>
+                        <p class="timeline__text" data-fr="Début de formation en game design, premiers prototypes sur Unity." data-en="Started game design studies, first prototypes in Unity.">Début de formation en game design, premiers prototypes sur Unity.</p>
+                      </div>
+                    </div>
+
+                    <div class="timeline__node">
+                      <span class="timeline__dot"></span>
+                      <div class="timeline__card">
+                        <div class="timeline__photo-frame">
+                          <img class="timeline__photo" src="https://placehold.co/160x160/E4483F/1B2A4A?text=%F0%9F%8E%AE" alt="">
+                        </div>
+                        <span class="timeline__date" data-fr="2021" data-en="2021">2021</span>
+                        <h4 class="timeline__title" data-fr="Premier stage" data-en="First internship">Premier stage</h4>
+                        <p class="timeline__text" data-fr="Stage de level design dans un studio indépendant — ma première vraie équipe." data-en="Level design internship at an indie studio — my first real team.">Stage de level design dans un studio indépendant — ma première vraie équipe.</p>
+                      </div>
+                    </div>
+
+                    <div class="timeline__node">
+                      <span class="timeline__dot"></span>
+                      <div class="timeline__card">
+                        <div class="timeline__photo-frame">
+                          <img class="timeline__photo" src="https://placehold.co/160x160/F2C94C/1B2A4A?text=%F0%9F%8F%86" alt="">
+                        </div>
+                        <span class="timeline__date" data-fr="2024" data-en="2024">2024</span>
+                        <h4 class="timeline__title" data-fr="Première jam gagnée" data-en="First jam win">Première jam gagnée</h4>
+                        <p class="timeline__text" data-fr="Prix du meilleur gameplay à une game jam locale, en équipe de 3." data-en="Best gameplay award at a local game jam, in a team of 3.">Prix du meilleur gameplay à une game jam locale, en équipe de 3.</p>
+                      </div>
+                    </div>
+
+                    <!-- dernière étape, spéciale : ne pas supprimer, c'est l'appel à recrutement -->
+                    <div class="timeline__node timeline__node--cta">
+                      <span class="timeline__dot timeline__dot--cta"></span>
+                      <div class="timeline__card timeline__card--cta">
+                        <h4 class="timeline__title" data-fr="Et la suite ?" data-en="What's next?">Et la suite ?</h4>
+                        <p class="timeline__text" data-fr="Aujourd'hui, je suis à la recherche d'une équipe où faire grandir ces compétences — si mon profil vous parle, discutons-en !" data-en="I'm now looking for a team where I can keep growing these skills — if my profile speaks to you, let's talk!">Aujourd'hui, je suis à la recherche d'une équipe où faire grandir ces compétences — si mon profil vous parle, discutons-en !</p>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-                <div class="timeline__body">
-                  <span class="timeline__date" data-fr="2018" data-en="2018">2018</span>
-                  <h4 class="timeline__title" data-fr="Premiers pas" data-en="First steps">Premiers pas</h4>
-                  <p class="timeline__text" data-fr="Début de formation en game design, premiers prototypes sur Unity." data-en="Started game design studies, first prototypes in Unity.">Début de formation en game design, premiers prototypes sur Unity.</p>
+              </div>
+
+              <!-- ================= MES PASSIONS — panneaux diagonaux façon launcher ================= -->
+              <div class="about-view" data-about-view="passions">
+                <div class="occupations" id="occupations">
+                  <!-- ⚙️ À REMPLACER : une occupation = une image de fond + un titre + un texte -->
+                  <button class="occupation is-active" style="background-image:url('https://placehold.co/300x420/E4483F/1B2A4A?text=%F0%9F%8E%AC')">
+                    <span class="occupation__label" data-fr="Cinéma" data-en="Movies">Cinéma</span>
+                    <div class="occupation__info">
+                      <h3 data-fr="Cinéma" data-en="Movies">Cinéma</h3>
+                      <p data-fr="Lorem ipsum dolor sit amet, consectetur adipiscing elit. Grand amateur de films de genre et de scénarios qui sortent des sentiers battus." data-en="Lorem ipsum dolor sit amet, consectetur adipiscing elit. A big fan of genre films and scripts that go off the beaten path.">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Grand amateur de films de genre et de scénarios qui sortent des sentiers battus.</p>
+                      <!-- ⚙️ Un petit détail perso, façon fun fact -->
+                      <span class="occupation__stat" data-fr="Dernier film vu : à remplacer" data-en="Last movie watched: replace me">Dernier film vu : à remplacer</span>
+                    </div>
+                  </button>
+
+                  <button class="occupation" style="background-image:url('https://placehold.co/300x420/F2C94C/1B2A4A?text=%F0%9F%A7%97')">
+                    <span class="occupation__label" data-fr="Escalade" data-en="Climbing">Escalade</span>
+                    <div class="occupation__info">
+                      <h3 data-fr="Escalade" data-en="Climbing">Escalade</h3>
+                      <p data-fr="Sed a ante urna. Aenean pretium diam sed porta dapibus, en salle le week-end et en falaise dès que possible." data-en="Sed a ante urna. Aenean pretium diam sed porta dapibus, indoors on weekends and outdoors whenever possible.">Sed a ante urna. Aenean pretium diam sed porta dapibus, en salle le week-end et en falaise dès que possible.</p>
+                      <span class="occupation__stat" data-fr="Niveau : 6a" data-en="Grade: 6a">Niveau : 6a</span>
+                    </div>
+                  </button>
+
+                  <button class="occupation" style="background-image:url('https://placehold.co/300x420/1B2A4A/F7F3EC?text=%F0%9F%8E%AE')">
+                    <span class="occupation__label" data-fr="Jeux vidéo" data-en="Video games">Jeux vidéo</span>
+                    <div class="occupation__info">
+                      <h3 data-fr="Jeux vidéo" data-en="Video games">Jeux vidéo</h3>
+                      <p data-fr="Vestibulum nec elit sed dui vitae lacus, forcément — c'est aussi mon métier. Passionné de systèmes de jeu et de level design." data-en="Vestibulum nec elit sed dui vitae lacus, obviously — it's also my job. Passionate about game systems and level design.">Vestibulum nec elit sed dui vitae lacus, forcément — c'est aussi mon métier. Passionné de systèmes de jeu et de level design.</p>
+                      <span class="occupation__stat" data-fr="Temps de jeu 2026 : ~300h" data-en="2026 playtime: ~300h">Temps de jeu 2026 : ~300h</span>
+                    </div>
+                  </button>
+
+                  <button class="occupation" style="background-image:url('https://placehold.co/300x420/E4483F/1B2A4A?text=%F0%9F%8E%A7')">
+                    <span class="occupation__label" data-fr="Musique" data-en="Music">Musique</span>
+                    <div class="occupation__info">
+                      <h3 data-fr="Musique" data-en="Music">Musique</h3>
+                      <p data-fr="Quisque nulla ex, faucibus ac elementum sit amet, rhoncus sed nibh — synthés analogiques et sound design en dilettante." data-en="Quisque nulla ex, faucibus ac elementum sit amet, rhoncus sed nibh — analog synths and sound design as a hobby.">Quisque nulla ex, faucibus ac elementum sit amet, rhoncus sed nibh — synthés analogiques et sound design en dilettante.</p>
+                      <span class="occupation__stat" data-fr="Sur la platine : à remplacer" data-en="On the turntable: replace me">Sur la platine : à remplacer</span>
+                    </div>
+                  </button>
                 </div>
               </div>
             </div>
-
-            <div class="timeline__node">
-              <span class="timeline__dot"></span>
-              <div class="timeline__card">
-                <div class="timeline__photo-frame">
-                  <img class="timeline__photo" src="https://placehold.co/160x160/E4483F/1B2A4A?text=%F0%9F%8E%AE" alt="">
-                </div>
-                <div class="timeline__body">
-                  <span class="timeline__date" data-fr="2021" data-en="2021">2021</span>
-                  <h4 class="timeline__title" data-fr="Premier stage" data-en="First internship">Premier stage</h4>
-                  <p class="timeline__text" data-fr="Stage de level design dans un studio indépendant — ma première vraie équipe." data-en="Level design internship at an indie studio — my first real team.">Stage de level design dans un studio indépendant — ma première vraie équipe.</p>
-                </div>
-              </div>
-            </div>
-
-            <div class="timeline__node">
-              <span class="timeline__dot"></span>
-              <div class="timeline__card">
-                <div class="timeline__photo-frame">
-                  <img class="timeline__photo" src="https://placehold.co/160x160/F2C94C/1B2A4A?text=%F0%9F%8F%86" alt="">
-                </div>
-                <div class="timeline__body">
-                  <span class="timeline__date" data-fr="2024" data-en="2024">2024</span>
-                  <h4 class="timeline__title" data-fr="Première jam gagnée" data-en="First jam win">Première jam gagnée</h4>
-                  <p class="timeline__text" data-fr="Prix du meilleur gameplay à une game jam locale, en équipe de 3." data-en="Best gameplay award at a local game jam, in a team of 3.">Prix du meilleur gameplay à une game jam locale, en équipe de 3.</p>
-                </div>
-              </div>
-            </div>
-
-            <!-- dernière étape, spéciale : ne pas supprimer, c'est l'appel à recrutement -->
-            <div class="timeline__node timeline__node--cta">
-              <span class="timeline__dot timeline__dot--cta"></span>
-              <div class="timeline__card timeline__card--cta">
-                <div class="timeline__body">
-                  <h4 class="timeline__title" data-fr="Et la suite ?" data-en="What's next?">Et la suite ?</h4>
-                  <p class="timeline__text" data-fr="Aujourd'hui, je suis à la recherche d'une équipe où faire grandir ces compétences — si mon profil vous parle, discutons-en !" data-en="I'm now looking for a team where I can keep growing these skills — if my profile speaks to you, let's talk!">Aujourd'hui, je suis à la recherche d'une équipe où faire grandir ces compétences — si mon profil vous parle, discutons-en !</p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div class="occupations" id="occupations">
-            <!-- ⚙️ À REMPLACER : une occupation = une image de fond + un titre + un texte -->
-            <button class="occupation is-active" style="background-image:url('https://placehold.co/300x420/E4483F/1B2A4A?text=%F0%9F%8E%AC')">
-              <span class="occupation__label" data-fr="Cinéma" data-en="Movies">Cinéma</span>
-              <div class="occupation__info">
-                <h3 data-fr="Cinéma" data-en="Movies">Cinéma</h3>
-                <p data-fr="Lorem ipsum dolor sit amet, consectetur adipiscing elit. Grand amateur de films de genre et de scénarios qui sortent des sentiers battus." data-en="Lorem ipsum dolor sit amet, consectetur adipiscing elit. A big fan of genre films and scripts that go off the beaten path.">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Grand amateur de films de genre et de scénarios qui sortent des sentiers battus.</p>
-                <!-- ⚙️ Un petit détail perso, façon fun fact -->
-                <span class="occupation__stat" data-fr="Dernier film vu : à remplacer" data-en="Last movie watched: replace me">Dernier film vu : à remplacer</span>
-              </div>
-            </button>
-
-            <button class="occupation" style="background-image:url('https://placehold.co/300x420/F2C94C/1B2A4A?text=%F0%9F%A7%97')">
-              <span class="occupation__label" data-fr="Escalade" data-en="Climbing">Escalade</span>
-              <div class="occupation__info">
-                <h3 data-fr="Escalade" data-en="Climbing">Escalade</h3>
-                <p data-fr="Sed a ante urna. Aenean pretium diam sed porta dapibus, en salle le week-end et en falaise dès que possible." data-en="Sed a ante urna. Aenean pretium diam sed porta dapibus, indoors on weekends and outdoors whenever possible.">Sed a ante urna. Aenean pretium diam sed porta dapibus, en salle le week-end et en falaise dès que possible.</p>
-                <span class="occupation__stat" data-fr="Niveau : 6a" data-en="Grade: 6a">Niveau : 6a</span>
-              </div>
-            </button>
-
-            <button class="occupation" style="background-image:url('https://placehold.co/300x420/1B2A4A/F7F3EC?text=%F0%9F%8E%AE')">
-              <span class="occupation__label" data-fr="Jeux vidéo" data-en="Video games">Jeux vidéo</span>
-              <div class="occupation__info">
-                <h3 data-fr="Jeux vidéo" data-en="Video games">Jeux vidéo</h3>
-                <p data-fr="Vestibulum nec elit sed dui vitae lacus, forcément — c'est aussi mon métier. Passionné de systèmes de jeu et de level design." data-en="Vestibulum nec elit sed dui vitae lacus, obviously — it's also my job. Passionate about game systems and level design.">Vestibulum nec elit sed dui vitae lacus, forcément — c'est aussi mon métier. Passionné de systèmes de jeu et de level design.</p>
-                <span class="occupation__stat" data-fr="Temps de jeu 2026 : ~300h" data-en="2026 playtime: ~300h">Temps de jeu 2026 : ~300h</span>
-              </div>
-            </button>
-
-            <button class="occupation" style="background-image:url('https://placehold.co/300x420/E4483F/1B2A4A?text=%F0%9F%8E%A7')">
-              <span class="occupation__label" data-fr="Musique" data-en="Music">Musique</span>
-              <div class="occupation__info">
-                <h3 data-fr="Musique" data-en="Music">Musique</h3>
-                <p data-fr="Quisque nulla ex, faucibus ac elementum sit amet, rhoncus sed nibh — synthés analogiques et sound design en dilettante." data-en="Quisque nulla ex, faucibus ac elementum sit amet, rhoncus sed nibh — analog synths and sound design as a hobby.">Quisque nulla ex, faucibus ac elementum sit amet, rhoncus sed nibh — synthés analogiques et sound design en dilettante.</p>
-                <span class="occupation__stat" data-fr="Sur la platine : à remplacer" data-en="On the turntable: replace me">Sur la platine : à remplacer</span>
-              </div>
-            </button>
           </div>
         </div>
 

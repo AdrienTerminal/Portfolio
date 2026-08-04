@@ -223,6 +223,7 @@ body{
 .pe-palette-chip[data-type="link"]{ --chip-color:#E4483F; }
 .pe-palette-chip[data-type="image"]{ --chip-color:#9C5FE0; }
 .pe-palette-chip[data-type="video"]{ --chip-color:#2AA198; }
+.pe-palette-chip[data-type="game"]{ --chip-color:#E4483F; }
 
 /* ---- canevas quadrillé : une colonne, cohérent avec un panneau resserré ---- */
 .pe-canvas{
@@ -301,11 +302,12 @@ body{
 .pe-block[data-block-type="link"]{ --block-color:#E4483F; }
 .pe-block[data-block-type="image"]{ --block-color:#9C5FE0; }
 .pe-block[data-block-type="video"]{ --block-color:#2AA198; }
+.pe-block[data-block-type="game"]{ --block-color:#E4483F; }
 
 /* les blocs à contenu long prennent toute la largeur du canevas */
 .pe-block[data-block-type="text"],
 .pe-block[data-block-type="list"], .pe-block[data-block-type="stats"],
-.pe-block[data-block-type="video"]{
+.pe-block[data-block-type="video"], .pe-block[data-block-type="game"]{
   grid-column:1 / -1;
 }
 
