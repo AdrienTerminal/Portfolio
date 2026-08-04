@@ -414,15 +414,17 @@ function injectEditingInner(doc){
       }
       .editor-add-tag:hover{ opacity:1; background:rgba(91,141,239,.12); }
       .editor-timeline-insert{
-        flex:0 0 auto; align-self:center; z-index:3;
-        width:24px; height:24px; border-radius:50%;
+        position:relative; z-index:10;
+        flex:0 0 auto; align-self:center;
+        width:26px; height:26px; border-radius:50%;
         display:flex; align-items:center; justify-content:center;
-        font-family:'JetBrains Mono',monospace; font-size:15px; font-weight:700; line-height:1;
-        color:#5B8DEF; background:rgba(91,141,239,.14); border:1.5px dashed #5B8DEF;
-        cursor:pointer; opacity:.55; padding:0;
-        transition:opacity .15s ease, transform .15s ease, background .15s ease;
+        font-family:'JetBrains Mono',monospace; font-size:16px; font-weight:700; line-height:1;
+        color:#5B8DEF; background:#fff; border:2px solid #5B8DEF;
+        box-shadow:0 2px 6px rgba(91,141,239,.35);
+        cursor:pointer; opacity:.7; padding:0;
+        transition:opacity .15s ease, transform .15s ease, background .15s ease, color .15s ease;
       }
-      .editor-timeline-insert:hover{ opacity:1; background:#5B8DEF; color:#fff; transform:scale(1.15); }
+      .editor-timeline-insert:hover{ opacity:1; background:#5B8DEF; color:#fff; transform:scale(1.18); }
     `;
     doc.head.appendChild(style);
   }

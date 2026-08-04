@@ -467,17 +467,16 @@ h3[data-accent], .page__pitch[data-accent]{ color:var(--accent-color, var(--red-
   position:absolute; top:14px; left:14px; z-index:5;
   font-family:var(--font-display); font-weight:700; font-size:0.95rem;
   padding:7px 14px; border-radius:100px;
-  background:var(--chip-dark); color:#fff;
-  box-shadow:3px 3px 0 var(--red);
+  background:#fff; color:var(--chip-dark);
+  box-shadow:3px 3px 0 var(--chip-dark);
   pointer-events:none;
   white-space:nowrap;
   transition:background .2s ease, color .2s ease;
 }
-/* actif : couleurs inversées — sinon un badge sombre peut se fondre
-   dans une passion elle-même sombre (ex: "Jeux vidéo") juste en dessous */
+/* actif : fond sombre, texte clair — l'onglet secondaire reste clair */
 .about-tab.is-active .about-tab__label{
-  background:#fff; color:var(--chip-dark);
-  box-shadow:3px 3px 0 var(--chip-dark);
+  background:var(--chip-dark); color:#fff;
+  box-shadow:3px 3px 0 var(--red);
 }
 
 /* aperçu affiché uniquement quand le panneau est réduit : une icône
@@ -506,11 +505,21 @@ h3[data-accent], .page__pitch[data-accent]{ color:var(--accent-color, var(--red-
    loger un long parcours sans gaspiller de largeur — avec de vraies
    flèches pour naviguer si ça dépasse. ---- */
 .timeline{
+  position:relative;
   flex:1; min-height:0;
   display:flex; align-items:center;
   overflow-x:auto; overflow-y:hidden;
   scroll-behavior:smooth;
   -ms-overflow-style:none; scrollbar-width:none;
+  border-radius:var(--radius-lg);
+}
+.timeline::before{
+  content:""; position:absolute; inset:0; z-index:0;
+  background-image:radial-gradient(circle, var(--ink) 1.2px, transparent 1.2px);
+  background-size:18px 18px;
+  opacity:.12;
+  pointer-events:none;
+  border-radius:var(--radius-lg);
 }
 .timeline::-webkit-scrollbar{ display:none; }
 .timeline__scroll{
