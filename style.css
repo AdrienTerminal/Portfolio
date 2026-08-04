@@ -487,7 +487,7 @@ h3[data-accent], .page__pitch[data-accent]{ color:var(--accent-color, var(--red-
    flèches pour naviguer si ça dépasse. ---- */
 .timeline{
   position:relative;
-  flex:1; min-height:240px;
+  flex:1; min-height:300px;
   display:flex; align-items:center;
   overflow-x:auto; overflow-y:hidden;
   scroll-behavior:smooth;
@@ -519,7 +519,7 @@ h3[data-accent], .page__pitch[data-accent]{ color:var(--accent-color, var(--red-
 }
 .timeline__node{
   position:relative; flex:0 0 auto;
-  width:132px; height:228px;
+  width:132px; height:290px;
 }
 .timeline__dot{
   position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
@@ -550,7 +550,7 @@ h3[data-accent], .page__pitch[data-accent]{ color:var(--accent-color, var(--red-
 
 /* étape spéciale de fin : appel à recrutement, mise en avant, un peu
    plus large pour laisser respirer son texte */
-.timeline__node--cta{ width:158px; }
+.timeline__node--cta{ width:180px; }
 .timeline__node--cta .timeline__dot{ background:var(--red); border-color:var(--red); }
 .timeline__node--cta .timeline__card{
   background:var(--ink); border-color:var(--ink);
@@ -560,9 +560,11 @@ h3[data-accent], .page__pitch[data-accent]{ color:var(--accent-color, var(--red-
 .timeline__node--cta .timeline__text{ color:var(--paper); opacity:.92; }
 
 /* flèches de navigation — grandes, jaune vif, toujours lisibles quel
-   que soit le thème (couleurs fixes plutôt que --ink qui s'inverse) */
+   que soit le thème (couleurs fixes plutôt que --ink qui s'inverse).
+   En overlay absolu : elles ne mangent plus de hauteur sur la frise. */
 .timeline__nav{
-  flex:0 0 auto; align-self:center; z-index:6;
+  position:absolute; left:50%; transform:translateX(-50%);
+  z-index:6;
   width:40px; height:40px; border-radius:50%;
   background:var(--yellow); border:var(--border) solid var(--chip-dark);
   font-size:1.4rem; font-weight:700; color:var(--chip-dark);
@@ -570,10 +572,10 @@ h3[data-accent], .page__pitch[data-accent]{ color:var(--accent-color, var(--red-
   cursor:pointer; box-shadow:3px 3px 0 var(--chip-dark);
   transition:transform .15s ease, background .15s ease, box-shadow .15s ease;
 }
-.timeline__nav:hover{ transform:scale(1.12) translateY(-1px); background:var(--red); color:#fff; }
-.timeline__nav:active{ transform:scale(0.94) translateY(0); box-shadow:1px 1px 0 var(--chip-dark); }
-.timeline__nav--prev{ margin-right:6px; }
-.timeline__nav--next{ margin-left:6px; }
+.timeline__nav:hover{ transform:translateX(-50%) scale(1.12); background:var(--red); color:#fff; }
+.timeline__nav:active{ transform:translateX(-50%) scale(0.94); box-shadow:1px 1px 0 var(--chip-dark); }
+.timeline__nav--prev{ top:0; }
+.timeline__nav--next{ bottom:0; }
 
 .about-intro{ flex:0 0 auto; margin-bottom:20px; }
 .about-bio{
