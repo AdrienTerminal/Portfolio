@@ -279,6 +279,11 @@ body{
 }
 .pe-block:hover{ transform:translateY(-2px); }
 .pe-block.is-dragging{ opacity:.35; }
+.pe-block.is-just-added{ animation:pe-block-added .9s ease; }
+@keyframes pe-block-added{
+  0%{ box-shadow:0 0 0 4px var(--pe-blue); transform:scale(1.03); }
+  100%{ box-shadow:0 0 0 0px transparent; transform:scale(1); }
+}
 .pe-block.is-drop-target{ outline:3px dashed var(--pe-blue); outline-offset:-3px; }
 .pe-block__head{ display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; }
 .pe-block__head-left{ display:flex; align-items:center; gap:8px; }

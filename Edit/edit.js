@@ -1055,7 +1055,7 @@ function renderPalette(){
     chip.dataset.type = key;
     chip.draggable = true;
     chip.title = "Glisse-moi sur le canevas, ou clique pour ajouter directement";
-    chip.innerHTML = `${PALETTE_ICONS[key] || ""}<span>${def.label}</span>`;
+    chip.innerHTML = `${PALETTE_ICONS[key] || ""}<span>+ ${def.label}</span>`;
     chip.addEventListener("dragstart", (e) => {
       e.dataTransfer.effectAllowed = "copy";
       e.dataTransfer.setData("text/pe-new-block", key);
@@ -1063,8 +1063,23 @@ function renderPalette(){
     chip.addEventListener("click", () => {
       peState.pages[peState.activePage].blocks.push(def.make());
       renderPanel();
+      scrollToLastBlock();
     });
     pePalette.appendChild(chip);
+  });
+}
+
+// Scrolle le canevas jusqu'à la dernière tuile (le module qu'on vient
+// d'ajouter est toujours poussé en fin de liste) — sinon on ne voit
+// pas qu'il a bien été ajouté et il faut chercher en bas soi-même.
+function scrollToLastBlock(){
+  requestAnimationFrame(() => {
+    const tiles = peCanvas.querySelectorAll(".pe-block");
+    const last = tiles[tiles.length - 1];
+    if(!last) return;
+    last.scrollIntoView({ behavior:"smooth", block:"center" });
+    last.classList.add("is-just-added");
+    setTimeout(() => last.classList.remove("is-just-added"), 900);
   });
 }
 
@@ -1120,6 +1135,7 @@ function renderCanvas(){
       e.preventDefault();
       page.blocks.push(BLOCK_DEFS[key].make());
       renderPanel();
+      scrollToLastBlock();
     }
   });
 
