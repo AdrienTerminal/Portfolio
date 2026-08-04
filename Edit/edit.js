@@ -853,10 +853,12 @@ function readProjectState(projectId){
   const pill = doc.querySelector(`.pill[data-project="${projectId}"]`);
   const drawer = doc.querySelector(`.project-drawer[data-drawer="${projectId}"]`);
   const lang = doc.documentElement.lang === "en" ? "en" : "fr";
+  const ALIGN_FROM_CSS = { "flex-start":"top", "center":"center", "flex-end":"bottom" };
   const pages = [...drawer.querySelectorAll(".page")].map(page => {
     const heroImg = page.querySelector(".page__img");
     const heroVideo = page.querySelector(".page__hero-media");
     const textEl = page.querySelector(".page__text");
+    const textAlign = ALIGN_FROM_CSS[textEl.style.justifyContent] || "top";
     const cols = page.style.gridTemplateColumns || "";
     const imgSize = detectImgSize(cols);
     const blocks = [];
@@ -906,7 +908,7 @@ function readProjectState(projectId){
         blocks.push({ type:"text", style:"normal", fr:child.dataset.fr || child.innerHTML, en:child.dataset.en || child.innerHTML });
       }
     });
-    return { blocks };
+    return { textAlign, blocks };
   });
   return { projectId, pillLabel: pill.textContent.trim(), activePage: 0, lang, pages };
 }
@@ -936,6 +938,8 @@ function buildPageElement(doc, pageData){
 
   const textWrap = doc.createElement("div");
   textWrap.className = "page__text";
+  const ALIGN_TO_CSS = { top:"flex-start", center:"center", bottom:"flex-end" };
+  textWrap.style.justifyContent = ALIGN_TO_CSS[pageData.textAlign] || "flex-start";
 
   // Affiche toujours le texte dans la langue ACTUELLEMENT active sur le
   // document cible (site réel ou copie en mémoire) — data-fr/data-en
@@ -1191,7 +1195,7 @@ function renderPageTabs(){
   addTab.textContent = "+ Page";
   addTab.title = "Ajouter une page";
   addTab.addEventListener("click", () => {
-    peState.pages.push({ blocks:[BLOCK_DEFS.image.make(), BLOCK_DEFS.title.make(), BLOCK_DEFS.text.make()] });
+    peState.pages.push({ textAlign:"top", blocks:[BLOCK_DEFS.image.make(), BLOCK_DEFS.title.make(), BLOCK_DEFS.text.make()] });
     peState.activePage = peState.pages.length - 1;
     renderPanel();
     syncSiteNavigation();
@@ -1291,9 +1295,28 @@ videoInput.addEventListener("change", () => {
   reader.readAsDataURL(file);
 });
 
+const ALIGN_ICONS = {
+  top:    `<svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M2 2.5h12"/><path d="M4 6.5h8M4 9.5h5"/></svg>`,
+  center: `<svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M4 6.5h8M4 9.5h5"/></svg>`,
+  bottom: `<svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M4 6.5h8M4 9.5h5"/><path d="M2 13.5h12"/></svg>`,
+};
+
 function renderCanvas(){
   const page = peState.pages[peState.activePage];
   peCanvas.innerHTML = "";
+
+  const alignRow = document.createElement("div");
+  alignRow.className = "pe-align-row";
+  [["top","Aligner en haut"], ["center","Centrer"], ["bottom","Aligner en bas"]].forEach(([key, title]) => {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.className = "pe-align-btn" + ((page.textAlign || "top") === key ? " is-active" : "");
+    b.title = title;
+    b.innerHTML = ALIGN_ICONS[key];
+    b.addEventListener("click", () => { page.textAlign = key; liveUpdateSite(); renderCanvas(); });
+    alignRow.appendChild(b);
+  });
+  peCanvas.appendChild(alignRow);
 
   if(page.blocks.length === 0){
     const empty = document.createElement("div");
@@ -1913,22 +1936,22 @@ function nextProjectId(doc){
 
 function defaultProjectPages(){
   return [
-    { blocks:[
+    { textAlign:"top", blocks:[
       { type:"image", src:"https://placehold.co/460x300/1B2A4A/F7F3EC?text=Overview", imgSize:"normal" },
       { type:"text", style:"accent", fr:"Résumé en une phrase.", en:"One-sentence summary." },
       BLOCK_DEFS.title.make(), BLOCK_DEFS.tags.make(), BLOCK_DEFS.text.make(), BLOCK_DEFS.link.make(),
     ]},
-    { blocks:[
+    { textAlign:"top", blocks:[
       { type:"image", src:"https://placehold.co/460x300/E4483F/1B2A4A?text=Features", imgSize:"normal" },
       { type:"title", fr:"Fonctionnalités clés", en:"Key Features" }, BLOCK_DEFS.list.make(), BLOCK_DEFS.link.make(),
     ]},
-    { blocks:[
+    { textAlign:"top", blocks:[
       { type:"image", src:"https://placehold.co/460x300/F2C94C/1B2A4A?text=Role", imgSize:"normal" },
       { type:"title", fr:"Mon rôle", en:"My Role" },
       { type:"text", style:"discret", fr:"Équipe · durée", en:"Team · duration" },
       BLOCK_DEFS.list.make(), BLOCK_DEFS.link.make(),
     ]},
-    { blocks:[
+    { textAlign:"top", blocks:[
       { type:"image", src:"https://placehold.co/460x300/1B2A4A/F7F3EC?text=Results", imgSize:"normal" },
       { type:"title", fr:"Résultats", en:"Results" }, BLOCK_DEFS.stats.make(), BLOCK_DEFS.text.make(),
     ]},
