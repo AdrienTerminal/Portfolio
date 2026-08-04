@@ -173,10 +173,11 @@ body{
 /* ---- popover d'aide propre à ce panneau ---- */
 .pe-help-popover{
   position:absolute; top:56px; right:20px; z-index:50;
-  width:300px; background:var(--pe-card); border:2px solid var(--pe-ink); border-radius:12px;
+  width:340px; max-height:min(70vh, 480px); overflow-y:auto;
+  background:var(--pe-card); border:2px solid var(--pe-ink); border-radius:12px;
   padding:14px 16px; box-shadow:6px 6px 0 rgba(27,42,74,0.2);
 }
-.pe-help-popover p{ font-family:var(--font-body); font-size:0.8rem; line-height:1.5; margin-bottom:8px; }
+.pe-help-popover p{ font-family:var(--font-body); font-size:0.8rem; line-height:1.5; margin-bottom:10px; }
 .pe-help-popover p:last-child{ margin-bottom:0; }
 .pe-help-popover strong{ color:var(--pe-red); }
 
@@ -200,17 +201,20 @@ body{
 
 /* ---- palette de modules à glisser ---- */
 .pe-palette{
-  display:flex; align-items:center; gap:5px; flex-wrap:wrap;
-  padding:8px 16px; background:var(--pe-paper); border-bottom:2px dashed var(--pe-ink);
+  display:flex; align-items:center; gap:8px; flex-wrap:wrap;
+  padding:12px 16px; background:var(--pe-paper); border-bottom:2px dashed var(--pe-ink);
 }
 .pe-palette-chip{
-  font-family:'Fredoka', sans-serif; font-weight:600; font-size:0.7rem;
-  padding:5px 10px; border-radius:100px; border:1.5px dashed var(--chip-color, var(--pe-blue));
+  display:flex; align-items:center; gap:7px;
+  font-family:'Fredoka', sans-serif; font-weight:600; font-size:0.82rem;
+  padding:9px 16px; border-radius:100px; border:2px solid var(--chip-color, var(--pe-blue));
   background:var(--pe-card); color:var(--chip-color, var(--pe-blue));
   cursor:grab; user-select:none;
+  transition:transform .1s ease, background .1s ease;
 }
+.pe-palette-chip svg{ flex:0 0 auto; }
 .pe-palette-chip:active{ cursor:grabbing; }
-.pe-palette-chip:hover{ background:var(--chip-color, var(--pe-blue)); color:#fff; }
+.pe-palette-chip:hover{ background:var(--chip-color, var(--pe-blue)); color:#fff; transform:translateY(-2px); }
 .pe-palette-chip[data-type="title"]{ --chip-color:#1B2A4A; }
 .pe-palette-chip[data-type="text"]{ --chip-color:#8A8368; }
 .pe-palette-chip[data-type="tags"]{ --chip-color:#D4A017; }
@@ -238,11 +242,10 @@ body{
 }
 .project-editor__body{ flex:1; min-height:0; overflow-y:auto; padding:16px; }
 .project-editor__foot{
-  display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;
-  padding:14px 22px; border-top:2px dashed var(--pe-ink); background:var(--pe-card);
+  display:flex; align-items:center; justify-content:center;
+  padding:16px 22px; border-top:2px dashed var(--pe-ink); background:var(--pe-card);
   flex:0 0 auto;
 }
-.project-editor__foot .toolbar__label{ color:var(--pe-muted); }
 
 .project-editor .pe-input, .project-editor .pe-textarea{
   width:100%; font-family:var(--font-body); font-size:0.88rem; color:var(--pe-ink);
@@ -413,7 +416,15 @@ body{
 }
 .pe-add-small:hover{ background:var(--pe-blue); color:#fff; }
 
-#peApply{ border-radius:100px; font-family:'Fredoka', sans-serif; font-weight:600; }
+#peApply{
+  border-radius:100px; font-family:'Fredoka', sans-serif; font-weight:700;
+  font-size:1.05rem; padding:14px 40px;
+  box-shadow:0 6px 0 #2E7D4F, 0 8px 18px -4px rgba(76,175,109,0.5);
+  transform:translateY(-2px);
+  transition:transform .12s ease, box-shadow .12s ease;
+}
+#peApply:hover{ transform:translateY(-4px); box-shadow:0 8px 0 #2E7D4F, 0 12px 22px -4px rgba(76,175,109,0.55); }
+#peApply:active{ transform:translateY(0); box-shadow:0 2px 0 #2E7D4F, 0 4px 10px -4px rgba(76,175,109,0.5); }
 .project-editor #peCloseBtn{
   border-radius:100px; font-family:var(--font-mono); color:var(--pe-ink); border-color:var(--pe-ink);
 }
@@ -423,7 +434,12 @@ body{
   font-family:var(--font-mono); font-size:0.72rem; color:var(--muted);
   display:flex; align-items:center; gap:6px;
 }
-.save-status::before{ content:""; width:6px; height:6px; border-radius:50%; background:var(--green); }
+.save-status::before{ content:""; width:6px; height:6px; border-radius:50%; background:var(--green); flex:0 0 auto; }
+.save-status.is-warning{ color:#FFD166; }
+.save-status.is-warning::before{ background:#FFD166; }
+.save-status.is-error{ color:#FF6259; font-weight:700; cursor:help; }
+.save-status.is-error::before{ background:#FF6259; animation:save-status-pulse 1s ease-in-out infinite; }
+@keyframes save-status-pulse{ 0%, 100%{ opacity:1; } 50%{ opacity:.3; } }
 
 .editor-stage{
   position:relative; width:100%;

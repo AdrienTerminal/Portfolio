@@ -968,15 +968,26 @@ function syncSiteNavigation(){
 }
 
 // ---- Palette de modules à glisser ----
+const PALETTE_ICONS = {
+  title:  `<svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 4v12M15 4v12M5 10h10"/></svg>`,
+  text:   `<svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 5h14M3 10h14M3 15h9"/></svg>`,
+  tags:   `<svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M10 3h6v6l-8 8-6-6 8-8Z"/><circle cx="13.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>`,
+  list:   `<svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="4" cy="5" r="1" fill="currentColor" stroke="none"/><circle cx="4" cy="10" r="1" fill="currentColor" stroke="none"/><circle cx="4" cy="15" r="1" fill="currentColor" stroke="none"/><path d="M8 5h9M8 10h9M8 15h9"/></svg>`,
+  stats:  `<svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 16V9M10 16V4M16 16v-6"/></svg>`,
+  link:   `<svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M8.5 11.5l3-3M8 6.5l1.5-1.5a2.7 2.7 0 0 1 3.8 3.8L11.8 10M12 13.5 10.5 15a2.7 2.7 0 0 1-3.8-3.8L8 9.7"/></svg>`,
+  image:  `<svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="2.5" y="4" width="15" height="12" rx="1.5"/><circle cx="7" cy="8.5" r="1.3"/><path d="M3 14l4-4 3 3 2.5-2.5L17 14"/></svg>`,
+  video:  `<svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="2.5" y="4.5" width="15" height="11" rx="1.5"/><path d="M8.5 8l4 2-4 2V8Z" fill="currentColor" stroke="none"/></svg>`,
+};
+
 function renderPalette(){
   pePalette.innerHTML = "";
   Object.entries(BLOCK_DEFS).forEach(([key, def]) => {
     const chip = document.createElement("div");
     chip.className = "pe-palette-chip";
     chip.dataset.type = key;
-    chip.textContent = "+ " + def.label;
     chip.draggable = true;
     chip.title = "Glisse-moi sur le canevas, ou clique pour ajouter directement";
+    chip.innerHTML = `${PALETTE_ICONS[key] || ""}<span>${def.label}</span>`;
     chip.addEventListener("dragstart", (e) => {
       e.dataTransfer.effectAllowed = "copy";
       e.dataTransfer.setData("text/pe-new-block", key);
@@ -1278,9 +1289,6 @@ function renderReframeControl(block, previewEl){
   const doc = document;
   const wrap = doc.createElement("div");
   wrap.className = "pe-reframe";
-  const label = doc.createElement("span");
-  label.className = "pe-hint"; label.textContent = "Recadrer / centrer :";
-  wrap.appendChild(label);
   const grid = doc.createElement("div");
   grid.className = "pe-reframe-grid";
   REFRAME_POINTS.forEach(([pos, icon]) => {
@@ -1377,11 +1385,6 @@ function renderBlockBody(block){
     actions.appendChild(sizeGroup);
     body.appendChild(actions);
     body.appendChild(renderReframeControl(block, thumb));
-
-    const hint = doc.createElement("span");
-    hint.className = "pe-hint";
-    hint.textContent = "JPG, PNG ou GIF (les GIF gardent leur animation). La taille ne s'applique qu'à la 1ère image de la page.";
-    body.appendChild(hint);
     return body;
   }
 
@@ -1430,10 +1433,6 @@ function renderBlockBody(block){
         videoInput.click();
       });
       body.appendChild(uploadBtn);
-      const hint = doc.createElement("span");
-      hint.className = "pe-hint";
-      hint.textContent = "MP4, 15 Mo max conseillé (au-delà, la sauvegarde auto peut échouer)";
-      body.appendChild(hint);
     }
     return body;
   }
@@ -1686,15 +1685,31 @@ function scheduleSave(){
   clearTimeout(saveTimer);
   saveTimer = setTimeout(saveDraft, 500);
 }
+function formatSize(bytes){
+  const mb = bytes / (1024 * 1024);
+  return mb >= 1 ? mb.toFixed(1) + " Mo" : Math.round(bytes / 1024) + " Ko";
+}
+
 function saveDraft(){
   try{
     const doc = frame.contentDocument;
     const html = doc.documentElement.outerHTML;
+    const sizeBytes = new Blob([html]).size;
     localStorage.setItem(DRAFT_KEY, html);
-    saveStatus.textContent = "Brouillon à jour";
+    saveStatus.classList.remove("is-warning", "is-error");
+    saveStatus.title = "";
+    if(sizeBytes > 3.5 * 1024 * 1024){
+      saveStatus.classList.add("is-warning");
+      saveStatus.textContent = `Brouillon à jour (${formatSize(sizeBytes)})`;
+      saveStatus.title = "Le brouillon devient volumineux (vidéos, beaucoup d'images...). Pense à télécharger le site de temps en temps pour ne rien risquer.";
+    }else{
+      saveStatus.textContent = "Brouillon à jour";
+    }
   }catch(err){
-    saveStatus.textContent = "⚠ Sauvegarde impossible (quota)";
-    toast("Trop de modifications pour la sauvegarde auto — télécharge le site pour ne rien perdre");
+    saveStatus.classList.add("is-error");
+    saveStatus.textContent = "⚠ Sauvegarde auto impossible";
+    saveStatus.title = "Le brouillon dépasse la limite de stockage du navigateur (environ 5 à 10 Mo selon le navigateur) — en général à cause de vidéos ou de beaucoup d'images. Tes DERNIÈRES modifications ne sont plus sauvegardées automatiquement. Clique sur \"Télécharger le site\" maintenant pour ne rien perdre, ou retire une vidéo/image récente.";
+    toast("⚠ Mémoire du navigateur pleine — l'auto-sauvegarde s'est arrêtée. Télécharge le site maintenant pour ne rien perdre.");
   }
 }
 

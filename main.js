@@ -1,4 +1,26 @@
 /* ==================================================================
+   -1) ÉCRAN DE CHARGEMENT — masqué dès que la page est prête (chargée),
+   avec un petit délai minimum pour éviter un flash, et un filet de
+   sécurité pour ne jamais bloquer plus de quelques secondes.
+================================================================== */
+(function(){
+  const loader = document.getElementById("siteLoader");
+  if(!loader) return;
+  let hidden = false;
+  function hideLoader(){
+    if(hidden) return;
+    hidden = true;
+    loader.classList.add("is-hidden");
+  }
+  if(document.readyState === "complete"){
+    setTimeout(hideLoader, 250);
+  }else{
+    window.addEventListener("load", () => setTimeout(hideLoader, 250));
+  }
+  setTimeout(hideLoader, 4000); // filet de sécurité
+})();
+
+/* ==================================================================
    0) SONS — synthétisés à la volée (Web Audio), pas de fichiers externes
 ================================================================== */
 const AudioCtx = window.AudioContext || window.webkitAudioContext;
