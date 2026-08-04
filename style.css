@@ -6,6 +6,10 @@
   --red-dark:    #C7331F;
   --yellow:      #F2C94C;
   --muted:       #5B6685;
+  /* toujours sombre, jamais inversée par le mode sombre — pour les
+     badges "fond sombre + texte blanc" qui doivent rester lisibles
+     quel que soit le thème (--ink, lui, s'inverse volontairement) */
+  --chip-dark:   #1B2A4A;
 
   --font-display:'Fredoka', sans-serif;
   --font-mono:   'JetBrains Mono', monospace;
@@ -138,7 +142,7 @@ button{ font:inherit; color:inherit; background:none; border:none; cursor:pointe
   transition:background .15s var(--ease), color .15s var(--ease);
 }
 .lang-switch__btn + .lang-switch__btn{ border-left:2.5px solid var(--ink); }
-.lang-switch__btn.is-active{ background:var(--ink); color:#fff; }
+.lang-switch__btn.is-active{ background:var(--chip-dark); color:#fff; }
 .lang-switch__btn:not(.is-active):hover{ background:var(--yellow); color:var(--ink); }
 
 .theme-switch{
@@ -152,7 +156,7 @@ button{ font:inherit; color:inherit; background:none; border:none; cursor:pointe
   transition:background .15s var(--ease), color .15s var(--ease);
 }
 .theme-switch__btn + .theme-switch__btn{ border-left:2.5px solid var(--ink); }
-.theme-switch__btn.is-active{ background:var(--ink); color:#fff; }
+.theme-switch__btn.is-active{ background:var(--chip-dark); color:#fff; }
 .theme-switch__btn:not(.is-active):hover{ background:var(--yellow); color:var(--ink); }
 
 .card__tabs{ display:flex; gap:12px; }
@@ -463,7 +467,7 @@ h3[data-accent], .page__pitch[data-accent]{ color:var(--accent-color, var(--red-
   position:absolute; top:14px; left:14px; z-index:5;
   font-family:var(--font-display); font-weight:700; font-size:0.95rem;
   padding:7px 14px; border-radius:100px;
-  background:var(--ink); color:#fff;
+  background:var(--chip-dark); color:#fff;
   box-shadow:3px 3px 0 var(--red);
   pointer-events:none;
   white-space:nowrap;
@@ -479,7 +483,7 @@ h3[data-accent], .page__pitch[data-accent]{ color:var(--accent-color, var(--red-
     radial-gradient(circle, rgba(255,255,255,.16) 1.5px, transparent 1.5px);
   background-size:20px 20px;
 }
-.about-tab__preview--me{ background-color:var(--ink); }
+.about-tab__preview--me{ background-color:var(--chip-dark); }
 .about-tab__preview--passions{ background-color:var(--red); }
 .about-tab.is-active .about-tab__preview{ display:none; }
 
@@ -558,20 +562,21 @@ h3[data-accent], .page__pitch[data-accent]{ color:var(--accent-color, var(--red-
 .timeline__node--cta .timeline__title{ color:var(--yellow); font-size:0.9rem; }
 .timeline__node--cta .timeline__text{ color:var(--paper); opacity:.92; }
 
-/* flèches de navigation + fondu sur les bords pour indiquer qu'on
-   peut aller plus loin */
+/* flèches de navigation — grandes, jaune vif, toujours lisibles quel
+   que soit le thème (couleurs fixes plutôt que --ink qui s'inverse) */
 .timeline__nav{
   flex:0 0 auto; align-self:center; z-index:6;
-  width:30px; height:30px; border-radius:50%;
-  background:var(--card-bg); border:2.5px solid var(--ink);
-  font-size:1.1rem; font-weight:700; color:var(--ink);
+  width:40px; height:40px; border-radius:50%;
+  background:var(--yellow); border:var(--border) solid var(--chip-dark);
+  font-size:1.4rem; font-weight:700; color:var(--chip-dark);
   display:flex; align-items:center; justify-content:center;
-  cursor:pointer; box-shadow:2px 2px 0 var(--ink);
-  transition:transform .15s ease;
+  cursor:pointer; box-shadow:3px 3px 0 var(--chip-dark);
+  transition:transform .15s ease, background .15s ease, box-shadow .15s ease;
 }
-.timeline__nav:hover{ transform:scale(1.1); background:var(--red); color:#fff; border-color:var(--ink); }
-.timeline__nav--prev{ margin-right:4px; }
-.timeline__nav--next{ margin-left:4px; }
+.timeline__nav:hover{ transform:scale(1.12) translateY(-1px); background:var(--red); color:#fff; }
+.timeline__nav:active{ transform:scale(0.94) translateY(0); box-shadow:1px 1px 0 var(--chip-dark); }
+.timeline__nav--prev{ margin-right:6px; }
+.timeline__nav--next{ margin-left:6px; }
 
 .about-intro{ flex:0 0 auto; margin-bottom:20px; }
 .about-bio{
