@@ -106,6 +106,7 @@ const TEXT_SELECTOR = [
   ".page__text p", ".page__list li", ".page__tags span",
   ".stat", ".occupation__label", ".occupation__info h3", ".occupation__info p",
   ".occupation__stat", ".stack-tag", ".itch-link",
+  ".timeline__date", ".timeline__title", ".timeline__text",
 ].join(", ");
 
 // ---------------------------------------------------------------
@@ -412,6 +413,13 @@ function injectEditingInner(doc){
         border-radius:100px; padding:3px 9px; cursor:pointer; opacity:.7;
       }
       .editor-add-tag:hover{ opacity:1; background:rgba(91,141,239,.12); }
+      .editor-add-timeline{
+        display:block; margin-top:4px;
+        font-family:'JetBrains Mono',monospace; font-size:11px; font-weight:700;
+        color:#5B8DEF; background:transparent; border:1.5px dashed #5B8DEF;
+        border-radius:100px; padding:6px 14px; cursor:pointer; opacity:.75;
+      }
+      .editor-add-timeline:hover{ opacity:1; background:rgba(91,141,239,.12); }
     `;
     doc.head.appendChild(style);
   }
@@ -420,6 +428,18 @@ function injectEditingInner(doc){
 
   // About me : le stack technique garde son "+ tag" simple, comme avant
   doc.querySelectorAll(".stack-row").forEach(row => addTagButton(row));
+
+  // Frise chronologique : photo modifiable par étape, suppression (sauf
+  // la toute dernière — l'appel à recrutement, qui reste toujours en fin
+  // de frise), et un bouton pour ajouter une nouvelle étape.
+  doc.querySelectorAll(".timeline__photo").forEach(img => {
+    const wrap = wrapImageForBadge(img);
+    addBadges(wrap, [{ icon:"image", title:"Changer la photo", onClick:() => openImagePicker(img) }]);
+  });
+  doc.querySelectorAll(".timeline__node:not(.timeline__node--cta)").forEach(node => {
+    addBadges(node, [{ icon:"delete", title:"Supprimer cette étape", danger:true, onClick:() => removeSimple(node) }]);
+  });
+  doc.querySelectorAll(".timeline").forEach(tl => addTimelineButton(tl));
 
   // Images
   const avatarImg = doc.querySelector(".avatar");
@@ -656,6 +676,72 @@ function addTagButton(row){
   row.appendChild(btn);
 }
 
+// Frise chronologique : bouton "+ Ajouter une étape", toujours inséré
+// juste avant l'étape finale d'appel à recrutement (qui reste la dernière).
+function addTimelineButton(timeline){
+  if(timeline.querySelector(".editor-add-timeline")) return;
+  const doc = timeline.ownerDocument;
+
+  function buildNode(){
+    const node = doc.createElement("div");
+    node.className = "timeline__node";
+
+    const dot = doc.createElement("span");
+    dot.className = "timeline__dot";
+
+    const card = doc.createElement("div");
+    card.className = "timeline__card";
+
+    const photoFrame = doc.createElement("div");
+    photoFrame.className = "timeline__photo-frame";
+    const img = doc.createElement("img");
+    img.className = "timeline__photo";
+    img.src = "https://placehold.co/160x160/1B2A4A/F7F3EC?text=%F0%9F%93%B7";
+    img.alt = "";
+    photoFrame.appendChild(img);
+
+    const body = doc.createElement("div");
+    body.className = "timeline__body";
+    const date = doc.createElement("span");
+    date.className = "timeline__date";
+    date.textContent = "Année"; date.dataset.fr = "Année"; date.dataset.en = "Year";
+    const title = doc.createElement("h4");
+    title.className = "timeline__title";
+    title.textContent = "Nouvelle étape"; title.dataset.fr = "Nouvelle étape"; title.dataset.en = "New milestone";
+    const text = doc.createElement("p");
+    text.className = "timeline__text";
+    text.textContent = "Décris cette étape ici.";
+    text.dataset.fr = "Décris cette étape ici."; text.dataset.en = "Describe this milestone here.";
+    body.appendChild(date); body.appendChild(title); body.appendChild(text);
+
+    card.appendChild(photoFrame); card.appendChild(body);
+    node.appendChild(dot); node.appendChild(card);
+    return node;
+  }
+
+  const btn = doc.createElement("button");
+  btn.type = "button";
+  btn.className = "editor-add-timeline";
+  btn.textContent = "+ Ajouter une étape";
+  btn.addEventListener("click", (e) => {
+    e.stopPropagation();
+    const node = buildNode();
+    const cta = timeline.querySelector(".timeline__node--cta");
+    if(cta) timeline.insertBefore(node, cta); else timeline.appendChild(node);
+
+    node.querySelectorAll(TEXT_SELECTOR).forEach(wireTextElement);
+    const img = node.querySelector(".timeline__photo");
+    const wrap = wrapImageForBadge(img);
+    addBadges(wrap, [{ icon:"image", title:"Changer la photo", onClick:() => openImagePicker(img) }]);
+    addBadges(node, [{ icon:"delete", title:"Supprimer cette étape", danger:true, onClick:() => removeSimple(node) }]);
+
+    node.scrollIntoView({ behavior:"smooth", block:"center" });
+    recordUndo(() => node.remove());
+    saveDraft();
+  });
+  timeline.appendChild(btn);
+}
+
 /* ==================================================================
    PANNEAU D'ÉDITION DE PROJET — un canevas quadrillé par page, une
    palette de modules à glisser dessus, des onglets pour naviguer
@@ -684,7 +770,7 @@ const BLOCK_DEFS = {
   stats:  { label:"Statistiques", make:() => ({ type:"stats", items:[{number:"0", fr:"métrique", en:"metric"}] }) },
   link:   { label:"Lien",         make:() => ({ type:"link", href:"#", fr:"Voir sur itch.io ↗", en:"View on itch.io ↗" }) },
   image:  { label:"Image",        make:() => ({ type:"image", src:"", imgSize:"normal", objectPosition:"50% 50%" }) },
-  video:  { label:"Vidéo",        make:() => ({ type:"video", mode:"youtube", src:"", youtubeId:"", objectPosition:"50% 50%" }) },
+  video:  { label:"Vidéo / Jeu",  make:() => ({ type:"video", mode:"youtube", src:"", youtubeId:"", itchUrl:"", objectPosition:"50% 50%" }) },
 };
 
 // ---- Lecture du DOM vers l'état JS du panneau ----
@@ -696,6 +782,15 @@ function readAccent(el){
 function extractYouTubeId(url){
   const m = String(url || "").match(/(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{6,})/);
   return m ? m[1] : "";
+}
+
+// itch.io fournit un code d'embed complet ("<iframe src='...'>...") depuis
+// les réglages du jeu ("intégrer sur d'autres sites") — on accepte aussi
+// bien ce code complet qu'une simple URL collée directement.
+function extractEmbedUrl(input){
+  const raw = String(input || "").trim();
+  const m = raw.match(/src=["']([^"']+)["']/);
+  return m ? m[1] : raw;
 }
 
 function readProjectState(projectId){
@@ -716,9 +811,12 @@ function readProjectState(projectId){
       const v = heroVideo.querySelector("video");
       const ifr = heroVideo.querySelector("iframe");
       if(v){
-        blocks.push({ type:"video", mode:"upload", src:v.src, youtubeId:"", imgSize, objectPosition:v.style.objectPosition || "50% 50%" });
+        blocks.push({ type:"video", mode:"upload", src:v.src, youtubeId:"", itchUrl:"", imgSize, objectPosition:v.style.objectPosition || "50% 50%" });
       }else if(ifr){
-        blocks.push({ type:"video", mode:"youtube", src:"", youtubeId:extractYouTubeId(ifr.src), imgSize });
+        const embedMode = heroVideo.dataset.embedMode === "itch" ? "itch" : "youtube";
+        blocks.push(embedMode === "itch"
+          ? { type:"video", mode:"itch", src:"", youtubeId:"", itchUrl:ifr.src, imgSize }
+          : { type:"video", mode:"youtube", src:"", youtubeId:extractYouTubeId(ifr.src), itchUrl:"", imgSize });
       }
     }
     [...textEl.children].forEach(child => {
@@ -741,11 +839,14 @@ function readProjectState(projectId){
         blocks.push({ type:"image", src:child.src, imgSize:"normal", objectPosition:child.style.objectPosition || "50% 50%" });
       }else if(child.classList.contains("page__video")){
         const v = child.querySelector("video");
-        blocks.push({ type:"video", mode:"upload", src: v ? v.src : "", youtubeId:"", objectPosition: v ? (v.style.objectPosition || "50% 50%") : "50% 50%" });
+        blocks.push({ type:"video", mode:"upload", src: v ? v.src : "", youtubeId:"", itchUrl:"", objectPosition: v ? (v.style.objectPosition || "50% 50%") : "50% 50%" });
       }else if(child.classList.contains("page__video-embed")){
         const ifr = child.querySelector("iframe");
         const src = ifr ? ifr.src : "";
-        blocks.push({ type:"video", mode:"youtube", src:"", youtubeId: extractYouTubeId(src) || (src.split("/embed/")[1] || "").split("?")[0] });
+        const embedMode = child.dataset.embedMode === "itch" ? "itch" : "youtube";
+        blocks.push(embedMode === "itch"
+          ? { type:"video", mode:"itch", src:"", youtubeId:"", itchUrl:src }
+          : { type:"video", mode:"youtube", src:"", youtubeId: extractYouTubeId(src), itchUrl:"" });
       }else if(child.tagName === "P"){
         blocks.push({ type:"text", style:"normal", fr:child.dataset.fr || child.innerHTML, en:child.dataset.en || child.innerHTML });
       }
@@ -826,14 +927,23 @@ function buildPageElement(doc, pageData){
       }
     }
     else if(b.type === "video"){
-      if(!hero && ((b.mode === "youtube" && b.youtubeId) || (b.mode === "upload" && b.src))){
+      const hasContent = (b.mode === "youtube" && b.youtubeId) || (b.mode === "upload" && b.src) || (b.mode === "itch" && b.itchUrl);
+      if(!hero && hasContent){
         hero = b;
       }else if(b.mode === "youtube" && b.youtubeId){
-        el = doc.createElement("div"); el.className = "page__video-embed";
+        el = doc.createElement("div"); el.className = "page__video-embed"; el.dataset.embedMode = "youtube";
         const ifr = doc.createElement("iframe");
         ifr.src = `https://www.youtube.com/embed/${b.youtubeId}`;
         ifr.title = "Vidéo YouTube";
         ifr.allow = "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture";
+        ifr.allowFullscreen = true;
+        el.appendChild(ifr);
+      }else if(b.mode === "itch" && b.itchUrl){
+        el = doc.createElement("div"); el.className = "page__video-embed"; el.dataset.embedMode = "itch";
+        const ifr = doc.createElement("iframe");
+        ifr.src = b.itchUrl;
+        ifr.title = "Jeu itch.io";
+        ifr.allow = "autoplay; fullscreen; gamepad";
         ifr.allowFullscreen = true;
         el.appendChild(ifr);
       }else if(b.mode === "upload" && b.src){
@@ -866,10 +976,19 @@ function buildPageElement(doc, pageData){
     const wrap = doc.createElement("div");
     wrap.className = "page__hero-media";
     if(hero.mode === "youtube"){
+      wrap.dataset.embedMode = "youtube";
       const ifr = doc.createElement("iframe");
       ifr.src = `https://www.youtube.com/embed/${hero.youtubeId}`;
       ifr.title = "Vidéo YouTube";
       ifr.allow = "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture";
+      ifr.allowFullscreen = true;
+      wrap.appendChild(ifr);
+    }else if(hero.mode === "itch"){
+      wrap.dataset.embedMode = "itch";
+      const ifr = doc.createElement("iframe");
+      ifr.src = hero.itchUrl;
+      ifr.title = "Jeu itch.io";
+      ifr.allow = "autoplay; fullscreen; gamepad";
       ifr.allowFullscreen = true;
       wrap.appendChild(ifr);
     }else{
@@ -1475,7 +1594,7 @@ function renderBlockBody(block){
   if(block.type === "video"){
     const modes = doc.createElement("div");
     modes.className = "pe-video-modes";
-    [["youtube","Lien YouTube"], ["upload","Fichier MP4"]].forEach(([m, label]) => {
+    [["youtube","Lien YouTube"], ["itch","Jeu itch.io"], ["upload","Fichier MP4"]].forEach(([m, label]) => {
       const b = doc.createElement("button");
       b.type = "button"; b.className = "pe-video-mode-btn" + (block.mode === m ? " is-active" : "");
       b.textContent = label;
@@ -1496,6 +1615,25 @@ function renderBlockBody(block){
         preview.className = "pe-video-preview";
         preview.src = `https://img.youtube.com/vi/${block.youtubeId}/mqdefault.jpg`;
         preview.alt = "Aperçu YouTube";
+        body.appendChild(preview);
+      }
+    }else if(block.mode === "itch"){
+      const urlInput = doc.createElement("input");
+      urlInput.className = "pe-input"; urlInput.type = "text";
+      urlInput.placeholder = "Colle ici le code d'embed itch.io, ou juste son URL";
+      urlInput.value = block.itchUrl || "";
+      urlInput.addEventListener("input", () => { block.itchUrl = extractEmbedUrl(urlInput.value); liveUpdateSite(); });
+      body.appendChild(urlInput);
+      const hint = doc.createElement("span");
+      hint.className = "pe-hint";
+      hint.textContent = "Sur la page de ton jeu itch.io : Éditer le jeu → Intégration → active \"Intégrer sur d'autres sites\" et colle le code fourni ici.";
+      body.appendChild(hint);
+      if(block.itchUrl){
+        const preview = doc.createElement("div");
+        preview.className = "pe-video-preview pe-video-preview--itch";
+        const ifr = doc.createElement("iframe");
+        ifr.src = block.itchUrl;
+        preview.appendChild(ifr);
         body.appendChild(preview);
       }
     }else{
