@@ -824,8 +824,8 @@ const BLOCK_DEFS = {
   stats:  { label:"Statistiques", make:() => ({ type:"stats", items:[{number:"0", fr:"métrique", en:"metric"}] }) },
   link:   { label:"Lien",         make:() => ({ type:"link", href:"#", fr:"Voir sur itch.io ↗", en:"View on itch.io ↗" }) },
   image:  { label:"Image",        make:() => ({ type:"image", src:"", imgSize:"normal", objectPosition:"50% 50%" }) },
-  video:  { label:"Vidéo",        make:() => ({ type:"video", mode:"youtube", src:"", youtubeId:"", itchUrl:"", imgSize:"twothirds", objectPosition:"50% 50%" }) },
-  game:   { label:"Jeu itch.io",  make:() => ({ type:"video", mode:"itch", src:"", youtubeId:"", itchUrl:"", imgSize:"twothirds", objectPosition:"50% 50%" }) },
+  video:  { label:"Vidéo",        make:() => ({ type:"video", category:"video", mode:"youtube", src:"", youtubeId:"", itchUrl:"", imgSize:"twothirds", objectPosition:"50% 50%" }) },
+  game:   { label:"Jeu itch.io",  make:() => ({ type:"video", category:"game", mode:"itch", src:"", youtubeId:"", itchUrl:"", imgSize:"twothirds", objectPosition:"50% 50%" }) },
 };
 
 // ---- Lecture du DOM vers l'état JS du panneau ----
@@ -866,12 +866,12 @@ function readProjectState(projectId){
       const v = heroVideo.querySelector("video");
       const ifr = heroVideo.querySelector("iframe");
       if(v){
-        blocks.push({ type:"video", mode:"upload", src:v.src, youtubeId:"", itchUrl:"", imgSize, objectPosition:v.style.objectPosition || "50% 50%" });
+        blocks.push({ type:"video", category:"video", mode:"upload", src:v.src, youtubeId:"", itchUrl:"", imgSize, objectPosition:v.style.objectPosition || "50% 50%" });
       }else if(ifr){
         const embedMode = heroVideo.dataset.embedMode === "itch" ? "itch" : "youtube";
         blocks.push(embedMode === "itch"
-          ? { type:"video", mode:"itch", src:"", youtubeId:"", itchUrl:ifr.src, imgSize }
-          : { type:"video", mode:"youtube", src:"", youtubeId:extractYouTubeId(ifr.src), itchUrl:"", imgSize });
+          ? { type:"video", category:"game", mode:"itch", src:"", youtubeId:"", itchUrl:ifr.src, imgSize }
+          : { type:"video", category:"video", mode:"youtube", src:"", youtubeId:extractYouTubeId(ifr.src), itchUrl:"", imgSize });
       }
     }
     [...textEl.children].forEach(child => {
@@ -894,14 +894,14 @@ function readProjectState(projectId){
         blocks.push({ type:"image", src:child.src, imgSize:"normal", objectPosition:child.style.objectPosition || "50% 50%" });
       }else if(child.classList.contains("page__video")){
         const v = child.querySelector("video");
-        blocks.push({ type:"video", mode:"upload", src: v ? v.src : "", youtubeId:"", itchUrl:"", objectPosition: v ? (v.style.objectPosition || "50% 50%") : "50% 50%" });
+        blocks.push({ type:"video", category:"video", mode:"upload", src: v ? v.src : "", youtubeId:"", itchUrl:"", objectPosition: v ? (v.style.objectPosition || "50% 50%") : "50% 50%" });
       }else if(child.classList.contains("page__video-embed")){
         const ifr = child.querySelector("iframe");
         const src = ifr ? ifr.src : "";
         const embedMode = child.dataset.embedMode === "itch" ? "itch" : "youtube";
         blocks.push(embedMode === "itch"
-          ? { type:"video", mode:"itch", src:"", youtubeId:"", itchUrl:src }
-          : { type:"video", mode:"youtube", src:"", youtubeId: extractYouTubeId(src), itchUrl:"" });
+          ? { type:"video", category:"game", mode:"itch", src:"", youtubeId:"", itchUrl:src }
+          : { type:"video", category:"video", mode:"youtube", src:"", youtubeId: extractYouTubeId(src), itchUrl:"" });
       }else if(child.tagName === "P"){
         blocks.push({ type:"text", style:"normal", fr:child.dataset.fr || child.innerHTML, en:child.dataset.en || child.innerHTML });
       }
@@ -1459,8 +1459,9 @@ function renderAccentControl(block){
 }
 
 function blockVisualType(block){
-  // un bloc "video" en mode itch.io s'affiche comme un module à part
-  return (block.type === "video" && block.mode === "itch") ? "game" : block.type;
+  // un bloc "video" catégorie "game" s'affiche comme un module à part
+  if(block.type !== "video") return block.type;
+  return (block.category || (block.mode === "itch" ? "game" : "video"));
 }
 
 function renderBlock(page, block, blockIndex){
@@ -1662,16 +1663,23 @@ function renderBlockBody(block){
   }
 
   if(block.type === "video"){
-    const modes = doc.createElement("div");
-    modes.className = "pe-video-modes";
-    [["youtube","Lien YouTube"], ["itch","Jeu itch.io"], ["upload","Fichier MP4"]].forEach(([m, label]) => {
-      const b = doc.createElement("button");
-      b.type = "button"; b.className = "pe-video-mode-btn" + (block.mode === m ? " is-active" : "");
-      b.textContent = label;
-      b.addEventListener("click", () => { block.mode = m; renderPanel(); });
-      modes.appendChild(b);
-    });
-    body.appendChild(modes);
+    const category = block.category || (block.mode === "itch" ? "game" : "video");
+    const availableModes = category === "game"
+      ? [["itch","Jeu itch.io"]]
+      : [["youtube","Lien YouTube"], ["upload","Fichier MP4"]];
+
+    if(availableModes.length > 1){
+      const modes = doc.createElement("div");
+      modes.className = "pe-video-modes";
+      availableModes.forEach(([m, label]) => {
+        const b = doc.createElement("button");
+        b.type = "button"; b.className = "pe-video-mode-btn" + (block.mode === m ? " is-active" : "");
+        b.textContent = label;
+        b.addEventListener("click", () => { block.mode = m; renderPanel(); });
+        modes.appendChild(b);
+      });
+      body.appendChild(modes);
+    }
 
     const sizeGroup = doc.createElement("div");
     sizeGroup.className = "pe-size-group";
@@ -1684,10 +1692,6 @@ function renderBlockBody(block){
       sizeGroup.appendChild(b);
     });
     body.appendChild(sizeGroup);
-    const sizeHint = doc.createElement("span");
-    sizeHint.className = "pe-hint";
-    sizeHint.textContent = "Ne s'applique que si c'est le 1er média de la page — le texte occupe l'espace restant à côté (sauf en pleine largeur).";
-    body.appendChild(sizeHint);
 
     if(block.mode === "youtube"){
       const urlInput = doc.createElement("input");
