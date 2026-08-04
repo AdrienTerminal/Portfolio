@@ -336,7 +336,11 @@
             <!-- ================= MOI — frise chronologique compacte, alternée haut/bas ================= -->
             <div class="about-tab is-active" data-about-tab="me" role="button" tabindex="0">
               <span class="about-tab__label" data-fr="Moi" data-en="Me">Moi</span>
+              <div class="about-tab__preview about-tab__preview--me">
+                <svg viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="7" r="2"/><circle cx="19" cy="15" r="2"/><path d="M7 12h3.3M13.4 8l3.7 5.3"/></svg>
+              </div>
               <div class="about-tab__content">
+                <button type="button" class="timeline__nav timeline__nav--prev" aria-label="Étapes précédentes">‹</button>
                 <div class="timeline" id="timeline">
                   <div class="timeline__scroll">
                     <div class="timeline__track"></div>
@@ -385,12 +389,16 @@
                     </div>
                   </div>
                 </div>
+                <button type="button" class="timeline__nav timeline__nav--next" aria-label="Étapes suivantes">›</button>
               </div>
             </div>
 
             <!-- ================= MES PASSIONS — panneaux diagonaux façon launcher ================= -->
             <div class="about-tab" data-about-tab="passions" role="button" tabindex="0">
               <span class="about-tab__label" data-fr="Mes passions" data-en="My passions">Mes passions</span>
+              <div class="about-tab__preview about-tab__preview--passions">
+                <svg viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20.5S3.5 15.4 3.5 9.6C3.5 6.5 5.8 4.5 8.4 4.5c1.7 0 3.1.9 3.9 2.2.8-1.3 2.2-2.2 3.9-2.2 2.6 0 4.9 2 4.9 5.1 0 5.8-8.5 10.9-8.5 10.9Z"/></svg>
+              </div>
               <div class="about-tab__content">
                 <div class="occupations" id="occupations">
                   <!-- ⚙️ À REMPLACER : une occupation = une image de fond + un titre + un texte -->

@@ -311,6 +311,19 @@ aboutTabs.forEach(tab => {
   });
 });
 
+/* ---- Navigation de la frise (flèches gauche/droite) --------------
+   stopPropagation pour ne jamais interférer avec le clic du panneau
+   "Moi" qui l'entoure. */
+document.querySelectorAll(".timeline__nav").forEach(btn => {
+  btn.addEventListener("click", (e) => {
+    e.stopPropagation();
+    const timeline = btn.closest(".about-tab__content")?.querySelector(".timeline");
+    if(!timeline) return;
+    const amount = timeline.clientWidth * 0.7;
+    timeline.scrollBy({ left: btn.classList.contains("timeline__nav--prev") ? -amount : amount, behavior:"smooth" });
+  });
+});
+
 
 /* ==================================================================
    4) SWITCH DE LANGUE — bascule le texte des éléments porteurs

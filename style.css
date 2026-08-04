@@ -438,50 +438,70 @@ h3[data-accent], .page__pitch[data-accent]{ color:var(--accent-color, var(--red-
 .scrollbar-thumb.is-dragging{ cursor:grabbing; }
 
 /* ==================================================================
-/* ==================================================================
    ABOUT ME — sous le texte de présentation : "Moi" et "Mes passions"
-   sont deux grands panneaux côte à côte, sur le même principe que les
-   cartes passions plus bas — celui qu'on regarde grandit, l'autre se
-   réduit à un aperçu. Donne clairement envie de cliquer.
+   sont deux grands panneaux côte à côte. Celui qu'on regarde grandit,
+   l'autre se réduit à un aperçu SIMPLE (icône, pas de contenu détaillé
+   compressé — du texte réel qui se tasse devient illisible, donc on
+   bascule proprement entre un aperçu et le contenu complet).
 ================================================================== */
 .about-split{
   display:flex; gap:12px;
   flex:1; min-height:0;
 }
 .about-tab{
-  position:relative; flex:1; min-width:0; overflow:hidden;
+  position:relative; flex:1 1 0; min-width:150px; overflow:hidden;
   background:var(--card-bg);
   border:var(--border) solid var(--ink); border-radius:var(--radius-lg);
   box-shadow:6px 6px 0 var(--ink);
   cursor:pointer;
   transition:flex .55s var(--ease), transform .2s var(--ease);
 }
-.about-tab.is-active{ flex:6; }
-.about-tab:not(.is-active):hover{ flex:2; transform:translateY(-2px); }
+.about-tab.is-active{ flex:7 1 0; }
+.about-tab:not(.is-active):hover{ transform:translateY(-2px); }
 
 .about-tab__label{
   position:absolute; top:14px; left:14px; z-index:5;
-  font-family:var(--font-display); font-weight:700; font-size:1rem;
-  padding:7px 16px; border-radius:100px;
+  font-family:var(--font-display); font-weight:700; font-size:0.95rem;
+  padding:7px 14px; border-radius:100px;
   background:var(--ink); color:#fff;
   box-shadow:3px 3px 0 var(--red);
   pointer-events:none;
   white-space:nowrap;
 }
 
-.about-tab__content{
-  height:100%; padding:60px 14px 14px;
-  display:flex; flex-direction:column; min-height:0;
+/* aperçu affiché uniquement quand le panneau est réduit : une icône
+   décorative sur fond dégradé, jamais de contenu qui pourrait se tasser */
+.about-tab__preview{
+  position:absolute; inset:0;
+  display:flex; align-items:flex-end; justify-content:center; padding-bottom:22px;
+  color:rgba(255,255,255,.85);
+  background-image:
+    radial-gradient(circle, rgba(255,255,255,.16) 1.5px, transparent 1.5px);
+  background-size:20px 20px;
 }
+.about-tab__preview--me{ background-color:var(--ink); }
+.about-tab__preview--passions{ background-color:var(--red); }
+.about-tab.is-active .about-tab__preview{ display:none; }
+
+.about-tab__content{
+  display:none;
+  height:100%; padding:60px 14px 14px;
+  flex-direction:column; min-height:0;
+  position:relative;
+}
+.about-tab.is-active .about-tab__content{ display:flex; }
 
 /* ---- Moi : frise chronologique compacte, alternée haut/bas pour
-   loger un long parcours sans gaspiller de largeur. Défile
-   latéralement seulement si vraiment nécessaire. ---- */
+   loger un long parcours sans gaspiller de largeur — avec de vraies
+   flèches pour naviguer si ça dépasse. ---- */
 .timeline{
   flex:1; min-height:0;
   display:flex; align-items:center;
   overflow-x:auto; overflow-y:hidden;
+  scroll-behavior:smooth;
+  -ms-overflow-style:none; scrollbar-width:none;
 }
+.timeline::-webkit-scrollbar{ display:none; }
 .timeline__scroll{
   position:relative;
   display:flex; align-items:center; gap:6px;
@@ -537,6 +557,21 @@ h3[data-accent], .page__pitch[data-accent]{ color:var(--accent-color, var(--red-
 }
 .timeline__node--cta .timeline__title{ color:var(--yellow); font-size:0.9rem; }
 .timeline__node--cta .timeline__text{ color:var(--paper); opacity:.92; }
+
+/* flèches de navigation + fondu sur les bords pour indiquer qu'on
+   peut aller plus loin */
+.timeline__nav{
+  flex:0 0 auto; align-self:center; z-index:6;
+  width:30px; height:30px; border-radius:50%;
+  background:var(--card-bg); border:2.5px solid var(--ink);
+  font-size:1.1rem; font-weight:700; color:var(--ink);
+  display:flex; align-items:center; justify-content:center;
+  cursor:pointer; box-shadow:2px 2px 0 var(--ink);
+  transition:transform .15s ease;
+}
+.timeline__nav:hover{ transform:scale(1.1); background:var(--red); color:#fff; border-color:var(--ink); }
+.timeline__nav--prev{ margin-right:4px; }
+.timeline__nav--next{ margin-left:4px; }
 
 .about-intro{ flex:0 0 auto; margin-bottom:20px; }
 .about-bio{
@@ -654,9 +689,8 @@ h3[data-accent], .page__pitch[data-accent]{ color:var(--accent-color, var(--red-
   .occupation:hover:not(.is-active){ flex:1; }
 
   .about-split{ flex-direction:column; }
-  .about-tab{ min-height:64px; }
-  .about-tab.is-active{ flex:6; min-height:320px; }
-  .about-tab:not(.is-active):hover{ flex:1.4; }
+  .about-tab{ min-height:64px; min-width:0; }
+  .about-tab.is-active{ flex:7; min-height:320px; }
   .timeline{ min-height:220px; }
 }
 
