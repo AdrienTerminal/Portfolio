@@ -574,13 +574,13 @@ h3[data-accent], .page__pitch[data-accent]{ color:var(--accent-color, var(--red-
 }
 .timeline__nav:hover{ transform:translateX(-50%) scale(1.12); background:var(--red); color:#fff; }
 .timeline__nav:active{ transform:translateX(-50%) scale(0.94); box-shadow:1px 1px 0 var(--chip-dark); }
-.timeline__nav--prev{ top:0; }
-.timeline__nav--next{ bottom:0; }
+.timeline__nav--prev{ top:8px; }
+.timeline__nav--next{ bottom:8px; }
 
 .about-intro{ flex:0 0 auto; margin-bottom:20px; }
 .about-bio{
   font-size:0.96rem; line-height:1.55; opacity:.9;
-  max-width:70ch; margin-bottom:14px;
+  max-width:95ch; margin-bottom:14px;
 }
 .stack-row{ display:flex; flex-wrap:wrap; gap:8px; }
 .stack-tag{
