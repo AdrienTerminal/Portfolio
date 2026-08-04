@@ -6,7 +6,7 @@
 <title>Éditeur — Adrien Terminal Portfolio</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="edit.css?v=13">
+<link rel="stylesheet" href="edit.css?v=14">
 </head>
 <body>
 
@@ -14,7 +14,7 @@
   <div class="toolbar__brand">
     <span class="dot"></span>
     <span>SITE EDITOR</span>
-    <span class="version-badge" title="Vérifie que ce numéro correspond bien à la dernière version que Claude t'a donnée">v13</span>
+    <span class="version-badge" title="Vérifie que ce numéro correspond bien à la dernière version que Claude t'a donnée">v14</span>
   </div>
 
   <div class="toolbar__group">
@@ -64,7 +64,7 @@
   <p><strong>Projets</strong> — le badge ✎ sur une pill de projet ouvre un panneau complet à droite : ajoute, glisse-dépose pour réordonner, ou supprime des pages, des tags, des listes, des stats, des liens, des images/vidéos, en totale liberté. Les modifications s'affichent en direct sur le site à gauche ; rien n'est définitif avant "Appliquer" — fermer le panneau sans appliquer annule tout.</p>
   <p><strong>Ctrl+Z</strong> annule ta dernière modification de texte, image ou lien. L'ajout/suppression de projet n'est pas annulable (une confirmation te protège à la place).</p>
   <p>Pour éditer la version anglaise d'un texte, bascule d'abord le switch FR/EN du site lui-même, puis édite normalement.</p>
-  <p><strong>Sauvegarde</strong> — un brouillon est gardé automatiquement dans ton navigateur. S'il devient trop lourd (vidéos, beaucoup d'images), l'indicateur en haut à droite passe en rouge : télécharge alors le site pour ne rien perdre.</p>
+  <p><strong>Sauvegarde</strong> — un brouillon est gardé automatiquement dans ton navigateur, avec une large marge (plusieurs vidéos ne posent plus problème). Si l'indicateur en haut à droite passe en rouge, télécharge le site pour ne rien perdre.</p>
 </div>
 
 <main class="editor-stage">
@@ -91,7 +91,7 @@
       <p><strong>Image / Vidéo</strong> — JPG, PNG et GIF gardent leur animation. La grille de recadrage centre le contenu dans son cadre. La 1ère image ou vidéo de la page devient le média principal (grand cadre) ; sa taille S/M/L ne s'applique qu'à elle.</p>
       <p><strong>Couleurs</strong> — la pastille arc-en-ciel sur un bloc ouvre une couleur personnalisée ; "défaut" l'annule.</p>
       <p><strong>FR / EN</strong> — le badge montre la langue en cours d'édition ; clique pour basculer et éditer l'autre.</p>
-      <p><strong>Sauvegarde auto</strong> — le brouillon est stocké dans ton navigateur. Au-delà d'environ 5 Mo (plusieurs vidéos, beaucoup d'images), il peut devenir trop lourd et l'auto-sauvegarde s'arrête : télécharge alors le site pour ne rien perdre.</p>
+      <p><strong>Sauvegarde auto</strong> — le brouillon est stocké dans ton navigateur (large marge, y compris pour plusieurs vidéos). Si l'indicateur en haut à droite passe en rouge, télécharge le site pour ne rien perdre.</p>
     </div>
 
     <div class="pe-page-tabs" id="pePageTabs"></div>
@@ -112,6 +112,6 @@
 <input type="file" id="videoInput" accept="video/mp4,video/webm,video/*" hidden>
 <div class="toast" id="toast"></div>
 
-<script src="edit.js?v=13"></script>
+<script src="edit.js?v=14"></script>
 </body>
 </html>

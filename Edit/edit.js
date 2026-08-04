@@ -18,6 +18,68 @@
 
 const DRAFT_KEY = "portfolio_editor_draft_v4";
 
+// ---------------------------------------------------------------
+// Stockage du brouillon via IndexedDB plutôt que localStorage : la
+// limite passe d'environ 5-10 Mo à plusieurs centaines de Mo (selon
+// le navigateur et l'espace disque libre), ce qui règle le problème
+// de fond pour des sites avec plusieurs images/vidéos plutôt que de
+// se contenter d'avertir quand la limite est atteinte.
+// ---------------------------------------------------------------
+const IDB_NAME = "portfolio_editor_store";
+const IDB_STORE = "drafts";
+let idbPromise = null;
+
+function openIDB(){
+  if(idbPromise) return idbPromise;
+  idbPromise = new Promise((resolve, reject) => {
+    if(!window.indexedDB){ reject(new Error("IndexedDB indisponible")); return; }
+    const req = indexedDB.open(IDB_NAME, 1);
+    req.onupgradeneeded = () => { req.result.createObjectStore(IDB_STORE); };
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+  return idbPromise;
+}
+async function idbSet(key, value){
+  const db = await openIDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(IDB_STORE, "readwrite");
+    tx.objectStore(IDB_STORE).put(value, key);
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  });
+}
+async function idbGet(key){
+  const db = await openIDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(IDB_STORE, "readonly");
+    const req = tx.objectStore(IDB_STORE).get(key);
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+}
+async function idbDelete(key){
+  const db = await openIDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(IDB_STORE, "readwrite");
+    tx.objectStore(IDB_STORE).delete(key);
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  });
+}
+// Reprend un ancien brouillon resté dans localStorage (versions
+// précédentes de l'éditeur) et le transfère vers IndexedDB une fois,
+// pour ne rien perdre lors de cette mise à jour.
+async function migrateLegacyLocalStorageDraft(){
+  try{
+    const legacy = localStorage.getItem(DRAFT_KEY);
+    if(legacy){
+      await idbSet(DRAFT_KEY, legacy);
+      localStorage.removeItem(DRAFT_KEY);
+    }
+  }catch(err){ /* pas grave si ça échoue, ce n'est qu'une reprise best-effort */ }
+}
+
 const frame          = document.getElementById("siteFrame");
 const btnDownload     = document.getElementById("btnDownload");
 const btnReset         = document.getElementById("btnReset");
@@ -262,13 +324,17 @@ function loadHtmlIntoFrame(html, callback){
     const looksValid = doc && doc.querySelector(".card__topbar") && doc.querySelector(".card__body") && doc.querySelector(".pill-row");
     if(!looksValid){
       toast("⚠ La page semblait cassée après ce changement — annulé automatiquement");
-      const lastGood = localStorage.getItem(DRAFT_KEY);
-      if(lastGood && lastGood !== finalHtml){
-        loadHtmlIntoFrame(lastGood, callback);
-      }else{
+      idbGet(DRAFT_KEY).then((lastGood) => {
+        if(lastGood && lastGood !== finalHtml){
+          loadHtmlIntoFrame(lastGood, callback);
+        }else{
+          frame.addEventListener("load", callback, { once: true });
+          frame.src = "../index.html?_=" + Date.now();
+        }
+      }).catch(() => {
         frame.addEventListener("load", callback, { once: true });
         frame.src = "../index.html?_=" + Date.now();
-      }
+      });
       return;
     }
     callback();
@@ -282,8 +348,10 @@ function loadHtmlIntoFrame(html, callback){
 // ---------------------------------------------------------------
 frame.addEventListener("load", onFirstLoad, { once: true });
 
-function onFirstLoad(){
-  const draft = localStorage.getItem(DRAFT_KEY);
+async function onFirstLoad(){
+  await migrateLegacyLocalStorageDraft();
+  let draft = null;
+  try{ draft = await idbGet(DRAFT_KEY); }catch(err){ /* stockage indisponible : on repart du site tel quel */ }
   if(draft){
     loadHtmlIntoFrame(draft, () => { toast("Brouillon précédent restauré"); injectEditing(); });
   }else{
@@ -1690,26 +1758,26 @@ function formatSize(bytes){
   return mb >= 1 ? mb.toFixed(1) + " Mo" : Math.round(bytes / 1024) + " Ko";
 }
 
-function saveDraft(){
+async function saveDraft(){
+  const doc = frame.contentDocument;
+  const html = doc.documentElement.outerHTML;
+  const sizeBytes = new Blob([html]).size;
   try{
-    const doc = frame.contentDocument;
-    const html = doc.documentElement.outerHTML;
-    const sizeBytes = new Blob([html]).size;
-    localStorage.setItem(DRAFT_KEY, html);
+    await idbSet(DRAFT_KEY, html);
     saveStatus.classList.remove("is-warning", "is-error");
     saveStatus.title = "";
-    if(sizeBytes > 3.5 * 1024 * 1024){
+    if(sizeBytes > 30 * 1024 * 1024){
       saveStatus.classList.add("is-warning");
       saveStatus.textContent = `Brouillon à jour (${formatSize(sizeBytes)})`;
-      saveStatus.title = "Le brouillon devient volumineux (vidéos, beaucoup d'images...). Pense à télécharger le site de temps en temps pour ne rien risquer.";
+      saveStatus.title = "Le brouillon devient très volumineux. Pense à télécharger le site de temps en temps pour ne rien risquer.";
     }else{
       saveStatus.textContent = "Brouillon à jour";
     }
   }catch(err){
     saveStatus.classList.add("is-error");
     saveStatus.textContent = "⚠ Sauvegarde auto impossible";
-    saveStatus.title = "Le brouillon dépasse la limite de stockage du navigateur (environ 5 à 10 Mo selon le navigateur) — en général à cause de vidéos ou de beaucoup d'images. Tes DERNIÈRES modifications ne sont plus sauvegardées automatiquement. Clique sur \"Télécharger le site\" maintenant pour ne rien perdre, ou retire une vidéo/image récente.";
-    toast("⚠ Mémoire du navigateur pleine — l'auto-sauvegarde s'est arrêtée. Télécharge le site maintenant pour ne rien perdre.");
+    saveStatus.title = "Le stockage local du navigateur est indisponible ou plein (navigation privée, espace disque épuisé...). Tes DERNIÈRES modifications ne sont plus sauvegardées automatiquement. Clique sur \"Télécharger le site\" maintenant pour ne rien perdre.";
+    toast("⚠ Sauvegarde automatique impossible — télécharge le site maintenant pour ne rien perdre.");
   }
 }
 
@@ -1743,7 +1811,7 @@ btnDownload.addEventListener("click", () => {
 // ---------------------------------------------------------------
 btnReset.addEventListener("click", () => {
   if(!confirm("Effacer toutes les modifications en cours et repartir du site actuel ?")) return;
-  localStorage.removeItem(DRAFT_KEY);
+  idbDelete(DRAFT_KEY).catch(() => {});
   undoStack = [];
   btnUndo.disabled = true;
   colorOverrides = { light:{}, dark:{} };
