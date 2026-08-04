@@ -25,7 +25,7 @@
      asymétrique : plus vers le haut que vers le bas (voir .card.is-about
      plus bas, qui décale légèrement la carte vers le haut en plus). */
   --body-h:       600px;
-  --body-h-about: 780px;
+  --body-h-about: min(680px, 72vh);
 
   transition:background-color .35s ease;
 }
@@ -71,9 +71,6 @@ html[data-theme="dark"] img{ filter:brightness(.92) contrast(1.02); }
   0%, 80%, 100%{ transform:translateY(0); }
   40%{ transform:translateY(-14px); }
 }
-.site-loader__text{
-  font-family:var(--font-mono); font-size:0.82rem; color:var(--muted); letter-spacing:.04em;
-}
 
 *{ box-sizing:border-box; margin:0; padding:0; }
 
@@ -112,7 +109,6 @@ button{ font:inherit; color:inherit; background:none; border:none; cursor:pointe
   box-shadow:12px 12px 0 var(--ink);
   overflow:hidden;
   position:relative;
-  transform:rotate(-0.5deg);
   margin-top:0;
   transition:margin-top .5s var(--ease);
 }
@@ -298,25 +294,18 @@ button{ font:inherit; color:inherit; background:none; border:none; cursor:pointe
   position:relative;
   flex:1; min-height:0;
 }
-.stage-frame__hint{
-  position:absolute; inset:0;
-  display:flex; align-items:center; justify-content:center;
-  text-align:center;
-  font-family:var(--font-mono); font-size:0.85rem; color:var(--muted);
-  transition:opacity .25s var(--ease);
-}
-.stage-frame.has-open .stage-frame__hint{ opacity:0; }
 
 .project-drawer{
   position:absolute; inset:0;
   display:flex; flex-direction:column;
   opacity:0; pointer-events:none;
-  transform:scale(.97) translateY(6px);
+  transform-origin:top center;
+  transform:scaleY(.08) translateY(-8px);
   transition:opacity .38s var(--ease), transform .38s var(--ease);
 }
 .project-drawer.is-open{
   opacity:1; pointer-events:auto;
-  transform:scale(1) translateY(0);
+  transform:scaleY(1) translateY(0);
 }
 
 .drawer__scroll{
@@ -692,8 +681,6 @@ h3[data-accent], .page__pitch[data-accent]{ color:var(--accent-color, var(--red-
   .panel-view.is-active{ flex:none; }
 
   .stage-frame{ min-height:460px; }
-  .stage-frame__hint{ position:static; padding:40px 0; }
-  .stage-frame.has-open .stage-frame__hint{ display:none; }
 
   .project-drawer{
     position:relative; inset:auto;

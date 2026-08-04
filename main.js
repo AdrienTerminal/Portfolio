@@ -176,6 +176,15 @@ pills.forEach(pill => {
   });
 });
 
+// Le premier projet est ouvert dès le chargement — direct, sans
+// animation ni son, comme un état initial plutôt qu'une transition.
+if(pills.length){
+  const firstId = pills[0].dataset.project;
+  openId = firstId;
+  setPillActive(firstId);
+  openDrawer(firstId);
+}
+
 // Chaque tiroir gère sa propre barre : clic pour sauter, glisser pour lerp entre
 // les pages. Un petit son marque chaque changement de page pendant le glissement.
 drawers.forEach(drawer => {
