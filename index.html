@@ -332,74 +332,66 @@
             </div>
           </div>
 
-          <div class="about-split">
-            <div class="about-tabs">
-              <button class="about-tab is-active" type="button" data-about-tab="me">
-                <span data-fr="Moi" data-en="Me">Moi</span>
-              </button>
-              <button class="about-tab" type="button" data-about-tab="passions">
-                <span data-fr="Mes passions" data-en="My passions">Mes passions</span>
-              </button>
-            </div>
-
-            <div class="about-content">
-              <!-- ================= MOI — frise chronologique horizontale ================= -->
-              <div class="about-view is-active" data-about-view="me">
+          <div class="about-split" id="aboutSplit">
+            <!-- ================= MOI — frise chronologique compacte, alternée haut/bas ================= -->
+            <div class="about-tab is-active" data-about-tab="me" role="button" tabindex="0">
+              <span class="about-tab__label" data-fr="Moi" data-en="Me">Moi</span>
+              <div class="about-tab__content">
                 <div class="timeline" id="timeline">
                   <div class="timeline__scroll">
                     <div class="timeline__track"></div>
 
-                    <!-- ⚙️ À REMPLACER : une étape = une date, une photo, un titre, un texte -->
-                    <div class="timeline__node">
+                    <!-- ⚙️ À REMPLACER : une étape = une date, une photo, un titre. Garde-les courts : le but est de lire tout le parcours d'un coup d'œil. Jusqu'à 10 étapes environ. -->
+                    <div class="timeline__node timeline__node--up">
                       <span class="timeline__dot"></span>
                       <div class="timeline__card">
                         <div class="timeline__photo-frame">
-                          <img class="timeline__photo" src="https://placehold.co/160x160/1B2A4A/F7F3EC?text=%F0%9F%93%B7" alt="">
+                          <img class="timeline__photo" src="https://placehold.co/160x160/1B2A4A/F7F3EC?text=%F0%9F%91%B6" alt="">
                         </div>
-                        <span class="timeline__date" data-fr="2018" data-en="2018">2018</span>
-                        <h4 class="timeline__title" data-fr="Premiers pas" data-en="First steps">Premiers pas</h4>
-                        <p class="timeline__text" data-fr="Début de formation en game design, premiers prototypes sur Unity." data-en="Started game design studies, first prototypes in Unity.">Début de formation en game design, premiers prototypes sur Unity.</p>
+                        <span class="timeline__date" data-fr="2006" data-en="2006">2006</span>
+                        <h4 class="timeline__title" data-fr="Naissance" data-en="Born">Naissance</h4>
                       </div>
                     </div>
 
-                    <div class="timeline__node">
+                    <div class="timeline__node timeline__node--down">
                       <span class="timeline__dot"></span>
                       <div class="timeline__card">
                         <div class="timeline__photo-frame">
                           <img class="timeline__photo" src="https://placehold.co/160x160/E4483F/1B2A4A?text=%F0%9F%8E%AE" alt="">
                         </div>
-                        <span class="timeline__date" data-fr="2021" data-en="2021">2021</span>
-                        <h4 class="timeline__title" data-fr="Premier stage" data-en="First internship">Premier stage</h4>
-                        <p class="timeline__text" data-fr="Stage de level design dans un studio indépendant — ma première vraie équipe." data-en="Level design internship at an indie studio — my first real team.">Stage de level design dans un studio indépendant — ma première vraie équipe.</p>
+                        <span class="timeline__date" data-fr="2018" data-en="2018">2018</span>
+                        <h4 class="timeline__title" data-fr="Premiers pas" data-en="First steps">Premiers pas</h4>
                       </div>
                     </div>
 
-                    <div class="timeline__node">
+                    <div class="timeline__node timeline__node--up">
                       <span class="timeline__dot"></span>
                       <div class="timeline__card">
                         <div class="timeline__photo-frame">
                           <img class="timeline__photo" src="https://placehold.co/160x160/F2C94C/1B2A4A?text=%F0%9F%8F%86" alt="">
                         </div>
-                        <span class="timeline__date" data-fr="2024" data-en="2024">2024</span>
+                        <span class="timeline__date" data-fr="2023" data-en="2023">2023</span>
                         <h4 class="timeline__title" data-fr="Première jam gagnée" data-en="First jam win">Première jam gagnée</h4>
-                        <p class="timeline__text" data-fr="Prix du meilleur gameplay à une game jam locale, en équipe de 3." data-en="Best gameplay award at a local game jam, in a team of 3.">Prix du meilleur gameplay à une game jam locale, en équipe de 3.</p>
                       </div>
                     </div>
 
                     <!-- dernière étape, spéciale : ne pas supprimer, c'est l'appel à recrutement -->
-                    <div class="timeline__node timeline__node--cta">
+                    <div class="timeline__node timeline__node--down timeline__node--cta">
                       <span class="timeline__dot timeline__dot--cta"></span>
                       <div class="timeline__card timeline__card--cta">
                         <h4 class="timeline__title" data-fr="Et la suite ?" data-en="What's next?">Et la suite ?</h4>
-                        <p class="timeline__text" data-fr="Aujourd'hui, je suis à la recherche d'une équipe où faire grandir ces compétences — si mon profil vous parle, discutons-en !" data-en="I'm now looking for a team where I can keep growing these skills — if my profile speaks to you, let's talk!">Aujourd'hui, je suis à la recherche d'une équipe où faire grandir ces compétences — si mon profil vous parle, discutons-en !</p>
+                        <p class="timeline__text" data-fr="Aujourd'hui, je recherche un stage pour continuer à grandir — si mon profil vous parle, discutons-en !" data-en="I'm now looking for an internship to keep growing — if my profile speaks to you, let's talk!">Aujourd'hui, je recherche un stage pour continuer à grandir — si mon profil vous parle, discutons-en !</p>
                       </div>
                     </div>
                   </div>
                 </div>
               </div>
+            </div>
 
-              <!-- ================= MES PASSIONS — panneaux diagonaux façon launcher ================= -->
-              <div class="about-view" data-about-view="passions">
+            <!-- ================= MES PASSIONS — panneaux diagonaux façon launcher ================= -->
+            <div class="about-tab" data-about-tab="passions" role="button" tabindex="0">
+              <span class="about-tab__label" data-fr="Mes passions" data-en="My passions">Mes passions</span>
+              <div class="about-tab__content">
                 <div class="occupations" id="occupations">
                   <!-- ⚙️ À REMPLACER : une occupation = une image de fond + un titre + un texte -->
                   <button class="occupation is-active" style="background-image:url('https://placehold.co/300x420/E4483F/1B2A4A?text=%F0%9F%8E%AC')">

@@ -438,20 +438,105 @@ h3[data-accent], .page__pitch[data-accent]{ color:var(--accent-color, var(--red-
 .scrollbar-thumb.is-dragging{ cursor:grabbing; }
 
 /* ==================================================================
-   ABOUT ME — panneaux droits, remplit toute la scène.
-   Pas de texte d'instruction : le hover fait "peeker" les panneaux
-   pour donner envie de cliquer, et une petite vague les fait
-   respirer une fois à l'ouverture de l'onglet.
+/* ==================================================================
+   ABOUT ME — sous le texte de présentation : "Moi" et "Mes passions"
+   sont deux grands panneaux côte à côte, sur le même principe que les
+   cartes passions plus bas — celui qu'on regarde grandit, l'autre se
+   réduit à un aperçu. Donne clairement envie de cliquer.
 ================================================================== */
-.occupations{
-  display:flex;
+.about-split{
+  display:flex; gap:12px;
   flex:1; min-height:0;
-  border:var(--border) solid var(--ink);
-  border-radius:var(--radius-lg);
-  overflow:hidden;
-  box-shadow:6px 6px 0 var(--ink);
-  gap:3px;
 }
+.about-tab{
+  position:relative; flex:1; min-width:0; overflow:hidden;
+  background:var(--card-bg);
+  border:var(--border) solid var(--ink); border-radius:var(--radius-lg);
+  box-shadow:6px 6px 0 var(--ink);
+  cursor:pointer;
+  transition:flex .55s var(--ease), transform .2s var(--ease);
+}
+.about-tab.is-active{ flex:6; }
+.about-tab:not(.is-active):hover{ flex:2; transform:translateY(-2px); }
+
+.about-tab__label{
+  position:absolute; top:14px; left:14px; z-index:5;
+  font-family:var(--font-display); font-weight:700; font-size:1rem;
+  padding:7px 16px; border-radius:100px;
+  background:var(--ink); color:#fff;
+  box-shadow:3px 3px 0 var(--red);
+  pointer-events:none;
+  white-space:nowrap;
+}
+
+.about-tab__content{
+  height:100%; padding:60px 14px 14px;
+  display:flex; flex-direction:column; min-height:0;
+}
+
+/* ---- Moi : frise chronologique compacte, alternée haut/bas pour
+   loger un long parcours sans gaspiller de largeur. Défile
+   latéralement seulement si vraiment nécessaire. ---- */
+.timeline{
+  flex:1; min-height:0;
+  display:flex; align-items:center;
+  overflow-x:auto; overflow-y:hidden;
+}
+.timeline__scroll{
+  position:relative;
+  display:flex; align-items:center; gap:6px;
+  padding:0 10px;
+  min-width:min-content;
+  width:100%;
+}
+.timeline__track{
+  position:absolute; left:10px; right:10px; top:50%; height:3px;
+  transform:translateY(-50%);
+  background-image:linear-gradient(to right, var(--ink) 0 6px, transparent 6px 12px);
+  background-size:12px 3px; background-repeat:repeat-x;
+  opacity:.5;
+}
+.timeline__node{
+  position:relative; flex:0 0 auto;
+  width:104px; height:186px;
+}
+.timeline__dot{
+  position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
+  width:13px; height:13px; border-radius:50%;
+  background:var(--card-bg); border:3px solid var(--ink);
+  z-index:2;
+}
+.timeline__card{
+  position:absolute; left:0; right:0;
+  display:flex; flex-direction:column; align-items:center; text-align:center;
+  background:var(--paper); border:var(--border) solid var(--ink);
+  border-radius:var(--radius-lg); padding:10px 8px;
+  box-shadow:3px 3px 0 var(--ink);
+}
+.timeline__node--up .timeline__card{ bottom:calc(50% + 13px); }
+.timeline__node--down .timeline__card{ top:calc(50% + 13px); }
+.timeline__photo-frame{
+  width:44px; height:44px; border-radius:var(--radius);
+  overflow:hidden; border:2.5px solid var(--ink); margin-bottom:6px;
+}
+.timeline__photo{ width:100%; height:100%; object-fit:cover; display:block; }
+.timeline__date{
+  font-family:var(--font-mono); font-weight:700; font-size:0.68rem;
+  color:var(--red); margin-bottom:2px;
+}
+.timeline__title{ font-family:var(--font-display); font-size:0.86rem; line-height:1.2; }
+.timeline__text{ font-size:0.76rem; line-height:1.4; opacity:.85; margin-top:4px; }
+
+/* étape spéciale de fin : appel à recrutement, mise en avant, un peu
+   plus large pour laisser respirer son texte */
+.timeline__node--cta{ width:150px; }
+.timeline__node--cta .timeline__dot{ background:var(--red); border-color:var(--red); }
+.timeline__node--cta .timeline__card{
+  background:var(--ink); border-color:var(--ink);
+  box-shadow:3px 3px 0 var(--red);
+}
+.timeline__node--cta .timeline__title{ color:var(--yellow); font-size:0.9rem; }
+.timeline__node--cta .timeline__text{ color:var(--paper); opacity:.92; }
 
 .about-intro{ flex:0 0 auto; margin-bottom:20px; }
 .about-bio{
@@ -465,94 +550,14 @@ h3[data-accent], .page__pitch[data-accent]{ color:var(--accent-color, var(--red-
   background:var(--card-bg); border:2px solid var(--ink); border-radius:var(--radius);
 }
 
-/* ==================================================================
-   ABOUT ME — sous le texte de présentation : deux onglets empilés
-   verticalement (Moi / Mes passions) qui pilotent l'essentiel de la
-   zone en dessous.
-================================================================== */
-.about-split{
-  display:flex; gap:16px;
+.occupations{
+  display:flex;
   flex:1; min-height:0;
+  border:var(--border) solid var(--ink);
+  border-radius:var(--radius-lg);
+  overflow:hidden;
+  gap:3px;
 }
-.about-tabs{
-  display:flex; flex-direction:column; gap:10px;
-  flex:0 0 148px;
-}
-.about-tab{
-  font-family:var(--font-display); font-weight:600; font-size:0.9rem;
-  text-align:left; padding:14px 16px;
-  background:var(--card-bg); color:var(--ink);
-  border:var(--border) solid var(--ink); border-radius:var(--radius-lg);
-  box-shadow:4px 4px 0 var(--ink);
-  cursor:pointer;
-  transition:transform .15s var(--ease), background .15s ease, color .15s ease;
-}
-.about-tab:hover{ transform:translateX(3px); }
-.about-tab.is-active{ background:var(--red); color:#fff; }
-
-.about-content{ flex:1; min-width:0; display:flex; flex-direction:column; min-height:0; }
-.about-view{ display:none; flex:1; min-height:0; flex-direction:column; }
-.about-view.is-active{ display:flex; }
-
-/* ---- Moi : frise chronologique horizontale, plus graphique qu'une
-   simple liste — défile latéralement si le parcours s'allonge. ---- */
-.timeline{
-  flex:1; min-height:0;
-  display:flex; align-items:center;
-  overflow-x:auto; overflow-y:hidden;
-  border:var(--border) solid var(--ink); border-radius:var(--radius-lg);
-  background:var(--card-bg);
-  box-shadow:6px 6px 0 var(--ink);
-}
-.timeline__scroll{
-  position:relative;
-  display:flex; align-items:flex-start; gap:22px;
-  padding:38px 24px 22px;
-  min-width:min-content;
-}
-.timeline__track{
-  position:absolute; left:24px; right:24px; top:20px; height:3px;
-  background-image:linear-gradient(to right, var(--ink) 0 6px, transparent 6px 12px);
-  background-size:12px 3px; background-repeat:repeat-x;
-  opacity:.5;
-}
-.timeline__node{
-  position:relative; flex:0 0 auto; width:172px;
-  display:flex; flex-direction:column; align-items:center;
-}
-.timeline__node:nth-child(even){ margin-top:30px; }
-.timeline__dot{
-  width:15px; height:15px; border-radius:50%; flex:0 0 auto;
-  background:var(--card-bg); border:3px solid var(--ink);
-  margin-bottom:10px; z-index:2;
-}
-.timeline__card{
-  width:100%; display:flex; flex-direction:column; align-items:center; text-align:center;
-  background:var(--paper); border:var(--border) solid var(--ink);
-  border-radius:var(--radius-lg); padding:12px;
-  box-shadow:4px 4px 0 var(--ink);
-}
-.timeline__photo-frame{
-  width:52px; height:52px; border-radius:var(--radius);
-  overflow:hidden; border:2.5px solid var(--ink); margin-bottom:8px;
-}
-.timeline__photo{ width:100%; height:100%; object-fit:cover; display:block; }
-.timeline__date{
-  font-family:var(--font-mono); font-weight:700; font-size:0.7rem;
-  color:var(--red); margin-bottom:3px;
-}
-.timeline__title{ font-family:var(--font-display); font-size:0.94rem; margin-bottom:4px; }
-.timeline__text{ font-size:0.78rem; line-height:1.45; opacity:.85; }
-
-/* étape spéciale de fin : appel à recrutement, mise en avant */
-.timeline__node--cta .timeline__dot{ background:var(--red); border-color:var(--red); }
-.timeline__node--cta .timeline__card{
-  background:var(--ink); border-color:var(--ink);
-  box-shadow:4px 4px 0 var(--red);
-  justify-content:center; min-height:100%;
-}
-.timeline__node--cta .timeline__title{ color:var(--yellow); }
-.timeline__node--cta .timeline__text{ color:var(--paper); opacity:.92; }
 
 .occupation{
   position:relative;
@@ -649,9 +654,10 @@ h3[data-accent], .page__pitch[data-accent]{ color:var(--accent-color, var(--red-
   .occupation:hover:not(.is-active){ flex:1; }
 
   .about-split{ flex-direction:column; }
-  .about-tabs{ flex-direction:row; flex:0 0 auto; }
-  .about-tab{ flex:1; text-align:center; }
-  .timeline{ min-height:260px; }
+  .about-tab{ min-height:64px; }
+  .about-tab.is-active{ flex:6; min-height:320px; }
+  .about-tab:not(.is-active):hover{ flex:1.4; }
+  .timeline{ min-height:220px; }
 }
 
 @media (prefers-reduced-motion: reduce){

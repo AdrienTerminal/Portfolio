@@ -439,7 +439,12 @@ function injectEditingInner(doc){
     addBadges(wrap, [{ icon:"image", title:"Changer la photo", onClick:() => openImagePicker(img) }]);
   });
   doc.querySelectorAll(".timeline__node:not(.timeline__node--cta)").forEach(node => {
-    addBadges(node, [{ icon:"delete", title:"Supprimer cette étape", danger:true, onClick:() => removeSimple(node) }]);
+    addBadges(node, [{ icon:"delete", title:"Supprimer cette étape", danger:true, onClick:() => {
+      const scroll = node.closest(".timeline__scroll");
+      node.remove();
+      if(scroll) updateTimelineAlternation(scroll);
+      saveDraft();
+    } }]);
   });
   doc.querySelectorAll(".timeline").forEach(tl => addTimelineButton(tl));
 
@@ -704,6 +709,15 @@ function addTagButton(row){
 
 // Frise chronologique : bouton "+ Ajouter une étape", toujours inséré
 // juste avant l'étape finale d'appel à recrutement (qui reste la dernière).
+// Recalcule l'alternance haut/bas de toutes les étapes après un ajout
+// ou une suppression, pour que ça reste cohérent quoi qu'il arrive.
+function updateTimelineAlternation(scroll){
+  [...scroll.querySelectorAll(".timeline__node")].forEach((node, i) => {
+    node.classList.remove("timeline__node--up", "timeline__node--down");
+    node.classList.add(i % 2 === 0 ? "timeline__node--up" : "timeline__node--down");
+  });
+}
+
 function addTimelineButton(timeline){
   const scroll = timeline.querySelector(".timeline__scroll");
   if(!scroll || scroll.querySelector(".editor-add-timeline")) return;
@@ -733,14 +747,16 @@ function addTimelineButton(timeline){
     const title = doc.createElement("h4");
     title.className = "timeline__title";
     title.textContent = "Nouvelle étape"; title.dataset.fr = "Nouvelle étape"; title.dataset.en = "New milestone";
-    const text = doc.createElement("p");
-    text.className = "timeline__text";
-    text.textContent = "Décris cette étape ici.";
-    text.dataset.fr = "Décris cette étape ici."; text.dataset.en = "Describe this milestone here.";
 
-    card.appendChild(photoFrame); card.appendChild(date); card.appendChild(title); card.appendChild(text);
+    card.appendChild(photoFrame); card.appendChild(date); card.appendChild(title);
     node.appendChild(dot); node.appendChild(card);
     return node;
+  }
+
+  function removeNode(node){
+    node.remove();
+    updateTimelineAlternation(scroll);
+    saveDraft();
   }
 
   const btn = doc.createElement("button");
@@ -751,15 +767,16 @@ function addTimelineButton(timeline){
     e.stopPropagation();
     const node = buildNode();
     scroll.insertBefore(node, btn);
+    updateTimelineAlternation(scroll);
 
     node.querySelectorAll(TEXT_SELECTOR).forEach(wireTextElement);
     const img = node.querySelector(".timeline__photo");
     const wrap = wrapImageForBadge(img);
     addBadges(wrap, [{ icon:"image", title:"Changer la photo", onClick:() => openImagePicker(img) }]);
-    addBadges(node, [{ icon:"delete", title:"Supprimer cette étape", danger:true, onClick:() => removeSimple(node) }]);
+    addBadges(node, [{ icon:"delete", title:"Supprimer cette étape", danger:true, onClick:() => removeNode(node) }]);
 
     node.scrollIntoView({ behavior:"smooth", block:"nearest", inline:"center" });
-    recordUndo(() => node.remove());
+    recordUndo(() => { node.remove(); updateTimelineAlternation(scroll); });
     saveDraft();
   });
   // insérée juste avant l'étape finale (l'appel à recrutement), qui reste toujours en dernier

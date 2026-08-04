@@ -287,21 +287,26 @@ function playAboutPeekSequence(){
   step();
 }
 
-/* ---- Sous-onglets "Moi" / "Mes passions" ------------------------- */
+/* ---- "Moi" / "Mes passions" — grandissent au clic, exactement
+   comme les cartes passions plus bas (même logique, même familiarité). */
 const aboutTabs = document.querySelectorAll(".about-tab");
-const aboutViews = document.querySelectorAll(".about-view");
 
 aboutTabs.forEach(tab => {
   tab.addEventListener("click", () => {
     if(tab.classList.contains("is-active")) return;
     const target = tab.dataset.aboutTab;
     aboutTabs.forEach(t => t.classList.toggle("is-active", t === tab));
-    aboutViews.forEach(v => v.classList.toggle("is-active", v.dataset.aboutView === target));
     sfx.tab();
 
     if(target === "passions" && !aboutPeekPlayed){
       aboutPeekPlayed = true;
       window.setTimeout(playAboutPeekSequence, 400);
+    }
+  });
+  tab.addEventListener("keydown", (e) => {
+    if(e.key === "Enter" || e.key === " "){
+      e.preventDefault();
+      tab.click();
     }
   });
 });
