@@ -413,15 +413,16 @@ function injectEditingInner(doc){
         border-radius:100px; padding:3px 9px; cursor:pointer; opacity:.7;
       }
       .editor-add-tag:hover{ opacity:1; background:rgba(91,141,239,.12); }
-      .editor-add-timeline{
-        flex:0 0 auto; align-self:center;
-        width:120px; height:150px;
-        display:flex; align-items:center; justify-content:center; text-align:center;
-        font-family:'JetBrains Mono',monospace; font-size:11px; font-weight:700;
-        color:#5B8DEF; background:transparent; border:2px dashed #5B8DEF;
-        border-radius:12px; padding:10px; cursor:pointer; opacity:.75;
+      .editor-timeline-insert{
+        flex:0 0 auto; align-self:center; z-index:3;
+        width:24px; height:24px; border-radius:50%;
+        display:flex; align-items:center; justify-content:center;
+        font-family:'JetBrains Mono',monospace; font-size:15px; font-weight:700; line-height:1;
+        color:#5B8DEF; background:rgba(91,141,239,.14); border:1.5px dashed #5B8DEF;
+        cursor:pointer; opacity:.55; padding:0;
+        transition:opacity .15s ease, transform .15s ease, background .15s ease;
       }
-      .editor-add-timeline:hover{ opacity:1; background:rgba(91,141,239,.12); }
+      .editor-timeline-insert:hover{ opacity:1; background:#5B8DEF; color:#fff; transform:scale(1.15); }
     `;
     doc.head.appendChild(style);
   }
@@ -431,22 +432,13 @@ function injectEditingInner(doc){
   // About me : le stack technique garde son "+ tag" simple, comme avant
   doc.querySelectorAll(".stack-row").forEach(row => addTagButton(row));
 
-  // Frise chronologique : photo modifiable par étape, suppression (sauf
-  // la toute dernière — l'appel à recrutement, qui reste toujours en fin
-  // de frise), et un bouton pour ajouter une nouvelle étape.
-  doc.querySelectorAll(".timeline__photo").forEach(img => {
-    const wrap = wrapImageForBadge(img);
-    addBadges(wrap, [{ icon:"image", title:"Changer la photo", onClick:() => openImagePicker(img) }]);
+  // Frise chronologique : chaque étape est câblée (texte, photo, badge
+  // de suppression sur la carte) et de petits "+" permettent d'insérer
+  // une nouvelle étape n'importe où — pas seulement à la fin.
+  doc.querySelectorAll(".timeline__scroll").forEach(scroll => {
+    scroll.querySelectorAll(".timeline__node").forEach(node => wireTimelineNode(node, scroll));
+    renderTimelineInsertPoints(scroll);
   });
-  doc.querySelectorAll(".timeline__node:not(.timeline__node--cta)").forEach(node => {
-    addBadges(node, [{ icon:"delete", title:"Supprimer cette étape", danger:true, onClick:() => {
-      const scroll = node.closest(".timeline__scroll");
-      node.remove();
-      if(scroll) updateTimelineAlternation(scroll);
-      saveDraft();
-    } }]);
-  });
-  doc.querySelectorAll(".timeline").forEach(tl => addTimelineButton(tl));
 
   // Images
   const avatarImg = doc.querySelector(".avatar");
@@ -532,7 +524,11 @@ function wrapImageForBadge(img){
 function addBadges(hostEl, actions){
   if(hostEl.querySelector(":scope > .editor-badges")) return;
   const doc = hostEl.ownerDocument;
-  hostEl.style.position = "relative";
+  // Ne force "relative" que si l'élément n'est pas déjà positionné —
+  // sinon on écrase un position:absolute existant (c'était le bug de
+  // la croix mal placée sur les étapes de la frise en bas de ligne).
+  const currentPosition = doc.defaultView.getComputedStyle(hostEl).position;
+  if(currentPosition === "static") hostEl.style.position = "relative";
   const wrap = doc.createElement("span");
   wrap.className = "editor-badges";
   wrap.setAttribute("contenteditable", "false");
@@ -718,70 +714,84 @@ function updateTimelineAlternation(scroll){
   });
 }
 
-function addTimelineButton(timeline){
-  const scroll = timeline.querySelector(".timeline__scroll");
-  if(!scroll || scroll.querySelector(".editor-add-timeline")) return;
-  const doc = timeline.ownerDocument;
+// Construit une nouvelle étape "vide", prête à être insérée n'importe où.
+function buildTimelineNode(doc){
+  const node = doc.createElement("div");
+  node.className = "timeline__node";
 
-  function buildNode(){
-    const node = doc.createElement("div");
-    node.className = "timeline__node";
+  const dot = doc.createElement("span");
+  dot.className = "timeline__dot";
 
-    const dot = doc.createElement("span");
-    dot.className = "timeline__dot";
+  const card = doc.createElement("div");
+  card.className = "timeline__card";
 
-    const card = doc.createElement("div");
-    card.className = "timeline__card";
+  const photoFrame = doc.createElement("div");
+  photoFrame.className = "timeline__photo-frame";
+  const img = doc.createElement("img");
+  img.className = "timeline__photo";
+  img.src = "https://placehold.co/160x160/1B2A4A/F7F3EC?text=%F0%9F%93%B7";
+  img.alt = "";
+  photoFrame.appendChild(img);
 
-    const photoFrame = doc.createElement("div");
-    photoFrame.className = "timeline__photo-frame";
-    const img = doc.createElement("img");
-    img.className = "timeline__photo";
-    img.src = "https://placehold.co/160x160/1B2A4A/F7F3EC?text=%F0%9F%93%B7";
-    img.alt = "";
-    photoFrame.appendChild(img);
+  const date = doc.createElement("span");
+  date.className = "timeline__date";
+  date.textContent = "Année"; date.dataset.fr = "Année"; date.dataset.en = "Year";
+  const title = doc.createElement("h4");
+  title.className = "timeline__title";
+  title.textContent = "Nouvelle étape"; title.dataset.fr = "Nouvelle étape"; title.dataset.en = "New milestone";
 
-    const date = doc.createElement("span");
-    date.className = "timeline__date";
-    date.textContent = "Année"; date.dataset.fr = "Année"; date.dataset.en = "Year";
-    const title = doc.createElement("h4");
-    title.className = "timeline__title";
-    title.textContent = "Nouvelle étape"; title.dataset.fr = "Nouvelle étape"; title.dataset.en = "New milestone";
+  card.appendChild(photoFrame); card.appendChild(date); card.appendChild(title);
+  node.appendChild(dot); node.appendChild(card);
+  return node;
+}
 
-    card.appendChild(photoFrame); card.appendChild(date); card.appendChild(title);
-    node.appendChild(dot); node.appendChild(card);
-    return node;
-  }
-
-  function removeNode(node){
-    node.remove();
-    updateTimelineAlternation(scroll);
-    saveDraft();
-  }
-
-  const btn = doc.createElement("button");
-  btn.type = "button";
-  btn.className = "editor-add-timeline";
-  btn.textContent = "+ Ajouter une étape";
-  btn.addEventListener("click", (e) => {
-    e.stopPropagation();
-    const node = buildNode();
-    scroll.insertBefore(node, btn);
-    updateTimelineAlternation(scroll);
-
-    node.querySelectorAll(TEXT_SELECTOR).forEach(wireTextElement);
-    const img = node.querySelector(".timeline__photo");
+// Câble une étape : texte éditable, badge photo, et badge de suppression
+// posé sur la CARTE elle-même (jamais sur le nœud entier, dont la
+// hauteur couvre aussi le point de la ligne — c'était ça qui décalait
+// la croix selon que l'étape soit en haut ou en bas).
+function wireTimelineNode(node, scroll){
+  node.querySelectorAll(TEXT_SELECTOR).forEach(wireTextElement);
+  const img = node.querySelector(".timeline__photo");
+  if(img){
     const wrap = wrapImageForBadge(img);
     addBadges(wrap, [{ icon:"image", title:"Changer la photo", onClick:() => openImagePicker(img) }]);
-    addBadges(node, [{ icon:"delete", title:"Supprimer cette étape", danger:true, onClick:() => removeNode(node) }]);
+  }
+  if(!node.classList.contains("timeline__node--cta")){
+    const card = node.querySelector(".timeline__card");
+    addBadges(card, [{ icon:"delete", title:"Supprimer cette étape", danger:true, onClick:() => {
+      node.remove();
+      updateTimelineAlternation(scroll);
+      renderTimelineInsertPoints(scroll);
+      saveDraft();
+    } }]);
+  }
+}
 
-    node.scrollIntoView({ behavior:"smooth", block:"nearest", inline:"center" });
-    recordUndo(() => { node.remove(); updateTimelineAlternation(scroll); });
-    saveDraft();
+// Petits "+" entre chaque étape (et avant la toute première) pour
+// insérer une nouvelle étape n'importe où dans la frise — pas
+// seulement à la fin avec un gros bouton.
+function renderTimelineInsertPoints(scroll){
+  scroll.querySelectorAll(".editor-timeline-insert").forEach(el => el.remove());
+  const doc = scroll.ownerDocument;
+  [...scroll.querySelectorAll(".timeline__node")].forEach(beforeNode => {
+    const marker = doc.createElement("button");
+    marker.type = "button";
+    marker.className = "editor-timeline-insert";
+    marker.title = "Insérer une étape ici";
+    marker.textContent = "+";
+    marker.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const newNode = buildTimelineNode(doc);
+      scroll.insertBefore(newNode, beforeNode);
+      updateTimelineAlternation(scroll);
+      wireTimelineNode(newNode, scroll);
+      renderTimelineInsertPoints(scroll);
+      newNode.scrollIntoView({ behavior:"smooth", block:"nearest", inline:"center" });
+      recordUndo(() => { newNode.remove(); updateTimelineAlternation(scroll); renderTimelineInsertPoints(scroll); });
+      saveDraft();
+    });
+    scroll.insertBefore(marker, beforeNode);
   });
-  // insérée juste avant l'étape finale (l'appel à recrutement), qui reste toujours en dernier
-  const cta = scroll.querySelector(".timeline__node--cta");
-  if(cta) scroll.insertBefore(btn, cta); else scroll.appendChild(btn);
 }
 
 /* ==================================================================
