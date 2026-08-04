@@ -373,15 +373,18 @@ h3[data-accent], .page__pitch[data-accent]{ color:var(--accent-color, var(--red-
 .itch-link[data-accent]{ border-color:var(--accent-color, var(--ink)); color:var(--accent-color, var(--ink)); }
 
 .page__img{
-  width:100%; height:100%;
+  width:100%; height:100%; max-height:100%;
   object-fit:cover;
   border-radius:var(--radius-lg); border:2.5px solid var(--ink);
   box-shadow:5px 5px 0 var(--ink);
 }
 
-/* vidéo en position "héros" : même traitement que l'image héros */
+/* vidéo en position "héros" : même traitement que l'image héros.
+   max-height plafonne la taille en mode pleine largeur (une seule
+   colonne), où la hauteur ne serait sinon plus contrainte par la
+   colonne fixe habituelle. */
 .page__hero-media{
-  width:100%; height:100%;
+  width:100%; height:100%; max-height:340px;
   border-radius:var(--radius-lg); border:2.5px solid var(--ink);
   box-shadow:5px 5px 0 var(--ink);
   overflow:hidden; background:#000;
@@ -580,7 +583,7 @@ h3[data-accent], .page__pitch[data-accent]{ color:var(--accent-color, var(--red-
 .about-intro{ flex:0 0 auto; margin-bottom:20px; }
 .about-bio{
   font-size:0.96rem; line-height:1.55; opacity:.9;
-  max-width:95ch; margin-bottom:14px;
+  margin-bottom:14px;
 }
 .stack-row{ display:flex; flex-wrap:wrap; gap:8px; }
 .stack-tag{

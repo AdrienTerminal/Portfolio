@@ -824,8 +824,8 @@ const BLOCK_DEFS = {
   stats:  { label:"Statistiques", make:() => ({ type:"stats", items:[{number:"0", fr:"métrique", en:"metric"}] }) },
   link:   { label:"Lien",         make:() => ({ type:"link", href:"#", fr:"Voir sur itch.io ↗", en:"View on itch.io ↗" }) },
   image:  { label:"Image",        make:() => ({ type:"image", src:"", imgSize:"normal", objectPosition:"50% 50%" }) },
-  video:  { label:"Vidéo",        make:() => ({ type:"video", mode:"youtube", src:"", youtubeId:"", itchUrl:"", objectPosition:"50% 50%" }) },
-  game:   { label:"Jeu itch.io",  make:() => ({ type:"video", mode:"itch", src:"", youtubeId:"", itchUrl:"", objectPosition:"50% 50%" }) },
+  video:  { label:"Vidéo",        make:() => ({ type:"video", mode:"youtube", src:"", youtubeId:"", itchUrl:"", imgSize:"twothirds", objectPosition:"50% 50%" }) },
+  game:   { label:"Jeu itch.io",  make:() => ({ type:"video", mode:"itch", src:"", youtubeId:"", itchUrl:"", imgSize:"twothirds", objectPosition:"50% 50%" }) },
 };
 
 // ---- Lecture du DOM vers l'état JS du panneau ----
@@ -858,7 +858,7 @@ function readProjectState(projectId){
     const heroVideo = page.querySelector(".page__hero-media");
     const textEl = page.querySelector(".page__text");
     const cols = page.style.gridTemplateColumns || "";
-    const imgSize = cols.includes("220px") ? "small" : cols.includes("420px") ? "large" : "normal";
+    const imgSize = detectImgSize(cols);
     const blocks = [];
     if(heroImg){
       blocks.push({ type:"image", src:heroImg.src, imgSize, objectPosition:heroImg.style.objectPosition || "50% 50%" });
@@ -912,7 +912,16 @@ function readProjectState(projectId){
 }
 
 // ---- Construction d'éléments DOM depuis l'état (jamais de HTML texte : pas de risque d'échappement) ----
-const IMG_SIZE_COLUMNS = { small:"1fr 220px", normal:"1fr 320px", large:"1fr 420px" };
+const IMG_SIZE_COLUMNS = {
+  small:"1fr 220px", normal:"1fr 320px", large:"1fr 420px",
+  half:"1fr 1fr", twothirds:"1fr 2fr", full:"1fr",
+};
+function detectImgSize(cols){
+  for(const [key, val] of Object.entries(IMG_SIZE_COLUMNS)){
+    if(cols === val) return key;
+  }
+  return "normal";
+}
 
 function applyAccent(el, block){
   if(block.accentColor){
@@ -1664,6 +1673,22 @@ function renderBlockBody(block){
     });
     body.appendChild(modes);
 
+    const sizeGroup = doc.createElement("div");
+    sizeGroup.className = "pe-size-group";
+    [["half","1/2"], ["twothirds","2/3"], ["full","Pleine largeur"]].forEach(([key, label]) => {
+      const b = doc.createElement("button");
+      b.type = "button";
+      b.className = "pe-size-btn" + ((block.imgSize || "twothirds") === key ? " is-active" : "");
+      b.textContent = label;
+      b.addEventListener("click", () => { block.imgSize = key; liveUpdateSite(); renderPanel(); });
+      sizeGroup.appendChild(b);
+    });
+    body.appendChild(sizeGroup);
+    const sizeHint = doc.createElement("span");
+    sizeHint.className = "pe-hint";
+    sizeHint.textContent = "Ne s'applique que si c'est le 1er média de la page — le texte occupe l'espace restant à côté (sauf en pleine largeur).";
+    body.appendChild(sizeHint);
+
     if(block.mode === "youtube"){
       const urlInput = doc.createElement("input");
       urlInput.className = "pe-input"; urlInput.type = "text";
@@ -1685,10 +1710,6 @@ function renderBlockBody(block){
       urlInput.value = block.itchUrl || "";
       urlInput.addEventListener("input", () => { block.itchUrl = extractEmbedUrl(urlInput.value); liveUpdateSite(); });
       body.appendChild(urlInput);
-      const hint = doc.createElement("span");
-      hint.className = "pe-hint";
-      hint.textContent = "Sur la page de ton jeu itch.io : Éditer le jeu → Intégration → active \"Intégrer sur d'autres sites\" et colle le code fourni ici.";
-      body.appendChild(hint);
       if(block.itchUrl){
         const preview = doc.createElement("div");
         preview.className = "pe-video-preview pe-video-preview--itch";
