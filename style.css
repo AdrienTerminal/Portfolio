@@ -20,12 +20,9 @@
   --border:      3px;
   --ease:        cubic-bezier(.34,1.56,.64,1);
 
-  /* hauteur de la zone de contenu : fixe tant qu'on reste sur "Projects".
-     "About me" grandit d'environ 30% au total, mais réparti de façon
-     asymétrique : plus vers le haut que vers le bas (voir .card.is-about
-     plus bas, qui décale légèrement la carte vers le haut en plus). */
-  --body-h:       600px;
-  --body-h-about: min(680px, 72vh);
+  /* même hauteur pour "Projects" et "About me" — plus de changement de
+     taille de la carte au clic, seul le contenu se substitue en fondu */
+  --body-h:       640px;
 
   transition:background-color .35s ease;
 }
@@ -109,12 +106,7 @@ button{ font:inherit; color:inherit; background:none; border:none; cursor:pointe
   box-shadow:12px 12px 0 var(--ink);
   overflow:hidden;
   position:relative;
-  margin-top:0;
-  transition:margin-top .5s var(--ease);
 }
-/* la carte grandit surtout vers le haut plutôt que symétriquement :
-   30px ≈ 5% de --body-h, retirés du bas et ajoutés au haut */
-.card.is-about{ margin-top:-30px; }
 
 .card__topbar{
   display:flex; align-items:center; justify-content:space-between;
@@ -173,7 +165,6 @@ button{ font:inherit; color:inherit; background:none; border:none; cursor:pointe
   height:var(--body-h);
   transition:height .5s var(--ease);
 }
-.card.is-about .card__body{ height:var(--body-h-about); }
 
 .card__profile{
   padding:38px 26px;
@@ -496,7 +487,7 @@ h3[data-accent], .page__pitch[data-accent]{ color:var(--accent-color, var(--red-
    flèches pour naviguer si ça dépasse. ---- */
 .timeline{
   position:relative;
-  flex:1; min-height:0;
+  flex:1; min-height:240px;
   display:flex; align-items:center;
   overflow-x:auto; overflow-y:hidden;
   scroll-behavior:smooth;
@@ -668,7 +659,6 @@ h3[data-accent], .page__pitch[data-accent]{ color:var(--accent-color, var(--red-
     grid-template-rows:auto auto;
     height:auto !important;
   }
-  .card.is-about .card__body{ height:auto !important; }
 
   .card__profile{
     border-right:none; border-bottom:var(--border) solid var(--ink);
