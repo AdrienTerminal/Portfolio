@@ -299,13 +299,14 @@ button{ font:inherit; color:inherit; background:none; border:none; cursor:pointe
   position:absolute; inset:0;
   display:flex; flex-direction:column;
   opacity:0; pointer-events:none;
-  transform-origin:top center;
-  transform:scaleY(.08) translateY(-8px);
-  transition:opacity .38s var(--ease), transform .38s var(--ease);
+  clip-path:inset(0 0 100% 0);
+  transform:translateY(-8px);
+  transition:opacity .28s var(--ease), clip-path .42s var(--ease), transform .42s var(--ease);
 }
 .project-drawer.is-open{
   opacity:1; pointer-events:auto;
-  transform:scaleY(1) translateY(0);
+  clip-path:inset(0 0 0% 0);
+  transform:translateY(0);
 }
 
 .drawer__scroll{

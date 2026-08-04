@@ -88,7 +88,7 @@ tabs.forEach(tab => {
       l'animation en cours. Ouverture et fermeture utilisent le même
       fondu doux (scale + opacity, défini en CSS) dans les deux sens.
 ================================================================== */
-const TRANSITION_MS = 380; // doit correspondre à la transition CSS de .project-drawer
+const TRANSITION_MS = 420; // doit correspondre à la transition CSS de .project-drawer
 
 const pills   = document.querySelectorAll(".pill");
 const drawers = document.querySelectorAll(".project-drawer");
