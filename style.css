@@ -380,15 +380,17 @@ h3[data-accent], .page__pitch[data-accent]{ color:var(--accent-color, var(--red-
 }
 
 /* vidéo en position "héros" : même traitement que l'image héros.
-   max-height plafonne la taille en mode pleine largeur (une seule
-   colonne), où la hauteur ne serait sinon plus contrainte par la
-   colonne fixe habituelle. */
+   En mode pleine largeur (une seule colonne), la classe --capped
+   plafonne la hauteur ; dans les autres tailles, la vidéo s'étire
+   normalement pour remplir toute la hauteur de sa colonne, comme
+   l'image héros. */
 .page__hero-media{
-  width:100%; height:100%; max-height:340px;
+  width:100%; height:100%;
   border-radius:var(--radius-lg); border:2.5px solid var(--ink);
   box-shadow:5px 5px 0 var(--ink);
   overflow:hidden; background:#000;
 }
+.page__hero-media--capped{ max-height:340px; }
 .page__hero-media video{ width:100%; height:100%; object-fit:cover; display:block; }
 .page__hero-media iframe{ width:100%; height:100%; border:none; display:block; }
 

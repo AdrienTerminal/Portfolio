@@ -1042,7 +1042,7 @@ function buildPageElement(doc, pageData){
   }else if(hero.type === "video"){
     if(hero.imgSize && hero.imgSize !== "normal") page.style.gridTemplateColumns = IMG_SIZE_COLUMNS[hero.imgSize];
     const wrap = doc.createElement("div");
-    wrap.className = "page__hero-media";
+    wrap.className = "page__hero-media" + (hero.imgSize === "full" ? " page__hero-media--capped" : "");
     if(hero.mode === "youtube"){
       wrap.dataset.embedMode = "youtube";
       const ifr = doc.createElement("iframe");
