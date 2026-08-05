@@ -1392,38 +1392,95 @@ function liveUpdateSite(){
   injectEditing();
 }
 
-// Glisser-déposer natif : la poignée démarre le drag, mais c'est la
-// tuile entière qui sert de zone de dépôt (plus facile à viser).
-// Glisser-déposer "à la souris" plutôt que l'API HTML5 native : en
-// maintenant la poignée et en bougeant, le bloc suit et échange sa
-// place avec ses voisins EN DIRECT (pas juste au dépôt final). Un
-// clic droit pendant le maintien annule et remet tout à sa place
-// d'origine ; relâcher le clic gauche valide la nouvelle position.
+// Glisser-déposer "à la souris" : en maintenant la poignée, un vrai
+// clone du bloc ("ghost") flotte et suit le curseur, pendant que
+// l'original (invisible mais gardant sa place) se déplace dans la
+// liste — les autres blocs glissent alors fluidement pour lui faire
+// de la place (technique FLIP : on capture leur position avant/après
+// et on anime la différence). Le canevas défile tout seul si on
+// approche du haut ou du bas pendant le maintien. Clic droit pendant
+// le maintien = annuler et tout remettre à sa place ; relâcher = valider.
 function wireDragReorder(handleEl, containerEl, page){
   let dragging = false;
+  let ghost = null;
+  let offsetX = 0, offsetY = 0;
+  let lastClientX = 0, lastClientY = 0;
   let originalParent = null;
   let originalNextSibling = null;
   let originalBlocksSnapshot = null;
+  let rafId = null;
+
+  function scrollParent(){ return containerEl.closest(".project-editor__body"); }
 
   function siblingBlocks(){
     return [...containerEl.parentElement.children].filter(el => el.classList.contains("pe-block") && el !== containerEl);
   }
 
-  function onMouseMove(e){
-    if(!dragging) return;
+  function capturePositions(){
+    const map = new Map();
+    siblingBlocks().forEach(el => map.set(el, el.getBoundingClientRect()));
+    return map;
+  }
+
+  function playFlip(before){
+    const after = capturePositions();
+    after.forEach((afterRect, el) => {
+      const beforeRect = before.get(el);
+      if(!beforeRect) return;
+      const dx = beforeRect.left - afterRect.left;
+      const dy = beforeRect.top - afterRect.top;
+      if(Math.abs(dx) > .5 || Math.abs(dy) > .5){
+        el.style.transition = "none";
+        el.style.transform = `translate(${dx}px, ${dy}px)`;
+        el.getBoundingClientRect(); // force le reflow avant de relâcher la transition
+        requestAnimationFrame(() => {
+          el.style.transition = "transform .24s cubic-bezier(.2,.8,.3,1)";
+          el.style.transform = "";
+        });
+      }
+    });
+  }
+
+  function reorderIfNeeded(clientY){
     const parent = containerEl.parentElement;
     const others = siblingBlocks();
-    let placed = false;
+    let target = null;
     for(const el of others){
       const rect = el.getBoundingClientRect();
-      const midY = rect.top + rect.height / 2;
-      if(e.clientY < midY){
-        parent.insertBefore(containerEl, el);
-        placed = true;
-        break;
-      }
+      if(clientY < rect.top + rect.height / 2){ target = el; break; }
     }
-    if(!placed) parent.appendChild(containerEl);
+    if(containerEl.nextElementSibling === target) return;
+    const before = capturePositions();
+    if(target) parent.insertBefore(containerEl, target);
+    else parent.appendChild(containerEl);
+    playFlip(before);
+  }
+
+  function handleAutoScroll(clientY){
+    const scrollEl = scrollParent();
+    if(!scrollEl) return;
+    const rect = scrollEl.getBoundingClientRect();
+    const margin = 70;
+    let speed = 0;
+    if(clientY < rect.top + margin) speed = -Math.ceil((rect.top + margin - clientY) / 2.5);
+    else if(clientY > rect.bottom - margin) speed = Math.ceil((clientY - (rect.bottom - margin)) / 2.5);
+    if(speed) scrollEl.scrollTop += speed;
+  }
+
+  function tick(){
+    if(!dragging){ rafId = null; return; }
+    handleAutoScroll(lastClientY);
+    reorderIfNeeded(lastClientY);
+    rafId = requestAnimationFrame(tick);
+  }
+
+  function onMouseMove(e){
+    if(!dragging) return;
+    lastClientX = e.clientX; lastClientY = e.clientY;
+    if(ghost){
+      ghost.style.left = (e.clientX - offsetX) + "px";
+      ghost.style.top = (e.clientY - offsetY) + "px";
+    }
   }
 
   function syncArrayFromDom(){
@@ -1433,25 +1490,35 @@ function wireDragReorder(handleEl, containerEl, page){
     if(newOrder.length === page.blocks.length) page.blocks = newOrder;
   }
 
-  function endDrag(cancel){
-    if(!dragging) return;
-    dragging = false;
+  function cleanup(){
+    if(rafId){ cancelAnimationFrame(rafId); rafId = null; }
+    if(ghost){ ghost.remove(); ghost = null; }
     containerEl.classList.remove("is-dragging");
+    containerEl.style.visibility = "";
     document.removeEventListener("mousemove", onMouseMove);
     document.removeEventListener("mouseup", onMouseUp);
     document.removeEventListener("contextmenu", onRightClick);
     document.body.style.userSelect = "";
+  }
+
+  function endDrag(cancel){
+    if(!dragging) return;
+    dragging = false;
 
     if(cancel){
+      const before = capturePositions();
       if(originalNextSibling && originalNextSibling.parentElement === originalParent){
         originalParent.insertBefore(containerEl, originalNextSibling);
       }else{
         originalParent.appendChild(containerEl);
       }
+      playFlip(before);
       page.blocks = originalBlocksSnapshot;
+      cleanup();
       liveUpdateSite();
       toast("Déplacement annulé");
     }else{
+      cleanup();
       syncArrayFromDom();
       liveUpdateSite();
       saveDraft();
@@ -1469,11 +1536,27 @@ function wireDragReorder(handleEl, containerEl, page){
     originalParent = containerEl.parentElement;
     originalNextSibling = containerEl.nextSibling;
     originalBlocksSnapshot = [...page.blocks];
+    lastClientX = e.clientX; lastClientY = e.clientY;
+
+    const rect = containerEl.getBoundingClientRect();
+    offsetX = e.clientX - rect.left;
+    offsetY = e.clientY - rect.top;
+
+    ghost = containerEl.cloneNode(true);
+    ghost.classList.add("pe-block--ghost");
+    ghost.style.width = rect.width + "px";
+    ghost.style.left = rect.left + "px";
+    ghost.style.top = rect.top + "px";
+    document.body.appendChild(ghost);
+
     containerEl.classList.add("is-dragging");
+    containerEl.style.visibility = "hidden"; // garde sa place dans la liste, mais invisible : le ghost flotte à sa place visuelle
     document.body.style.userSelect = "none";
+
     document.addEventListener("mousemove", onMouseMove);
     document.addEventListener("mouseup", onMouseUp);
     document.addEventListener("contextmenu", onRightClick);
+    rafId = requestAnimationFrame(tick);
   });
   // clic droit direct sur la poignée sans avoir bougé : pas d'action
   // (seul un clic droit PENDANT un maintien-glisser annule)
