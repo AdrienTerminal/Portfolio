@@ -69,6 +69,7 @@ const btnUndo       = document.getElementById("btnUndo");
 const btnAddCard    = document.getElementById("btnAddCard");
 const saveStatus    = document.getElementById("saveStatus");
 const fileInput     = document.getElementById("fileInput");
+const videoFileInput = document.getElementById("videoFileInput");
 const toastEl       = document.getElementById("toast");
 
 const colorInputs = {
@@ -580,7 +581,99 @@ const MODULE_DEFS = {
     el.textContent = "Voir ↗"; el.dataset.fr = "Voir ↗"; el.dataset.en = "See ↗";
     return el;
   }},
+  video: { label:"Vidéo", make(doc){
+    const el = doc.createElement("div");
+    el.className = "mod__video mod-block";
+    el.dataset.mode = "";
+    return el;
+  }},
 };
+
+function extractYouTubeId(url){
+  const m = String(url || "").match(/(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{6,})/);
+  return m ? m[1] : "";
+}
+
+function renderVideoBlock(block){
+  block.innerHTML = "";
+  const doc = block.ownerDocument;
+  if(block.dataset.mode === "youtube" && block.dataset.youtubeId){
+    const ifr = doc.createElement("iframe");
+    ifr.src = "https://www.youtube.com/embed/" + block.dataset.youtubeId;
+    ifr.title = "Vidéo YouTube";
+    ifr.allow = "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture";
+    ifr.allowFullscreen = true;
+    block.appendChild(ifr);
+  }else if(block.dataset.mode === "upload" && block.dataset.src){
+    const v = doc.createElement("video");
+    v.src = block.dataset.src; v.controls = true;
+    block.appendChild(v);
+  }else{
+    const placeholder = doc.createElement("div");
+    placeholder.className = "mod__video-placeholder";
+    placeholder.textContent = "Aucune vidéo — clique sur le badge pour en ajouter une";
+    block.appendChild(placeholder);
+  }
+}
+
+let currentVideoTarget = null;
+
+function editVideoBlock(block){
+  const currentUrl = block.dataset.mode === "youtube" && block.dataset.youtubeId
+    ? "https://youtu.be/" + block.dataset.youtubeId : "";
+  const url = prompt("Colle un lien YouTube, ou laisse vide et valide pour importer un fichier MP4 :", currentUrl);
+  if(url === null) return; // annulé
+
+  if(url.trim() === ""){
+    currentVideoTarget = block;
+    videoFileInput.value = "";
+    videoFileInput.click();
+    return;
+  }
+  const id = extractYouTubeId(url);
+  if(!id){ toast("Lien YouTube non reconnu"); return; }
+
+  const prevMode = block.dataset.mode, prevId = block.dataset.youtubeId, prevSrc = block.dataset.src;
+  block.dataset.mode = "youtube";
+  block.dataset.youtubeId = id;
+  delete block.dataset.src;
+  renderVideoBlock(block);
+  recordUndo(() => {
+    block.dataset.mode = prevMode || "";
+    if(prevId) block.dataset.youtubeId = prevId; else delete block.dataset.youtubeId;
+    if(prevSrc) block.dataset.src = prevSrc; else delete block.dataset.src;
+    renderVideoBlock(block);
+  });
+  saveDraft();
+  toast("Vidéo mise à jour");
+}
+
+videoFileInput.addEventListener("change", () => {
+  const file = videoFileInput.files[0];
+  if(!file || !currentVideoTarget) return;
+  const block = currentVideoTarget;
+  if(file.size > 15 * 1024 * 1024){
+    toast("⚠ Vidéo trop lourde (15 Mo max) — héberge-la ailleurs et utilise plutôt un lien YouTube");
+    return;
+  }
+  const prevMode = block.dataset.mode, prevId = block.dataset.youtubeId, prevSrc = block.dataset.src;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    block.dataset.mode = "upload";
+    block.dataset.src = e.target.result;
+    delete block.dataset.youtubeId;
+    renderVideoBlock(block);
+    recordUndo(() => {
+      block.dataset.mode = prevMode || "";
+      if(prevId) block.dataset.youtubeId = prevId; else delete block.dataset.youtubeId;
+      if(prevSrc) block.dataset.src = prevSrc; else delete block.dataset.src;
+      renderVideoBlock(block);
+    });
+    saveDraft();
+    toast("Vidéo importée");
+  };
+  reader.readAsDataURL(file);
+});
 
 // Petit bouton "+ X" générique pour ajouter un élément à l'intérieur
 // d'un module (une ligne de liste, un tag, une stat...).
@@ -611,6 +704,16 @@ function wireModuleBlock(block){
       { icon:"delete", title:"Supprimer ce module", danger:true, onClick:() => removeSimple(wrap) },
     ]);
     addDragHandle(wrap, wrap);
+    return;
+  }
+
+  if(block.classList.contains("mod__video")){
+    if(!block.children.length) renderVideoBlock(block);
+    addBadges(block, [
+      { icon:"link", title:"Modifier la vidéo (YouTube ou MP4)", onClick:() => editVideoBlock(block) },
+      { icon:"delete", title:"Supprimer ce module", danger:true, onClick:() => removeSimple(block) },
+    ]);
+    addDragHandle(block, block);
     return;
   }
 
@@ -826,10 +929,11 @@ function wireModuleDragReorder(handleEl, containerEl){
     if(rafId){ cancelAnimationFrame(rafId); rafId = null; }
     if(ghost){ ghost.remove(); ghost = null; }
     containerEl.style.visibility = "";
-    document.removeEventListener("mousemove", onMouseMove);
-    document.removeEventListener("mouseup", onMouseUp);
-    document.removeEventListener("contextmenu", onRightClick);
-    document.body.style.userSelect = "";
+    const siteDoc = containerEl.ownerDocument;
+    siteDoc.removeEventListener("mousemove", onMouseMove);
+    siteDoc.removeEventListener("mouseup", onMouseUp);
+    siteDoc.removeEventListener("contextmenu", onRightClick);
+    if(siteDoc.body) siteDoc.body.style.userSelect = "";
   }
   function endDrag(cancel){
     if(!dragging) return;
@@ -866,6 +970,16 @@ function wireModuleDragReorder(handleEl, containerEl){
     offsetX = e.clientX - rect.left;
     offsetY = e.clientY - rect.top;
 
+    // IMPORTANT : ce script tourne dans la page de l'éditeur, mais
+    // containerEl vit DANS L'IFRAME du site — il faut impérativement
+    // utiliser son propre document (ownerDocument), jamais le
+    // "document" global (qui pointerait vers la page de l'éditeur).
+    // C'était le vrai bug : les écouteurs de mousemove/mouseup étaient
+    // posés sur le mauvais document, ne captaient donc jamais rien une
+    // fois la souris au-dessus du site, et le glisser restait bloqué
+    // pour de bon (élément resté invisible, ghost égaré).
+    const siteDoc = containerEl.ownerDocument;
+
     // Le ghost est un clone purement visuel : on retire tout élément
     // d'édition (badges, poignées, boutons "+") pour ne jamais avoir
     // deux jeux de contrôles interactifs superposés.
@@ -876,12 +990,12 @@ function wireModuleDragReorder(handleEl, containerEl){
     ghost.style.width = rect.width + "px";
     ghost.style.left = rect.left + "px";
     ghost.style.top = rect.top + "px";
-    document.body.appendChild(ghost);
+    siteDoc.body.appendChild(ghost);
     containerEl.style.visibility = "hidden";
-    document.body.style.userSelect = "none";
-    document.addEventListener("mousemove", onMouseMove);
-    document.addEventListener("mouseup", onMouseUp);
-    document.addEventListener("contextmenu", onRightClick);
+    siteDoc.body.style.userSelect = "none";
+    siteDoc.addEventListener("mousemove", onMouseMove);
+    siteDoc.addEventListener("mouseup", onMouseUp);
+    siteDoc.addEventListener("contextmenu", onRightClick);
     rafId = requestAnimationFrame(tick);
   });
   handleEl.addEventListener("contextmenu", (e) => { if(!dragging) e.preventDefault(); });
@@ -943,6 +1057,22 @@ function injectEditingInner(doc){
       .editor-badge--danger{ border-color:#E45858; }
       .editor-badge--danger:hover{ background:#E45858; color:#fff; }
       .editor-img-wrap{ position:relative; width:100%; height:100%; }
+
+      /* les tags et stats sont trop petits pour un badge "normal" posé
+         par-dessus (il débordait n'importe comment) : badge plus petit,
+         posé juste à l'extérieur du coin plutôt que par-dessus */
+      .mod__tags span > .editor-badges,
+      .mod__stat > .editor-badges{
+        top:-8px; right:-8px;
+      }
+      .mod__tags span > .editor-badges .editor-badge,
+      .mod__stat > .editor-badges .editor-badge{
+        width:16px; height:16px;
+      }
+      .mod__tags span > .editor-badges .editor-badge svg,
+      .mod__stat > .editor-badges .editor-badge svg{
+        width:9px; height:9px;
+      }
 
       .editor-add-social{
         width:30px; height:30px; border-radius:50%;

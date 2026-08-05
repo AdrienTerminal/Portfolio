@@ -53,7 +53,7 @@ const navNextBtn = document.getElementById("navNextBtn");
 
 let currentIndex = 0;
 
-function renderNav(){
+function renderNav(direction){
   const prevIdx = (currentIndex - 1 + SECTIONS.length) % SECTIONS.length;
   const nextIdx = (currentIndex + 1) % SECTIONS.length;
   const cur = SECTIONS[currentIndex];
@@ -66,34 +66,46 @@ function renderNav(){
   navPrevLabel.dataset.target = prev.id;
   navNextLabel.dataset.target = next.id;
 
-  // rejoue l'animation d'apparition du titre à chaque changement
-  navTitle.classList.remove("is-animating");
+  // le carrousel "tourne" vers le côté cliqué (ou un simple pop si on
+  // ne sait pas d'où vient le changement, ex : juste la langue)
+  const titleClass = direction === "prev" ? "is-animating-prev" : "is-animating-next";
+  const otherTitleClass = direction === "prev" ? "is-animating-next" : "is-animating-prev";
+  navTitle.classList.remove(titleClass, otherTitleClass);
+  navPrevLabel.classList.remove(titleClass, otherTitleClass);
+  navNextLabel.classList.remove(titleClass, otherTitleClass);
   void navTitle.offsetWidth; // force le navigateur à "oublier" l'état précédent
-  navTitle.classList.add("is-animating");
+  navTitle.classList.add(titleClass);
+  navPrevLabel.classList.add(titleClass);
+  navNextLabel.classList.add(titleClass);
 
   panels.forEach(p => p.classList.toggle("is-active", p.dataset.panel === cur.id));
 }
 
-function goToIndex(i){
-  currentIndex = (i + SECTIONS.length) % SECTIONS.length;
+function goToIndex(i, direction){
+  const newIndex = (i + SECTIONS.length) % SECTIONS.length;
+  if(!direction){
+    const diff = (newIndex - currentIndex + SECTIONS.length) % SECTIONS.length;
+    direction = diff === 1 ? "next" : "prev";
+  }
+  currentIndex = newIndex;
   closeProjectDetail();
-  renderNav();
+  renderNav(direction);
 }
-function goToId(id){
+function goToId(id, direction){
   const idx = SECTIONS.findIndex(s => s.id === id);
-  if(idx !== -1) goToIndex(idx);
+  if(idx !== -1) goToIndex(idx, direction);
 }
 
-navPrevBtn.addEventListener("click", () => goToIndex(currentIndex - 1));
-navNextBtn.addEventListener("click", () => goToIndex(currentIndex + 1));
-navPrevLabel.addEventListener("click", () => goToId(navPrevLabel.dataset.target));
-navNextLabel.addEventListener("click", () => goToId(navNextLabel.dataset.target));
+navPrevBtn.addEventListener("click", () => goToIndex(currentIndex - 1, "prev"));
+navNextBtn.addEventListener("click", () => goToIndex(currentIndex + 1, "next"));
+navPrevLabel.addEventListener("click", () => goToId(navPrevLabel.dataset.target, "prev"));
+navNextLabel.addEventListener("click", () => goToId(navNextLabel.dataset.target, "next"));
 
 // clavier : flèches gauche/droite pour naviguer (pratique, discret)
 document.addEventListener("keydown", (e) => {
   if(e.target.closest("input, textarea, [contenteditable='true']")) return;
-  if(e.key === "ArrowLeft") goToIndex(currentIndex - 1);
-  if(e.key === "ArrowRight") goToIndex(currentIndex + 1);
+  if(e.key === "ArrowLeft") goToIndex(currentIndex - 1, "prev");
+  if(e.key === "ArrowRight") goToIndex(currentIndex + 1, "next");
 });
 
 

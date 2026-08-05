@@ -197,26 +197,25 @@ body::after{
 .hud__main{ display:flex; flex-direction:column; min-width:0; }
 .hud__nav{
   display:grid; grid-template-columns:minmax(0,1fr) auto auto auto minmax(0,1fr);
-  align-items:center; gap:14px;
-  padding:22px 26px;
+  align-items:center; gap:18px;
+  padding:24px 20px;
   border-bottom:var(--border) solid var(--gold-dim);
   background:linear-gradient(180deg, var(--panel-alt), var(--panel));
+  overflow:hidden;
 }
+/* les 3 titres partagent exactement la même typo — seule la taille et
+   l'opacité distinguent celui du centre de ceux des côtés */
 .hud__nav-side{
-  font-family:var(--font-mono); font-size:.72rem; font-weight:700; letter-spacing:.06em;
-  color:var(--muted); background:rgba(200,170,110,.06);
-  border:1px solid rgba(200,170,110,.16);
-  padding:8px 16px; border-radius:100px;
-  cursor:pointer; text-transform:uppercase;
-  transition:color .18s ease, background-color .18s ease, border-color .18s ease, transform .18s ease;
+  font-family:var(--font-display); font-weight:700; font-size:1.15rem;
+  letter-spacing:.04em; text-transform:uppercase;
+  color:var(--gold-bright); opacity:.4;
+  background:transparent; border:none; cursor:pointer;
   overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+  transition:opacity .2s ease, transform .2s ease;
 }
-.hud__nav-side--prev{ justify-self:end; }
-.hud__nav-side--next{ justify-self:start; }
-.hud__nav-side:hover{
-  color:var(--gold-bright); background:rgba(200,170,110,.16); border-color:var(--gold);
-  transform:translateY(-1px);
-}
+.hud__nav-side--prev{ justify-self:end; text-align:right; }
+.hud__nav-side--next{ justify-self:start; text-align:left; }
+.hud__nav-side:hover{ opacity:.75; transform:scale(1.05); }
 .hud__nav-arrow{
   width:32px; height:32px; border-radius:50%;
   background:rgba(200,170,110,.08); border:1.5px solid var(--gold-dim); color:var(--gold);
@@ -240,12 +239,23 @@ body::after{
   width:46px; height:2px;
   background:linear-gradient(90deg, transparent, var(--gold-bright), transparent);
 }
-.hud__nav-title.is-animating{ animation:nav-title-pop .5s cubic-bezier(.22,.9,.3,1.05); }
-@keyframes nav-title-pop{
-  0%{ opacity:0; transform:translateY(10px) scale(.92); filter:blur(4px); }
-  55%{ opacity:1; transform:translateY(-2px) scale(1.04); filter:blur(0); }
-  100%{ opacity:1; transform:translateY(0) scale(1); }
+/* rotation directionnelle : le carrousel "tourne" visuellement vers
+   le côté cliqué — titre entrant depuis la direction du mouvement,
+   étiquettes latérales qui suivent le mouvement elles aussi */
+.hud__nav-title.is-animating-next{ animation:nav-rotate-next-title .5s cubic-bezier(.22,.88,.3,1.04); }
+.hud__nav-title.is-animating-prev{ animation:nav-rotate-prev-title .5s cubic-bezier(.22,.88,.3,1.04); }
+@keyframes nav-rotate-next-title{
+  0%{ opacity:0; transform:translateX(36px) scale(.9); filter:blur(4px); }
+  100%{ opacity:1; transform:none; filter:blur(0); }
 }
+@keyframes nav-rotate-prev-title{
+  0%{ opacity:0; transform:translateX(-36px) scale(.9); filter:blur(4px); }
+  100%{ opacity:1; transform:none; filter:blur(0); }
+}
+.hud__nav-side.is-animating-next{ animation:nav-rotate-next-side .5s cubic-bezier(.22,.88,.3,1.04); }
+.hud__nav-side.is-animating-prev{ animation:nav-rotate-prev-side .5s cubic-bezier(.22,.88,.3,1.04); }
+@keyframes nav-rotate-next-side{ 0%{ opacity:0; transform:translateX(20px); } 100%{ opacity:.4; transform:none; } }
+@keyframes nav-rotate-prev-side{ 0%{ opacity:0; transform:translateX(-20px); } 100%{ opacity:.4; transform:none; } }
 
 .hud__content{ flex:1; min-height:0; position:relative; overflow:hidden; }
 .hud__panel{
@@ -295,6 +305,17 @@ body::after{
   transition:border-color .15s ease;
 }
 .mod__link:hover{ border-color:var(--cyan); }
+
+.mod__video{
+  width:100%; max-width:640px; aspect-ratio:16/9;
+  border:1.5px solid var(--gold-dim); background:#000; overflow:hidden;
+}
+.mod__video iframe, .mod__video video{ width:100%; height:100%; display:block; border:none; object-fit:cover; }
+.mod__video-placeholder{
+  width:100%; height:100%; display:flex; align-items:center; justify-content:center;
+  font-family:var(--font-mono); font-size:.8rem; color:var(--muted);
+  background:var(--panel-alt); text-align:center; padding:20px;
+}
 
 /* ---- Projets ---- */
 .hud__projects{
