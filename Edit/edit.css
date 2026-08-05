@@ -293,7 +293,11 @@ body{
   transition:opacity .15s ease, transform .15s ease;
 }
 .pe-block:hover{ transform:translateY(-2px); }
-.pe-block.is-dragging{ opacity:.35; }
+.pe-block.is-dragging{
+  opacity:.85; box-shadow:0 10px 24px -6px rgba(0,0,0,.35);
+  transform:scale(1.02) rotate(-.6deg);
+  cursor:grabbing; z-index:20; position:relative;
+}
 .pe-block.is-just-added{ animation:pe-block-added .9s ease; }
 @keyframes pe-block-added{
   0%{ box-shadow:0 0 0 4px var(--pe-blue); transform:scale(1.03); }

@@ -1025,7 +1025,8 @@ function buildPageElement(doc, pageData){
     if(el) textWrap.appendChild(el);
   });
 
-  page.appendChild(textWrap);
+  const hasOtherContent = textWrap.children.length > 0;
+  if(hasOtherContent) page.appendChild(textWrap);
 
   if(!hero){
     // aucune image ni vidéo : le texte occupe toute la largeur, pas de
@@ -1041,8 +1042,12 @@ function buildPageElement(doc, pageData){
     page.appendChild(img);
   }else if(hero.type === "video"){
     if(hero.imgSize && hero.imgSize !== "normal") page.style.gridTemplateColumns = IMG_SIZE_COLUMNS[hero.imgSize];
+    // pleine largeur ET seul contenu de la page : occupe vraiment toute
+    // la page (pas de plafond de hauteur, puisqu'il n'y a rien d'autre
+    // avec qui partager l'espace).
+    const capped = hero.imgSize === "full" && hasOtherContent;
     const wrap = doc.createElement("div");
-    wrap.className = "page__hero-media" + (hero.imgSize === "full" ? " page__hero-media--capped" : "");
+    wrap.className = "page__hero-media" + (capped ? " page__hero-media--capped" : "");
     if(hero.mode === "youtube"){
       wrap.dataset.embedMode = "youtube";
       const ifr = doc.createElement("iframe");
@@ -1329,25 +1334,31 @@ function renderCanvas(){
     peCanvas.appendChild(renderBlock(page, block, blockIndex));
   });
 
-  peCanvas.addEventListener("dragover", (e) => {
-    if(e.dataTransfer.types.includes("text/pe-new-block")){ e.preventDefault(); peCanvas.classList.add("is-drop-ready"); }
-  });
-  peCanvas.addEventListener("dragleave", (e) => {
-    if(e.target === peCanvas) peCanvas.classList.remove("is-drop-ready");
-  });
-  peCanvas.addEventListener("drop", (e) => {
-    const key = e.dataTransfer.getData("text/pe-new-block");
-    peCanvas.classList.remove("is-drop-ready");
-    if(key && BLOCK_DEFS[key]){
-      e.preventDefault();
-      page.blocks.push(BLOCK_DEFS[key].make());
-      renderPanel();
-      scrollToLastBlock();
-    }
-  });
-
   liveUpdateSite();
 }
+
+// Câblés UNE SEULE FOIS (pas à chaque rendu du canevas — c'était le
+// bug qui faisait apparaître des dizaines de modules d'un coup en
+// glisser-déposer : les écouteurs s'accumulaient à chaque appel de
+// renderCanvas() sans jamais être retirés, un seul dépôt en déclenchait
+// alors autant que de rendus déjà effectués).
+peCanvas.addEventListener("dragover", (e) => {
+  if(e.dataTransfer.types.includes("text/pe-new-block")){ e.preventDefault(); peCanvas.classList.add("is-drop-ready"); }
+});
+peCanvas.addEventListener("dragleave", (e) => {
+  if(e.target === peCanvas) peCanvas.classList.remove("is-drop-ready");
+});
+peCanvas.addEventListener("drop", (e) => {
+  const key = e.dataTransfer.getData("text/pe-new-block");
+  peCanvas.classList.remove("is-drop-ready");
+  if(key && BLOCK_DEFS[key] && peState){
+    e.preventDefault();
+    const page = peState.pages[peState.activePage];
+    page.blocks.push(BLOCK_DEFS[key].make());
+    renderPanel();
+    scrollToLastBlock();
+  }
+});
 
 // ---- Mise à jour en direct SUR LE VRAI SITE : chaque page éditée est
 // reconstruite et remplacée à sa place dans le vrai tiroir, pendant
@@ -1383,29 +1394,90 @@ function liveUpdateSite(){
 
 // Glisser-déposer natif : la poignée démarre le drag, mais c'est la
 // tuile entière qui sert de zone de dépôt (plus facile à viser).
-function wireDragReorder(handleEl, containerEl, index, onReorder){
-  handleEl.draggable = true;
-  handleEl.addEventListener("dragstart", (e) => {
-    e.dataTransfer.effectAllowed = "move";
-    e.dataTransfer.setData("text/plain", String(index));
-    try{ e.dataTransfer.setDragImage(containerEl, 14, 14); }catch(err){}
-    containerEl.classList.add("is-dragging");
-  });
-  handleEl.addEventListener("dragend", () => containerEl.classList.remove("is-dragging"));
+// Glisser-déposer "à la souris" plutôt que l'API HTML5 native : en
+// maintenant la poignée et en bougeant, le bloc suit et échange sa
+// place avec ses voisins EN DIRECT (pas juste au dépôt final). Un
+// clic droit pendant le maintien annule et remet tout à sa place
+// d'origine ; relâcher le clic gauche valide la nouvelle position.
+function wireDragReorder(handleEl, containerEl, page){
+  let dragging = false;
+  let originalParent = null;
+  let originalNextSibling = null;
+  let originalBlocksSnapshot = null;
 
-  containerEl.addEventListener("dragover", (e) => {
-    if(!e.dataTransfer.types.includes("text/plain")) return;
-    e.preventDefault(); e.stopPropagation();
-    containerEl.classList.add("is-drop-target");
+  function siblingBlocks(){
+    return [...containerEl.parentElement.children].filter(el => el.classList.contains("pe-block") && el !== containerEl);
+  }
+
+  function onMouseMove(e){
+    if(!dragging) return;
+    const parent = containerEl.parentElement;
+    const others = siblingBlocks();
+    let placed = false;
+    for(const el of others){
+      const rect = el.getBoundingClientRect();
+      const midY = rect.top + rect.height / 2;
+      if(e.clientY < midY){
+        parent.insertBefore(containerEl, el);
+        placed = true;
+        break;
+      }
+    }
+    if(!placed) parent.appendChild(containerEl);
+  }
+
+  function syncArrayFromDom(){
+    const parent = containerEl.parentElement;
+    const ordered = [...parent.children].filter(el => el.classList.contains("pe-block"));
+    const newOrder = ordered.map(el => el._peBlockRef).filter(Boolean);
+    if(newOrder.length === page.blocks.length) page.blocks = newOrder;
+  }
+
+  function endDrag(cancel){
+    if(!dragging) return;
+    dragging = false;
+    containerEl.classList.remove("is-dragging");
+    document.removeEventListener("mousemove", onMouseMove);
+    document.removeEventListener("mouseup", onMouseUp);
+    document.removeEventListener("contextmenu", onRightClick);
+    document.body.style.userSelect = "";
+
+    if(cancel){
+      if(originalNextSibling && originalNextSibling.parentElement === originalParent){
+        originalParent.insertBefore(containerEl, originalNextSibling);
+      }else{
+        originalParent.appendChild(containerEl);
+      }
+      page.blocks = originalBlocksSnapshot;
+      liveUpdateSite();
+      toast("Déplacement annulé");
+    }else{
+      syncArrayFromDom();
+      liveUpdateSite();
+      saveDraft();
+      renderCanvas();
+    }
+  }
+
+  function onMouseUp(){ endDrag(false); }
+  function onRightClick(e){ e.preventDefault(); e.stopPropagation(); endDrag(true); }
+
+  handleEl.addEventListener("mousedown", (e) => {
+    if(e.button !== 0) return; // clic gauche uniquement
+    e.preventDefault();
+    dragging = true;
+    originalParent = containerEl.parentElement;
+    originalNextSibling = containerEl.nextSibling;
+    originalBlocksSnapshot = [...page.blocks];
+    containerEl.classList.add("is-dragging");
+    document.body.style.userSelect = "none";
+    document.addEventListener("mousemove", onMouseMove);
+    document.addEventListener("mouseup", onMouseUp);
+    document.addEventListener("contextmenu", onRightClick);
   });
-  containerEl.addEventListener("dragleave", () => containerEl.classList.remove("is-drop-target"));
-  containerEl.addEventListener("drop", (e) => {
-    if(!e.dataTransfer.types.includes("text/plain")) return;
-    e.preventDefault(); e.stopPropagation();
-    containerEl.classList.remove("is-drop-target");
-    const fromIndex = parseInt(e.dataTransfer.getData("text/plain"), 10);
-    if(!Number.isNaN(fromIndex) && fromIndex !== index) onReorder(fromIndex, index);
-  });
+  // clic droit direct sur la poignée sans avoir bougé : pas d'action
+  // (seul un clic droit PENDANT un maintien-glisser annule)
+  handleEl.addEventListener("contextmenu", (e) => { if(!dragging) e.preventDefault(); });
 }
 
 function peIconBtn(label, title, disabled, onClick, danger){
@@ -1492,6 +1564,7 @@ function renderBlock(page, block, blockIndex){
   const wrap = doc.createElement("div");
   wrap.className = "pe-block";
   wrap.dataset.blockType = blockVisualType(block);
+  wrap._peBlockRef = block;
 
   const head = doc.createElement("div");
   head.className = "pe-block__head";
@@ -1500,7 +1573,7 @@ function renderBlock(page, block, blockIndex){
   const handle = doc.createElement("span");
   handle.className = "pe-drag-handle";
   handle.textContent = "⠿";
-  handle.title = "Glisser pour réordonner";
+  handle.title = "Maintenir pour déplacer (clic droit pendant le déplacement = annuler)";
   const label = doc.createElement("span");
   label.className = "pe-block__label";
   label.textContent = BLOCK_DEFS[blockVisualType(block)]?.label || block.type;
@@ -1513,11 +1586,7 @@ function renderBlock(page, block, blockIndex){
   head.appendChild(headLeft); head.appendChild(actions);
   wrap.appendChild(head);
 
-  wireDragReorder(handle, wrap, blockIndex, (from, to) => {
-    const [b] = page.blocks.splice(from, 1);
-    page.blocks.splice(to, 0, b);
-    renderPanel();
-  });
+  wireDragReorder(handle, wrap, page);
 
   wrap.appendChild(renderBlockBody(block));
   return wrap;
