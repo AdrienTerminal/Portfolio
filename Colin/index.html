@@ -14,7 +14,7 @@
 <meta property="og:image" content="og-image.jpg">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -117,30 +117,72 @@
         <!-- ================= PROJETS ================= -->
         <section class="hud__panel" data-panel="projects">
           <div class="hud__projects" id="projectsGrid">
-            <!-- ⚙️ À REMPLACER : une carte = une image, un titre, un corps de métier, un texte, un lien -->
-            <article class="hud__card">
-              <img class="hud__card-img" src="https://placehold.co/400x220/0F2124/2DD4C8?text=Projet+1" alt="">
+            <!-- ⚙️ À REMPLACER : une carte = une image, un titre, un corps de métier, un texte. Le bouton "Voir plus" ouvre la page de détail correspondante juste en dessous. -->
+            <article class="hud__card" data-project-card="p1">
+              <img class="hud__card-img" src="https://placehold.co/400x220/0F2124/C8AA6E?text=Projet+1" alt="">
               <h3 class="hud__card-title" data-fr="Titre projet 1" data-en="Project 1 title">Titre projet 1</h3>
               <span class="hud__card-role" data-fr="Corps de métier" data-en="Field/role">Corps de métier</span>
               <p class="hud__card-text" data-fr="Lorem ipsum dolor sit amet, consectetur adipiscing elit." data-en="Lorem ipsum dolor sit amet, consectetur adipiscing elit.">Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
-              <a class="hud__card-link" href="#" target="_blank" rel="noopener" data-fr="Voir le projet ↗" data-en="View project ↗">Voir le projet ↗</a>
+              <button type="button" class="hud__card-more" data-project-target="p1" data-fr="Voir plus →" data-en="See more →">Voir plus →</button>
             </article>
 
-            <article class="hud__card">
-              <img class="hud__card-img" src="https://placehold.co/400x220/0F2124/E8B34C?text=Projet+2" alt="">
+            <article class="hud__card" data-project-card="p2">
+              <img class="hud__card-img" src="https://placehold.co/400x220/0F2124/0AC8B9?text=Projet+2" alt="">
               <h3 class="hud__card-title" data-fr="Titre projet 2" data-en="Project 2 title">Titre projet 2</h3>
               <span class="hud__card-role" data-fr="Corps de métier" data-en="Field/role">Corps de métier</span>
               <p class="hud__card-text" data-fr="Lorem ipsum dolor sit amet, consectetur adipiscing elit." data-en="Lorem ipsum dolor sit amet, consectetur adipiscing elit.">Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
-              <a class="hud__card-link" href="#" target="_blank" rel="noopener" data-fr="Voir le projet ↗" data-en="View project ↗">Voir le projet ↗</a>
+              <button type="button" class="hud__card-more" data-project-target="p2" data-fr="Voir plus →" data-en="See more →">Voir plus →</button>
             </article>
 
-            <article class="hud__card">
-              <img class="hud__card-img" src="https://placehold.co/400x220/0F2124/2DD4C8?text=Projet+3" alt="">
+            <article class="hud__card" data-project-card="p3">
+              <img class="hud__card-img" src="https://placehold.co/400x220/0F2124/C8AA6E?text=Projet+3" alt="">
               <h3 class="hud__card-title" data-fr="Titre projet 3" data-en="Project 3 title">Titre projet 3</h3>
               <span class="hud__card-role" data-fr="Corps de métier" data-en="Field/role">Corps de métier</span>
               <p class="hud__card-text" data-fr="Lorem ipsum dolor sit amet, consectetur adipiscing elit." data-en="Lorem ipsum dolor sit amet, consectetur adipiscing elit.">Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
-              <a class="hud__card-link" href="#" target="_blank" rel="noopener" data-fr="Voir le projet ↗" data-en="View project ↗">Voir le projet ↗</a>
+              <button type="button" class="hud__card-more" data-project-target="p3" data-fr="Voir plus →" data-en="See more →">Voir plus →</button>
             </article>
+          </div>
+
+          <!-- ================= PAGES DE DÉTAIL PROJET — même système de modules qu'Accueil / Qui suis-je ================= -->
+          <div class="hud__project-detail" id="projectDetail" hidden>
+            <button type="button" class="hud__detail-back" id="detailBackBtn" data-fr="← Retour aux projets" data-en="← Back to projects">← Retour aux projets</button>
+
+            <div class="hud__detail-body" data-project-id="p1" hidden>
+              <div class="hud__modules" id="projectModules-p1">
+                <!-- ⚙️ À REMPLACER : le module "+" en bas permet d'ajouter Titre, Texte, Tags, Liste, Stats, Image ou Lien librement -->
+                <h3 class="mod__title mod-block" data-fr="Titre projet 1" data-en="Project 1 title">Titre projet 1</h3>
+                <img class="mod__image mod-block" src="https://placehold.co/700x360/0F2124/C8AA6E?text=Projet+1" alt="">
+                <p class="mod__text mod-block" data-fr="Lorem ipsum dolor sit amet, consectetur adipiscing elit. Praesent sit amet lectus non nisi pellentesque vestibulum. Sed ut perspiciatis unde omnis iste natus error." data-en="Lorem ipsum dolor sit amet, consectetur adipiscing elit. Praesent sit amet lectus non nisi pellentesque vestibulum. Sed ut perspiciatis unde omnis iste natus error.">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Praesent sit amet lectus non nisi pellentesque vestibulum. Sed ut perspiciatis unde omnis iste natus error.</p>
+                <div class="mod__tags mod-block">
+                  <span data-fr="Outil" data-en="Tool">Outil</span>
+                  <span data-fr="Outil" data-en="Tool">Outil</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="hud__detail-body" data-project-id="p2" hidden>
+              <div class="hud__modules" id="projectModules-p2">
+                <h3 class="mod__title mod-block" data-fr="Titre projet 2" data-en="Project 2 title">Titre projet 2</h3>
+                <img class="mod__image mod-block" src="https://placehold.co/700x360/0F2124/0AC8B9?text=Projet+2" alt="">
+                <p class="mod__text mod-block" data-fr="Lorem ipsum dolor sit amet, consectetur adipiscing elit. Praesent sit amet lectus non nisi pellentesque vestibulum. Sed ut perspiciatis unde omnis iste natus error." data-en="Lorem ipsum dolor sit amet, consectetur adipiscing elit. Praesent sit amet lectus non nisi pellentesque vestibulum. Sed ut perspiciatis unde omnis iste natus error.">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Praesent sit amet lectus non nisi pellentesque vestibulum. Sed ut perspiciatis unde omnis iste natus error.</p>
+                <div class="mod__tags mod-block">
+                  <span data-fr="Outil" data-en="Tool">Outil</span>
+                  <span data-fr="Outil" data-en="Tool">Outil</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="hud__detail-body" data-project-id="p3" hidden>
+              <div class="hud__modules" id="projectModules-p3">
+                <h3 class="mod__title mod-block" data-fr="Titre projet 3" data-en="Project 3 title">Titre projet 3</h3>
+                <img class="mod__image mod-block" src="https://placehold.co/700x360/0F2124/C8AA6E?text=Projet+3" alt="">
+                <p class="mod__text mod-block" data-fr="Lorem ipsum dolor sit amet, consectetur adipiscing elit. Praesent sit amet lectus non nisi pellentesque vestibulum. Sed ut perspiciatis unde omnis iste natus error." data-en="Lorem ipsum dolor sit amet, consectetur adipiscing elit. Praesent sit amet lectus non nisi pellentesque vestibulum. Sed ut perspiciatis unde omnis iste natus error.">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Praesent sit amet lectus non nisi pellentesque vestibulum. Sed ut perspiciatis unde omnis iste natus error.</p>
+                <div class="mod__tags mod-block">
+                  <span data-fr="Outil" data-en="Tool">Outil</span>
+                  <span data-fr="Outil" data-en="Tool">Outil</span>
+                </div>
+              </div>
+            </div>
           </div>
         </section>
 

@@ -6,7 +6,7 @@
 <title>Éditeur — Colin Vialle Portfolio</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="edit.css?v=2">
+<link rel="stylesheet" href="edit.css?v=3">
 </head>
 <body>
 
@@ -14,7 +14,7 @@
   <div class="toolbar__brand">
     <span class="dot"></span>
     <span>SITE EDITOR</span>
-    <span class="version-badge" title="Vérifie que ce numéro correspond bien à la dernière version que Claude t'a donnée">v2</span>
+    <span class="version-badge" title="Vérifie que ce numéro correspond bien à la dernière version que Claude t'a donnée">v3</span>
   </div>
 
   <div class="toolbar__group">
@@ -50,7 +50,7 @@
   <p><strong>Survole</strong> une image, un lien ou une carte projet pour voir apparaître un petit badge d'action. Un clic dessus fait exactement une chose (changer la photo, modifier le lien, supprimer...).</p>
   <p><strong>Modules (Accueil / Qui suis-je)</strong> — ces deux sections sont entièrement personnalisables : Titre, Texte, Tags, Liste, Stats, Image, Lien. Utilise les boutons "+" en bas de chaque section pour en ajouter, la croix sur un module pour le supprimer. Maintiens la poignée <strong>⠿</strong> (en haut à gauche du module, au survol) pour le déplacer : les autres modules se réorganisent en direct autour ; relâche pour valider, ou fais un clic droit pendant le déplacement pour annuler.</p>
   <p><strong>Réseaux sociaux</strong> — survole une icône pour changer son lien ou la supprimer ; un "+" à la fin de la liste en ajoute une nouvelle.</p>
-  <p><strong>Projets</strong> — chaque carte s'édite directement (image, titre, corps de métier, texte, lien). Le bouton "+ Projet" en haut en ajoute une nouvelle ; la croix sur une carte la supprime.</p>
+  <p><strong>Projets</strong> — chaque carte s'édite directement (image, titre, corps de métier, texte). Le bouton "Voir plus" ouvre une grande page de détail dédiée à ce projet, avec son propre système de modules (comme Accueil / Qui suis-je) — clique "Voir plus" pour l'éditer, "← Retour aux projets" pour revenir à la grille. Le bouton "+ Projet" en haut ajoute une nouvelle carte (avec sa page de détail) ; la croix sur une carte supprime les deux.</p>
   <p><strong>Couleurs</strong> — les 4 nuanciers "Couleurs" changent la palette du site en direct (un seul thème, sombre).</p>
   <p><strong>FR / EN</strong> — bascule la langue directement sur le site (bouton FR/EN dans la barre latérale) : tu édites alors le texte anglais. Chaque langue est stockée séparément, rien n'est écrasé.</p>
   <p><strong>Ctrl+Z</strong> annule ta dernière modification.</p>
@@ -65,6 +65,6 @@
 <input type="file" id="fileInput" accept="image/*" hidden>
 <div class="toast" id="toast"></div>
 
-<script src="edit.js?v=2"></script>
+<script src="edit.js?v=3"></script>
 </body>
 </html>

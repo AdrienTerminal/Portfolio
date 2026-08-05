@@ -85,7 +85,8 @@ const MAX_UNDO = 60;
 
 const TEXT_SELECTOR = [
   ".hud__name", ".hud__role", ".hud__status span[data-fr]",
-  ".hud__card-title", ".hud__card-role", ".hud__card-text", ".hud__card-link",
+  ".hud__card-title", ".hud__card-role", ".hud__card-text", ".hud__card-more",
+  ".hud__detail-back",
   ".mod__title", ".mod__text", ".mod__tags span", ".mod__list li",
   ".mod__stat strong", ".mod__stat span", ".mod__link",
 ].join(", ");
@@ -368,13 +369,21 @@ function wireSocialLink(a){
 // ---------------------------------------------------------------
 // Cartes projet — construction, câblage, ajout/suppression
 // ---------------------------------------------------------------
-function buildProjectCard(doc){
+function nextProjectId(doc){
+  const existing = [...doc.querySelectorAll("[data-project-card]")].map(el => el.dataset.projectCard);
+  let n = existing.length + 1;
+  while(existing.includes("p" + n)) n++;
+  return "p" + n;
+}
+
+function buildProjectCard(doc, projectId){
   const card = doc.createElement("article");
   card.className = "hud__card";
+  card.dataset.projectCard = projectId;
 
   const img = doc.createElement("img");
   img.className = "hud__card-img";
-  img.src = "https://placehold.co/400x220/0F2124/2DD4C8?text=Projet";
+  img.src = "https://placehold.co/400x220/0F2124/C8AA6E?text=Projet";
   img.alt = "";
 
   const title = doc.createElement("h3");
@@ -390,15 +399,36 @@ function buildProjectCard(doc){
   text.textContent = "Décris ce projet ici.";
   text.dataset.fr = "Décris ce projet ici."; text.dataset.en = "Describe this project here.";
 
-  const link = doc.createElement("a");
-  link.className = "hud__card-link";
-  link.href = "#"; link.target = "_blank"; link.rel = "noopener";
-  link.textContent = "Voir le projet ↗";
-  link.dataset.fr = "Voir le projet ↗"; link.dataset.en = "View project ↗";
+  const more = doc.createElement("button");
+  more.type = "button";
+  more.className = "hud__card-more";
+  more.dataset.projectTarget = projectId;
+  more.textContent = "Voir plus →"; more.dataset.fr = "Voir plus →"; more.dataset.en = "See more →";
 
   card.appendChild(img); card.appendChild(title); card.appendChild(role);
-  card.appendChild(text); card.appendChild(link);
+  card.appendChild(text); card.appendChild(more);
   return card;
+}
+
+// La page de détail associée à une carte : même structure que les
+// pages Accueil / Qui suis-je (un simple conteneur .hud__modules),
+// pour bénéficier automatiquement du même système de modules.
+function buildDetailBody(doc, projectId, seedTitle){
+  const body = doc.createElement("div");
+  body.className = "hud__detail-body";
+  body.dataset.projectId = projectId;
+
+  const modules = doc.createElement("div");
+  modules.className = "hud__modules";
+  modules.id = "projectModules-" + projectId;
+
+  const title = doc.createElement("h3");
+  title.className = "mod__title mod-block";
+  title.textContent = seedTitle; title.dataset.fr = seedTitle; title.dataset.en = seedTitle;
+  modules.appendChild(title);
+
+  body.appendChild(modules);
+  return body;
 }
 
 function wireProjectCard(card){
@@ -408,9 +438,43 @@ function wireProjectCard(card){
     const wrap = wrapImageForBadge(img);
     addBadges(wrap, [{ icon:"image", title:"Changer l'image", onClick:() => openImagePicker(img) }]);
   }
-  const link = card.querySelector(".hud__card-link");
-  if(link) addBadges(link, [{ icon:"link", title:"Modifier le lien", onClick:() => editLink(link) }]);
-  addBadges(card, [{ icon:"delete", title:"Supprimer ce projet", danger:true, onClick:() => removeSimple(card) }]);
+  const more = card.querySelector(".hud__card-more");
+  const projectId = card.dataset.projectCard;
+  if(more && projectId){
+    // aperçu immédiat dans l'éditeur : ouvre la page de détail associée
+    // (le site lui-même câble ce même bouton à son propre chargement)
+    more.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const doc = card.ownerDocument;
+      const grid = doc.getElementById("projectsGrid");
+      const detail = doc.getElementById("projectDetail");
+      if(!grid || !detail) return;
+      grid.classList.add("is-hidden");
+      detail.hidden = false;
+      detail.querySelectorAll(".hud__detail-body").forEach(b => {
+        b.classList.toggle("is-active", b.dataset.projectId === projectId);
+      });
+    });
+  }
+  addBadges(card, [{ icon:"delete", title:"Supprimer ce projet", danger:true, onClick:() => {
+    const doc = card.ownerDocument;
+    const detailBody = projectId ? doc.querySelector(`.hud__detail-body[data-project-id="${projectId}"]`) : null;
+    const cardParent = card.parentElement, cardNext = card.nextSibling;
+    const detailParent = detailBody ? detailBody.parentElement : null;
+    const detailNext = detailBody ? detailBody.nextSibling : null;
+    card.remove();
+    if(detailBody) detailBody.remove();
+    recordUndo(() => {
+      if(cardNext && cardNext.parentElement === cardParent) cardParent.insertBefore(card, cardNext);
+      else cardParent.appendChild(card);
+      if(detailBody){
+        if(detailNext && detailNext.parentElement === detailParent) detailParent.insertBefore(detailBody, detailNext);
+        else detailParent.appendChild(detailBody);
+      }
+    });
+    saveDraft();
+    toast("Projet supprimé");
+  } }]);
 }
 
 function addProjectCardButton(grid){
@@ -422,11 +486,21 @@ function addProjectCardButton(grid){
   btn.textContent = "+ Ajouter un projet";
   btn.addEventListener("click", (e) => {
     e.stopPropagation();
-    const card = buildProjectCard(doc);
+    const projectId = nextProjectId(doc);
+    const card = buildProjectCard(doc, projectId);
     grid.insertBefore(card, btn);
     wireProjectCard(card);
+
+    const detail = doc.getElementById("projectDetail");
+    if(detail){
+      const body = buildDetailBody(doc, projectId, "Titre du projet");
+      detail.appendChild(body);
+      body.querySelectorAll(".mod-block").forEach(wireModuleBlock);
+      renderModulePalette(body.querySelector(".hud__modules"));
+    }
+
     card.scrollIntoView({ behavior:"smooth", block:"nearest" });
-    recordUndo(() => card.remove());
+    recordUndo(() => { card.remove(); const b = detail && detail.querySelector(`[data-project-id="${projectId}"]`); if(b) b.remove(); });
     saveDraft();
   });
   grid.appendChild(btn);
@@ -688,8 +762,19 @@ function wireModuleDragReorder(handleEl, containerEl){
       }
     });
   }
+  // Ne jamais redéclencher un réordonnancement pendant qu'une
+  // animation FLIP précédente est encore en cours : lire la position
+  // d'un élément à mi-transition (donc décalée par le transform en
+  // train de s'annuler) faussait le calcul et provoquait des
+  // réordonnancements en cascade — c'était la cause du bug visuel
+  // (formes qui se chevauchent, éléments qui restent bloqués).
+  let lastReorderAt = 0;
+  const REORDER_COOLDOWN_MS = 260;
   function reorderIfNeeded(clientY){
+    const now = performance.now();
+    if(now - lastReorderAt < REORDER_COOLDOWN_MS) return;
     const parent = containerEl.parentElement;
+    if(!parent) return;
     const others = siblingBlocks();
     let target = null;
     for(const el of others){
@@ -701,9 +786,10 @@ function wireModuleDragReorder(handleEl, containerEl){
     if(target){
       parent.insertBefore(containerEl, target);
     }else{
-      const palette = parent.querySelector(".editor-module-palette");
+      const palette = parent.querySelector(":scope > .editor-module-palette");
       if(palette) parent.insertBefore(containerEl, palette); else parent.appendChild(containerEl);
     }
+    lastReorderAt = now;
     playFlip(before);
   }
   function handleAutoScroll(clientY){
@@ -718,8 +804,14 @@ function wireModuleDragReorder(handleEl, containerEl){
   }
   function tick(){
     if(!dragging){ rafId = null; return; }
-    handleAutoScroll(lastClientY);
-    reorderIfNeeded(lastClientY);
+    try{
+      handleAutoScroll(lastClientY);
+      reorderIfNeeded(lastClientY);
+    }catch(err){
+      console.error("Glisser-déposer : erreur pendant le déplacement, annulation de sécurité.", err);
+      endDrag(true);
+      return;
+    }
     rafId = requestAnimationFrame(tick);
   }
   function onMouseMove(e){
@@ -746,7 +838,7 @@ function wireModuleDragReorder(handleEl, containerEl){
       const before = capturePositions();
       if(originalNextSibling && originalNextSibling.parentElement === originalParent){
         originalParent.insertBefore(containerEl, originalNextSibling);
-      }else{
+      }else if(originalParent){
         originalParent.appendChild(containerEl);
       }
       playFlip(before);
@@ -763,15 +855,23 @@ function wireModuleDragReorder(handleEl, containerEl){
 
   handleEl.addEventListener("mousedown", (e) => {
     if(e.button !== 0) return;
+    if(dragging) return; // sécurité : jamais deux glissers simultanés sur la même poignée
     e.preventDefault();
     dragging = true;
+    lastReorderAt = 0;
     originalParent = containerEl.parentElement;
     originalNextSibling = containerEl.nextSibling;
     lastClientY = e.clientY;
     const rect = containerEl.getBoundingClientRect();
     offsetX = e.clientX - rect.left;
     offsetY = e.clientY - rect.top;
+
+    // Le ghost est un clone purement visuel : on retire tout élément
+    // d'édition (badges, poignées, boutons "+") pour ne jamais avoir
+    // deux jeux de contrôles interactifs superposés.
     ghost = containerEl.cloneNode(true);
+    ghost.querySelectorAll(".editor-badges, .editor-drag-handle, .editor-mini-add, .editor-module-palette")
+      .forEach(el => el.remove());
     ghost.classList.add("editor-block-ghost");
     ghost.style.width = rect.width + "px";
     ghost.style.left = rect.left + "px";
@@ -787,6 +887,16 @@ function wireModuleDragReorder(handleEl, containerEl){
   handleEl.addEventListener("contextmenu", (e) => { if(!dragging) e.preventDefault(); });
 }
 
+// Filet de sécurité : si un ghost ou un état "en cours de
+// déplacement" est resté bloqué suite à un problème (fermeture
+// impromptue, erreur), on nettoie tout au (re)chargement de la page.
+function clearStaleDragArtifacts(doc){
+  doc.querySelectorAll(".editor-block-ghost").forEach(el => el.remove());
+  doc.querySelectorAll('[style*="visibility: hidden"]').forEach(el => {
+    if(el.classList.contains("mod-block") || el.classList.contains("mod-block-wrap")) el.style.visibility = "";
+  });
+}
+
 // ---------------------------------------------------------------
 // Injection des capacités d'édition
 // ---------------------------------------------------------------
@@ -794,6 +904,7 @@ function injectEditing(){
   const doc = frame.contentDocument;
   if(!doc) return;
   try{
+    clearStaleDragArtifacts(doc);
     injectEditingInner(doc);
   }catch(err){
     console.error("injectEditing() a rencontré une erreur :", err);
@@ -892,12 +1003,10 @@ function injectEditingInner(doc){
 
   doc.querySelectorAll(TEXT_SELECTOR).forEach(wireTextElement);
 
-  // Modules — Accueil & Qui suis-je
+  // Modules — Accueil, Qui suis-je, et chaque page de détail projet :
+  // tout conteneur ".hud__modules" bénéficie du même système, où qu'il soit.
   doc.querySelectorAll(".mod-block").forEach(wireModuleBlock);
-  ["homeModules", "aboutModules"].forEach(id => {
-    const container = doc.getElementById(id);
-    if(container) renderModulePalette(container);
-  });
+  doc.querySelectorAll(".hud__modules").forEach(renderModulePalette);
 
   // Avatar + CV : image modifiable, CV avec en plus son lien
   const avatar = doc.getElementById("avatarImg");
@@ -1030,6 +1139,15 @@ btnDownload.addEventListener("click", () => {
   clone.querySelector("#editor-injected-style")?.remove();
   clone.querySelector("#editor-color-override")?.remove();
   clone.querySelector("base[href]")?.remove();
+
+  // toujours repartir sur la grille de projets, jamais sur une page de
+  // détail restée ouverte au moment du téléchargement
+  clone.querySelector("#projectsGrid")?.classList.remove("is-hidden");
+  const clonedDetail = clone.querySelector("#projectDetail");
+  if(clonedDetail){
+    clonedDetail.hidden = true;
+    clonedDetail.querySelectorAll(".hud__detail-body").forEach(b => b.classList.remove("is-active"));
+  }
 
   const html = "<!DOCTYPE html>\n" + clone.outerHTML;
   const blob = new Blob([html], { type: "text/html" });

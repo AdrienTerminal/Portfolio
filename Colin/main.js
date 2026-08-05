@@ -66,11 +66,17 @@ function renderNav(){
   navPrevLabel.dataset.target = prev.id;
   navNextLabel.dataset.target = next.id;
 
+  // rejoue l'animation d'apparition du titre à chaque changement
+  navTitle.classList.remove("is-animating");
+  void navTitle.offsetWidth; // force le navigateur à "oublier" l'état précédent
+  navTitle.classList.add("is-animating");
+
   panels.forEach(p => p.classList.toggle("is-active", p.dataset.panel === cur.id));
 }
 
 function goToIndex(i){
   currentIndex = (i + SECTIONS.length) % SECTIONS.length;
+  closeProjectDetail();
   renderNav();
 }
 function goToId(id){
@@ -89,5 +95,30 @@ document.addEventListener("keydown", (e) => {
   if(e.key === "ArrowLeft") goToIndex(currentIndex - 1);
   if(e.key === "ArrowRight") goToIndex(currentIndex + 1);
 });
+
+
+/* ---- 4) PAGES DE DÉTAIL PROJET — grille <-> grande page dédiée ----- */
+const projectsGrid = document.getElementById("projectsGrid");
+const projectDetail = document.getElementById("projectDetail");
+const detailBackBtn = document.getElementById("detailBackBtn");
+const detailBodies = document.querySelectorAll(".hud__detail-body");
+
+function openProjectDetail(projectId){
+  projectsGrid.classList.add("is-hidden");
+  projectDetail.hidden = false;
+  detailBodies.forEach(b => b.classList.toggle("is-active", b.dataset.projectId === projectId));
+  const panel = document.querySelector('.hud__panel[data-panel="projects"]');
+  if(panel) panel.scrollTop = 0;
+}
+function closeProjectDetail(){
+  if(!projectDetail || projectDetail.hidden) return;
+  projectDetail.hidden = true;
+  projectsGrid.classList.remove("is-hidden");
+  detailBodies.forEach(b => b.classList.remove("is-active"));
+}
+document.querySelectorAll("[data-project-target]").forEach(btn => {
+  btn.addEventListener("click", () => openProjectDetail(btn.dataset.projectTarget));
+});
+if(detailBackBtn) detailBackBtn.addEventListener("click", closeProjectDetail);
 
 renderNav();
