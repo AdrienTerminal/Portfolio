@@ -14,7 +14,7 @@
 <meta property="og:image" content="og-image.jpg">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -33,9 +33,6 @@
     <!-- ================= SIDEBAR — persistante sur les 3 sections ================= -->
     <aside class="hud__sidebar">
       <div class="hud__topline">
-        <button class="hud__theme" id="themeToggle" aria-label="Changer de thème">
-          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
-        </button>
         <div class="hud__lang" id="langSwitch">
           <button class="hud__lang-btn is-active" data-lang="fr">FR</button>
           <button class="hud__lang-btn" data-lang="en">EN</button>
@@ -97,24 +94,23 @@
 
         <!-- ================= ACCUEIL ================= -->
         <section class="hud__panel is-active" data-panel="home">
-          <!-- ⚙️ À REMPLACER : ce que tu veux montrer en premier — punchline, résumé, ce que tu veux -->
-          <div class="hud__home-empty" data-fr="À définir" data-en="To be defined">À définir</div>
+          <div class="hud__modules" id="homeModules">
+            <!-- ⚙️ À REMPLACER : le module "+" en bas du panneau permet d'ajouter Titre, Texte, Tags, Liste, Stats, Image ou Lien librement -->
+            <h3 class="mod__title mod-block" data-fr="Lorem Ipsum Dolor" data-en="Lorem Ipsum Dolor">Lorem Ipsum Dolor</h3>
+            <p class="mod__text mod-block" data-fr="Lorem ipsum dolor sit amet, consectetur adipiscing elit. Praesent sit amet lectus non nisi pellentesque vestibulum. Sed ut perspiciatis unde omnis iste natus error." data-en="Lorem ipsum dolor sit amet, consectetur adipiscing elit. Praesent sit amet lectus non nisi pellentesque vestibulum. Sed ut perspiciatis unde omnis iste natus error.">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Praesent sit amet lectus non nisi pellentesque vestibulum. Sed ut perspiciatis unde omnis iste natus error.</p>
+          </div>
         </section>
 
         <!-- ================= QUI SUIS-JE ? ================= -->
         <section class="hud__panel" data-panel="about">
-          <div class="hud__about">
-            <!-- ⚙️ À REMPLACER : ta présentation -->
-            <p class="hud__about-text" data-fr="BLA BLA BLA
-BLE BLE BLE
-BLOU BLOU BLOU
-Je suis..." data-en="BLA BLA BLA
-BLE BLE BLE
-BLOU BLOU BLOU
-I am...">BLA BLA BLA
-BLE BLE BLE
-BLOU BLOU BLOU
-Je suis...</p>
+          <div class="hud__modules" id="aboutModules">
+            <!-- ⚙️ À REMPLACER : le module "+" en bas du panneau permet d'ajouter Titre, Texte, Tags, Liste, Stats, Image ou Lien librement -->
+            <p class="mod__text mod-block" data-fr="Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc eu velit a velit bibendum lacinia. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia curae. Duis aute irure dolor in reprehenderit." data-en="Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc eu velit a velit bibendum lacinia. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia curae. Duis aute irure dolor in reprehenderit.">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc eu velit a velit bibendum lacinia. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia curae. Duis aute irure dolor in reprehenderit.</p>
+            <div class="mod__tags mod-block">
+              <span data-fr="Compétence" data-en="Skill">Compétence</span>
+              <span data-fr="Compétence" data-en="Skill">Compétence</span>
+              <span data-fr="Compétence" data-en="Skill">Compétence</span>
+            </div>
           </div>
         </section>
 

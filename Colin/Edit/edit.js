@@ -85,8 +85,9 @@ const MAX_UNDO = 60;
 
 const TEXT_SELECTOR = [
   ".hud__name", ".hud__role", ".hud__status span[data-fr]",
-  ".hud__home-empty", ".hud__about-text",
   ".hud__card-title", ".hud__card-role", ".hud__card-text", ".hud__card-link",
+  ".mod__title", ".mod__text", ".mod__tags span", ".mod__list li",
+  ".mod__stat strong", ".mod__stat span", ".mod__link",
 ].join(", ");
 
 // ---------------------------------------------------------------
@@ -142,23 +143,16 @@ document.addEventListener("click", (e) => {
 });
 
 // ---------------------------------------------------------------
-// Couleurs — le site de Colin est SOMBRE par défaut (aucun attribut
-// data-theme), et [data-theme="light"] est l'exception. C'est
-// l'inverse de la convention du site d'Adrien : on adapte donc le
-// scoping CSS des couleurs perso en conséquence.
+// Couleurs — un seul thème (le site de Colin n'a plus de mode clair),
+// donc plus besoin de séparer les réglages par thème comme chez Adrien.
 // ---------------------------------------------------------------
-let colorOverrides = { light:{}, dark:{} };
-
-function currentTheme(doc){
-  return doc && doc.documentElement.getAttribute("data-theme") === "light" ? "light" : "dark";
-}
+let colorOverrides = {};
 
 function applyColorsToFrame(){
   const doc = frame.contentDocument;
   if(!doc) return;
-  const theme = currentTheme(doc);
   Object.entries(colorInputs).forEach(([varName, input]) => {
-    colorOverrides[theme][varName] = input.value;
+    colorOverrides[varName] = input.value;
   });
   renderColorOverrideStyle(doc);
 }
@@ -170,18 +164,14 @@ function renderColorOverrideStyle(doc){
     styleEl.id = "editor-color-override";
     doc.head.appendChild(styleEl);
   }
-  const lightVars = Object.entries(colorOverrides.light).map(([k,v]) => `${k}:${v};`).join("");
-  const darkVars  = Object.entries(colorOverrides.dark).map(([k,v]) => `${k}:${v};`).join("");
-  styleEl.textContent =
-    (darkVars  ? `html:not([data-theme="light"]){ ${darkVars} }\n` : "") +
-    (lightVars ? `html[data-theme="light"]{ ${lightVars} }` : "");
+  const vars = Object.entries(colorOverrides).map(([k,v]) => `${k}:${v};`).join("");
+  styleEl.textContent = vars ? `:root{ ${vars} }` : "";
 }
 
 function syncColorInputsFromFrame(doc){
-  const theme = currentTheme(doc);
   const computed = doc.defaultView.getComputedStyle(doc.documentElement);
   Object.entries(colorInputs).forEach(([varName, input]) => {
-    const stored = colorOverrides[theme][varName];
+    const stored = colorOverrides[varName];
     if(stored){ input.value = stored; return; }
     const val = computed.getPropertyValue(varName).trim();
     if(/^#[0-9a-f]{6}$/i.test(val)) input.value = val;
@@ -191,13 +181,6 @@ function syncColorInputsFromFrame(doc){
 Object.values(colorInputs).forEach(input => {
   input.addEventListener("input", () => { applyColorsToFrame(); scheduleSave(); });
 });
-
-function watchThemeChanges(doc){
-  if(doc._themeObserverBound) return;
-  doc._themeObserverBound = true;
-  const observer = new MutationObserver(() => syncColorInputsFromFrame(doc));
-  observer.observe(doc.documentElement, { attributes:true, attributeFilter:["data-theme"] });
-}
 
 // ---------------------------------------------------------------
 // Texte — contenteditable direct, bilingue (data-fr / data-en)
@@ -457,6 +440,354 @@ btnAddCard.addEventListener("click", () => {
 });
 
 // ---------------------------------------------------------------
+// Modules — Accueil & Qui suis-je : Titre, Texte, Tags, Liste,
+// Stats, Image, Lien, librement ajoutés, supprimés et réordonnés.
+// Chaque module porte la classe commune "mod-block" en plus de sa
+// classe de style spécifique (mod__title, mod__text, ...).
+// ---------------------------------------------------------------
+const MODULE_DEFS = {
+  title: { label:"Titre", make(doc){
+    const el = doc.createElement("h3");
+    el.className = "mod__title mod-block";
+    el.textContent = "Nouveau titre"; el.dataset.fr = "Nouveau titre"; el.dataset.en = "New title";
+    return el;
+  }},
+  text: { label:"Texte", make(doc){
+    const el = doc.createElement("p");
+    el.className = "mod__text mod-block";
+    const txt = "Lorem ipsum dolor sit amet, consectetur adipiscing elit.";
+    el.textContent = txt; el.dataset.fr = txt; el.dataset.en = txt;
+    return el;
+  }},
+  tags: { label:"Tags", make(doc){
+    const el = doc.createElement("div");
+    el.className = "mod__tags mod-block";
+    ["Tag", "Tag"].forEach(t => {
+      const span = doc.createElement("span");
+      span.textContent = t; span.dataset.fr = t; span.dataset.en = t;
+      el.appendChild(span);
+    });
+    return el;
+  }},
+  list: { label:"Liste", make(doc){
+    const el = doc.createElement("ul");
+    el.className = "mod__list mod-block";
+    ["Élément", "Élément"].forEach(t => {
+      const li = doc.createElement("li");
+      li.textContent = t; li.dataset.fr = t; li.dataset.en = "Item";
+      el.appendChild(li);
+    });
+    return el;
+  }},
+  stats: { label:"Stats", make(doc){
+    const el = doc.createElement("div");
+    el.className = "mod__stats mod-block";
+    for(let i = 0; i < 2; i++){
+      const stat = doc.createElement("div");
+      stat.className = "mod__stat";
+      const strong = doc.createElement("strong"); strong.textContent = "0";
+      const span = doc.createElement("span"); span.textContent = "Label"; span.dataset.fr = "Label"; span.dataset.en = "Label";
+      stat.appendChild(strong); stat.appendChild(span);
+      el.appendChild(stat);
+    }
+    return el;
+  }},
+  image: { label:"Image", make(doc){
+    const el = doc.createElement("img");
+    el.className = "mod__image mod-block";
+    el.src = "https://placehold.co/420x260/0F1C31/C8AA6E?text=Image";
+    el.alt = "";
+    return el;
+  }},
+  link: { label:"Lien", make(doc){
+    const el = doc.createElement("a");
+    el.className = "mod__link mod-block";
+    el.href = "#"; el.target = "_blank"; el.rel = "noopener";
+    el.textContent = "Voir ↗"; el.dataset.fr = "Voir ↗"; el.dataset.en = "See ↗";
+    return el;
+  }},
+};
+
+// Petit bouton "+ X" générique pour ajouter un élément à l'intérieur
+// d'un module (une ligne de liste, un tag, une stat...).
+function addMiniAddButton(container, label, onAdd){
+  if(container.querySelector(":scope > .editor-mini-add")) return;
+  const doc = container.ownerDocument;
+  const btn = doc.createElement("button");
+  btn.type = "button";
+  btn.className = "editor-mini-add";
+  btn.textContent = label;
+  btn.addEventListener("click", (e) => {
+    e.stopPropagation();
+    onAdd(doc, btn);
+    saveDraft();
+  });
+  container.appendChild(btn);
+}
+
+function wireModuleBlock(block){
+  block.querySelectorAll(TEXT_SELECTOR).forEach(wireTextElement);
+  if(block.matches(TEXT_SELECTOR)) wireTextElement(block);
+
+  if(block.classList.contains("mod__image")){
+    const wrap = wrapImageForBadge(block);
+    wrap.classList.add("mod-block-wrap");
+    addBadges(wrap, [
+      { icon:"image", title:"Changer l'image", onClick:() => openImagePicker(block) },
+      { icon:"delete", title:"Supprimer ce module", danger:true, onClick:() => removeSimple(wrap) },
+    ]);
+    addDragHandle(wrap, wrap);
+    return;
+  }
+
+  if(block.classList.contains("mod__link")){
+    addBadges(block, [
+      { icon:"link", title:"Modifier le lien", onClick:() => editLink(block) },
+      { icon:"delete", title:"Supprimer ce module", danger:true, onClick:() => removeSimple(block) },
+    ]);
+    addDragHandle(block, block);
+    return;
+  }
+
+  if(block.classList.contains("mod__tags")){
+    block.querySelectorAll(":scope > span").forEach(span => {
+      addBadges(span, [{ icon:"delete", title:"Supprimer ce tag", danger:true, onClick:() => removeSimple(span) }]);
+    });
+    addMiniAddButton(block, "+ tag", (doc, btn) => {
+      const span = doc.createElement("span");
+      span.textContent = "Nouveau"; span.dataset.fr = "Nouveau"; span.dataset.en = "New";
+      block.insertBefore(span, btn);
+      wireTextElement(span);
+      addBadges(span, [{ icon:"delete", title:"Supprimer ce tag", danger:true, onClick:() => removeSimple(span) }]);
+      recordUndo(() => span.remove());
+    });
+    addBadges(block, [{ icon:"delete", title:"Supprimer tout ce module", danger:true, onClick:() => removeSimple(block) }]);
+    addDragHandle(block, block);
+    return;
+  }
+
+  if(block.classList.contains("mod__list")){
+    block.querySelectorAll(":scope > li").forEach(li => {
+      addBadges(li, [{ icon:"delete", title:"Supprimer cette ligne", danger:true, onClick:() => removeSimple(li) }]);
+    });
+    addMiniAddButton(block, "+ ligne", (doc, btn) => {
+      const li = doc.createElement("li");
+      li.textContent = "Nouvel élément"; li.dataset.fr = "Nouvel élément"; li.dataset.en = "New item";
+      block.insertBefore(li, btn);
+      wireTextElement(li);
+      addBadges(li, [{ icon:"delete", title:"Supprimer cette ligne", danger:true, onClick:() => removeSimple(li) }]);
+      recordUndo(() => li.remove());
+    });
+    addBadges(block, [{ icon:"delete", title:"Supprimer tout ce module", danger:true, onClick:() => removeSimple(block) }]);
+    addDragHandle(block, block);
+    return;
+  }
+
+  if(block.classList.contains("mod__stats")){
+    block.querySelectorAll(":scope > .mod__stat").forEach(stat => {
+      addBadges(stat, [{ icon:"delete", title:"Supprimer cette statistique", danger:true, onClick:() => removeSimple(stat) }]);
+    });
+    addMiniAddButton(block, "+ stat", (doc, btn) => {
+      const stat = doc.createElement("div"); stat.className = "mod__stat";
+      const strong = doc.createElement("strong"); strong.textContent = "0";
+      const span = doc.createElement("span"); span.textContent = "Label"; span.dataset.fr = "Label"; span.dataset.en = "Label";
+      stat.appendChild(strong); stat.appendChild(span);
+      block.insertBefore(stat, btn);
+      wireTextElement(strong); wireTextElement(span);
+      addBadges(stat, [{ icon:"delete", title:"Supprimer cette statistique", danger:true, onClick:() => removeSimple(stat) }]);
+      recordUndo(() => stat.remove());
+    });
+    addBadges(block, [{ icon:"delete", title:"Supprimer tout ce module", danger:true, onClick:() => removeSimple(block) }]);
+    addDragHandle(block, block);
+    return;
+  }
+
+  // titre / texte : juste un badge suppression sur le bloc lui-même
+  addBadges(block, [{ icon:"delete", title:"Supprimer ce module", danger:true, onClick:() => removeSimple(block) }]);
+  addDragHandle(block, block);
+}
+
+function renderModulePalette(modulesContainer){
+  if(modulesContainer.querySelector(":scope > .editor-module-palette")) return;
+  const doc = modulesContainer.ownerDocument;
+  const palette = doc.createElement("div");
+  palette.className = "editor-module-palette";
+  Object.entries(MODULE_DEFS).forEach(([key, def]) => {
+    const chip = doc.createElement("button");
+    chip.type = "button";
+    chip.className = "editor-module-chip";
+    chip.textContent = "+ " + def.label;
+    chip.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const block = def.make(doc);
+      modulesContainer.insertBefore(block, palette);
+      wireModuleBlock(block);
+      block.scrollIntoView({ behavior:"smooth", block:"nearest" });
+      recordUndo(() => block.remove());
+      saveDraft();
+    });
+    palette.appendChild(chip);
+  });
+  modulesContainer.appendChild(palette);
+}
+
+// ---------------------------------------------------------------
+// Glisser-déposer des modules — même mécanique que les blocs de
+// projet d'Adrien (clone flottant, réorganisation fluide des autres
+// modules autour, défilement auto près des bords, clic droit pour
+// annuler) mais sans tableau de données séparé à synchroniser : le
+// DOM EST la donnée, donc on réordonne directement dedans.
+// ---------------------------------------------------------------
+function addDragHandle(hostEl, dragTarget){
+  if(hostEl.querySelector(":scope > .editor-drag-handle")) return;
+  const doc = hostEl.ownerDocument;
+  const currentPosition = doc.defaultView.getComputedStyle(hostEl).position;
+  if(currentPosition === "static") hostEl.style.position = "relative";
+  const handle = doc.createElement("span");
+  handle.className = "editor-drag-handle";
+  handle.textContent = "⠿";
+  handle.title = "Maintenir pour déplacer (clic droit pendant le déplacement = annuler)";
+  handle.setAttribute("contenteditable", "false");
+  hostEl.appendChild(handle);
+  wireModuleDragReorder(handle, dragTarget);
+}
+
+function wireModuleDragReorder(handleEl, containerEl){
+  let dragging = false;
+  let ghost = null;
+  let offsetX = 0, offsetY = 0;
+  let lastClientY = 0;
+  let originalParent = null, originalNextSibling = null;
+  let rafId = null;
+
+  function scrollTarget(){ return containerEl.closest(".hud__panel"); }
+  function siblingBlocks(){
+    return [...containerEl.parentElement.children].filter(el =>
+      (el.classList.contains("mod-block") || el.classList.contains("mod-block-wrap")) && el !== containerEl);
+  }
+  function capturePositions(){
+    const map = new Map();
+    siblingBlocks().forEach(el => map.set(el, el.getBoundingClientRect()));
+    return map;
+  }
+  function playFlip(before){
+    const after = capturePositions();
+    after.forEach((afterRect, el) => {
+      const beforeRect = before.get(el);
+      if(!beforeRect) return;
+      const dx = beforeRect.left - afterRect.left;
+      const dy = beforeRect.top - afterRect.top;
+      if(Math.abs(dx) > .5 || Math.abs(dy) > .5){
+        el.style.transition = "none";
+        el.style.transform = `translate(${dx}px, ${dy}px)`;
+        el.getBoundingClientRect();
+        requestAnimationFrame(() => {
+          el.style.transition = "transform .24s cubic-bezier(.2,.8,.3,1)";
+          el.style.transform = "";
+        });
+      }
+    });
+  }
+  function reorderIfNeeded(clientY){
+    const parent = containerEl.parentElement;
+    const others = siblingBlocks();
+    let target = null;
+    for(const el of others){
+      const rect = el.getBoundingClientRect();
+      if(clientY < rect.top + rect.height / 2){ target = el; break; }
+    }
+    if(containerEl.nextElementSibling === target) return;
+    const before = capturePositions();
+    if(target){
+      parent.insertBefore(containerEl, target);
+    }else{
+      const palette = parent.querySelector(".editor-module-palette");
+      if(palette) parent.insertBefore(containerEl, palette); else parent.appendChild(containerEl);
+    }
+    playFlip(before);
+  }
+  function handleAutoScroll(clientY){
+    const scrollEl = scrollTarget();
+    if(!scrollEl) return;
+    const rect = scrollEl.getBoundingClientRect();
+    const margin = 60;
+    let speed = 0;
+    if(clientY < rect.top + margin) speed = -Math.ceil((rect.top + margin - clientY) / 2.5);
+    else if(clientY > rect.bottom - margin) speed = Math.ceil((clientY - (rect.bottom - margin)) / 2.5);
+    if(speed) scrollEl.scrollTop += speed;
+  }
+  function tick(){
+    if(!dragging){ rafId = null; return; }
+    handleAutoScroll(lastClientY);
+    reorderIfNeeded(lastClientY);
+    rafId = requestAnimationFrame(tick);
+  }
+  function onMouseMove(e){
+    if(!dragging) return;
+    lastClientY = e.clientY;
+    if(ghost){
+      ghost.style.left = (e.clientX - offsetX) + "px";
+      ghost.style.top = (e.clientY - offsetY) + "px";
+    }
+  }
+  function cleanup(){
+    if(rafId){ cancelAnimationFrame(rafId); rafId = null; }
+    if(ghost){ ghost.remove(); ghost = null; }
+    containerEl.style.visibility = "";
+    document.removeEventListener("mousemove", onMouseMove);
+    document.removeEventListener("mouseup", onMouseUp);
+    document.removeEventListener("contextmenu", onRightClick);
+    document.body.style.userSelect = "";
+  }
+  function endDrag(cancel){
+    if(!dragging) return;
+    dragging = false;
+    if(cancel){
+      const before = capturePositions();
+      if(originalNextSibling && originalNextSibling.parentElement === originalParent){
+        originalParent.insertBefore(containerEl, originalNextSibling);
+      }else{
+        originalParent.appendChild(containerEl);
+      }
+      playFlip(before);
+      cleanup();
+      saveDraft();
+      toast("Déplacement annulé");
+    }else{
+      cleanup();
+      saveDraft();
+    }
+  }
+  function onMouseUp(){ endDrag(false); }
+  function onRightClick(e){ e.preventDefault(); e.stopPropagation(); endDrag(true); }
+
+  handleEl.addEventListener("mousedown", (e) => {
+    if(e.button !== 0) return;
+    e.preventDefault();
+    dragging = true;
+    originalParent = containerEl.parentElement;
+    originalNextSibling = containerEl.nextSibling;
+    lastClientY = e.clientY;
+    const rect = containerEl.getBoundingClientRect();
+    offsetX = e.clientX - rect.left;
+    offsetY = e.clientY - rect.top;
+    ghost = containerEl.cloneNode(true);
+    ghost.classList.add("editor-block-ghost");
+    ghost.style.width = rect.width + "px";
+    ghost.style.left = rect.left + "px";
+    ghost.style.top = rect.top + "px";
+    document.body.appendChild(ghost);
+    containerEl.style.visibility = "hidden";
+    document.body.style.userSelect = "none";
+    document.addEventListener("mousemove", onMouseMove);
+    document.addEventListener("mouseup", onMouseUp);
+    document.addEventListener("contextmenu", onRightClick);
+    rafId = requestAnimationFrame(tick);
+  });
+  handleEl.addEventListener("contextmenu", (e) => { if(!dragging) e.preventDefault(); });
+}
+
+// ---------------------------------------------------------------
 // Injection des capacités d'édition
 // ---------------------------------------------------------------
 function injectEditing(){
@@ -473,7 +804,6 @@ function injectEditing(){
 function injectEditingInner(doc){
   syncColorInputsFromFrame(doc);
   renderColorOverrideStyle(doc);
-  watchThemeChanges(doc);
 
   if(!doc.getElementById("editor-injected-style")){
     const style = doc.createElement("style");
@@ -483,8 +813,8 @@ function injectEditingInner(doc){
         outline:2px dashed transparent; outline-offset:2px; cursor:text;
         transition:outline-color .15s ease, background-color .15s ease;
       }
-      ${TEXT_SELECTOR}:hover{ outline-color:#2DD4C8; background-color:rgba(45,212,200,.08); }
-      ${TEXT_SELECTOR}:focus{ outline-color:#E8B34C; background-color:rgba(232,179,76,.1); }
+      ${TEXT_SELECTOR}:hover{ outline-color:#C8AA6E; background-color:rgba(200,170,110,.08); }
+      ${TEXT_SELECTOR}:focus{ outline-color:#0AC8B9; background-color:rgba(10,200,185,.1); }
 
       .editor-badges{
         position:absolute; top:6px; right:6px; z-index:40;
@@ -494,36 +824,80 @@ function injectEditingInner(doc){
       :hover > .editor-badges{ opacity:1; }
       .editor-badge{
         width:22px; height:22px; border-radius:50%;
-        background:rgba(10,19,22,.88); border:1.5px solid #2DD4C8;
+        background:rgba(10,20,40,.88); border:1.5px solid #C8AA6E;
         color:#fff; display:flex; align-items:center; justify-content:center;
         cursor:pointer; padding:0;
       }
-      .editor-badge:hover{ background:#2DD4C8; color:#0A1316; }
-      .editor-badge--danger{ border-color:#E85D5D; }
-      .editor-badge--danger:hover{ background:#E85D5D; color:#fff; }
+      .editor-badge:hover{ background:#C8AA6E; color:#0A1428; }
+      .editor-badge--danger{ border-color:#E45858; }
+      .editor-badge--danger:hover{ background:#E45858; color:#fff; }
       .editor-img-wrap{ position:relative; width:100%; height:100%; }
 
       .editor-add-social{
         width:30px; height:30px; border-radius:50%;
-        border:1.5px dashed #2DD4C8; background:transparent; color:#2DD4C8;
+        border:1.5px dashed #C8AA6E; background:transparent; color:#C8AA6E;
         font-size:16px; font-weight:700; cursor:pointer; opacity:.7;
       }
-      .editor-add-social:hover{ opacity:1; background:rgba(45,212,200,.12); }
+      .editor-add-social:hover{ opacity:1; background:rgba(200,170,110,.12); }
 
       .editor-add-card{
         min-height:180px;
         display:flex; align-items:center; justify-content:center;
         font-family:'JetBrains Mono',monospace; font-size:13px; font-weight:700;
-        color:#2DD4C8; background:transparent; border:2px dashed rgba(45,212,200,.4);
+        color:#C8AA6E; background:transparent; border:2px dashed rgba(200,170,110,.4);
         border-radius:4px; cursor:pointer; opacity:.75;
         transition:opacity .15s ease, background .15s ease;
       }
-      .editor-add-card:hover{ opacity:1; background:rgba(45,212,200,.08); }
+      .editor-add-card:hover{ opacity:1; background:rgba(200,170,110,.08); }
+
+      .editor-drag-handle{
+        position:absolute; top:6px; left:6px; z-index:40;
+        width:20px; height:20px; border-radius:4px;
+        background:rgba(10,20,40,.85); border:1.5px solid #C8AA6E; color:#C8AA6E;
+        display:flex; align-items:center; justify-content:center;
+        font-size:12px; line-height:1; cursor:grab;
+        opacity:0; transition:opacity .15s ease;
+      }
+      .mod-block:hover > .editor-drag-handle,
+      .mod-block-wrap:hover > .editor-drag-handle{ opacity:1; }
+
+      .editor-mini-add{
+        display:inline-block; margin-top:4px;
+        font-family:'JetBrains Mono',monospace; font-size:11px; font-weight:700;
+        color:#C8AA6E; background:transparent; border:1.5px dashed rgba(200,170,110,.5);
+        border-radius:100px; padding:3px 10px; cursor:pointer; opacity:.75;
+      }
+      .editor-mini-add:hover{ opacity:1; background:rgba(200,170,110,.1); }
+
+      .editor-module-palette{
+        display:flex; flex-wrap:wrap; gap:8px; margin-top:10px;
+        padding-top:14px; border-top:1.5px dashed rgba(200,170,110,.3);
+      }
+      .editor-module-chip{
+        font-family:'JetBrains Mono',monospace; font-size:11px; font-weight:700;
+        color:#0A1428; background:#C8AA6E; border:none;
+        border-radius:100px; padding:6px 13px; cursor:pointer;
+        transition:background .15s ease, transform .15s ease;
+      }
+      .editor-module-chip:hover{ background:#F0E1B0; transform:translateY(-1px); }
+
+      .editor-block-ghost{
+        position:fixed; z-index:9999; pointer-events:none;
+        opacity:.96; transform:rotate(-1deg) scale(1.02);
+        box-shadow:0 16px 32px -8px rgba(0,0,0,.6);
+      }
     `;
     doc.head.appendChild(style);
   }
 
   doc.querySelectorAll(TEXT_SELECTOR).forEach(wireTextElement);
+
+  // Modules — Accueil & Qui suis-je
+  doc.querySelectorAll(".mod-block").forEach(wireModuleBlock);
+  ["homeModules", "aboutModules"].forEach(id => {
+    const container = doc.getElementById(id);
+    if(container) renderModulePalette(container);
+  });
 
   // Avatar + CV : image modifiable, CV avec en plus son lien
   const avatar = doc.getElementById("avatarImg");
@@ -650,8 +1024,9 @@ btnDownload.addEventListener("click", () => {
   const clone = doc.documentElement.cloneNode(true);
 
   clone.querySelectorAll("[contenteditable]").forEach(el => el.removeAttribute("contenteditable"));
-  clone.querySelectorAll(".editor-add-social, .editor-add-card, .editor-badges").forEach(el => el.remove());
+  clone.querySelectorAll(".editor-add-social, .editor-add-card, .editor-badges, .editor-drag-handle, .editor-mini-add, .editor-module-palette").forEach(el => el.remove());
   clone.querySelectorAll(".editor-img-wrap").forEach(wrap => wrap.replaceWith(...wrap.childNodes));
+  clone.querySelectorAll(".mod-block-wrap").forEach(wrap => wrap.classList.remove("mod-block-wrap"));
   clone.querySelector("#editor-injected-style")?.remove();
   clone.querySelector("#editor-color-override")?.remove();
   clone.querySelector("base[href]")?.remove();
@@ -675,7 +1050,7 @@ btnReset.addEventListener("click", () => {
   idbDelete(DRAFT_KEY).catch(() => {});
   undoStack = [];
   btnUndo.disabled = true;
-  colorOverrides = { light:{}, dark:{} };
+  colorOverrides = {};
   frame.addEventListener("load", () => { injectEditing(); toast("Repartie de zéro"); }, { once: true });
   frame.src = "../index.html?_=" + Date.now();
 });

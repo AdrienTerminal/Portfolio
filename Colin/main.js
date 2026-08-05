@@ -14,15 +14,7 @@ window.addEventListener("load", () => window.setTimeout(hideLoader, 250));
 window.setTimeout(hideLoader, 4000); // filet de sécurité
 
 
-/* ---- 2) THÈME (sombre par défaut) ---------------------------------- */
-const themeToggle = document.getElementById("themeToggle");
-themeToggle.addEventListener("click", () => {
-  const isLight = document.documentElement.getAttribute("data-theme") === "light";
-  document.documentElement.setAttribute("data-theme", isLight ? "dark" : "light");
-});
-
-
-/* ---- 3) LANGUE ------------------------------------------------------ */
+/* ---- 2) LANGUE ------------------------------------------------------ */
 const TRANSLATABLE_SELECTOR = "[data-fr][data-en]";
 const langBtns = document.querySelectorAll(".hud__lang-btn");
 let currentLang = "fr";
@@ -45,7 +37,7 @@ langBtns.forEach(btn => {
 });
 
 
-/* ---- 4) NAVIGATION CARROUSEL — 3 sections, ordre circulaire -------- */
+/* ---- 3) NAVIGATION CARROUSEL — 3 sections, ordre circulaire -------- */
 const SECTIONS = [
   { id:"home",     fr:"Accueil",       en:"Home" },
   { id:"about",    fr:"Qui suis-je ?", en:"About me" },
