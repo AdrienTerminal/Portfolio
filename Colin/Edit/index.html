@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Éditeur — Colin Vialle Portfolio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="edit.css?v=1">
+</head>
+<body>
+
+<header class="toolbar">
+  <div class="toolbar__brand">
+    <span class="dot"></span>
+    <span>SITE EDITOR</span>
+    <span class="version-badge" title="Vérifie que ce numéro correspond bien à la dernière version que Claude t'a donnée">v1</span>
+  </div>
+
+  <div class="toolbar__group">
+    <button id="btnHelp" class="tbtn tbtn--icon" title="Comment utiliser l'éditeur">
+      <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 0 1 4.9.8c0 1.7-2.4 2-2.4 3.5"/><circle cx="12" cy="17" r="0.6" fill="currentColor" stroke="none"/></svg>
+      Aide
+    </button>
+    <button id="btnUndo" class="tbtn tbtn--icon" title="Annuler (Ctrl+Z)">↶ Annuler</button>
+    <button id="btnAddCard" class="tbtn" title="Ajoute une nouvelle carte projet">+ Projet</button>
+  </div>
+
+  <div class="toolbar__group toolbar__colors">
+    <span class="toolbar__label">Couleurs</span>
+    <label class="swatch" title="Cyan / accent principal"><input type="color" id="colorCyan" value="#2dd4c8"><span style="background:#2dd4c8"></span></label>
+    <label class="swatch" title="Or / accent secondaire"><input type="color" id="colorGold" value="#e8b34c"><span style="background:#e8b34c"></span></label>
+    <label class="swatch" title="Texte"><input type="color" id="colorInk" value="#e9f5f3"><span style="background:#e9f5f3"></span></label>
+    <label class="swatch" title="Fond"><input type="color" id="colorBg" value="#0a1316"><span style="background:#0a1316"></span></label>
+  </div>
+
+  <div class="toolbar__group toolbar__right">
+    <span id="saveStatus" class="save-status">Brouillon à jour</span>
+    <button id="btnReset" class="tbtn tbtn--ghost">Repartir de zéro</button>
+    <button id="btnDownload" class="tbtn tbtn--primary">⬇ Télécharger le site</button>
+  </div>
+</header>
+
+<div class="help-popover" id="helpPopover" hidden>
+  <div class="popover__head">
+    <span>Comment ça marche</span>
+    <button class="popover__close" id="helpClose" title="Fermer">✕</button>
+  </div>
+  <p><strong>Texte</strong> — clique n'importe quel texte pour l'éditer directement.</p>
+  <p><strong>Survole</strong> une image, un lien ou une carte projet pour voir apparaître un petit badge d'action. Un clic dessus fait exactement une chose (changer la photo, modifier le lien, supprimer...).</p>
+  <p><strong>Réseaux sociaux</strong> — survole une icône pour changer son lien ou la supprimer ; un "+" à la fin de la liste en ajoute une nouvelle.</p>
+  <p><strong>Projets</strong> — chaque carte s'édite directement (image, titre, corps de métier, texte, lien). Le bouton "+ Projet" en haut en ajoute une nouvelle ; la croix sur une carte la supprime.</p>
+  <p><strong>Couleurs</strong> — les 4 nuanciers "Couleurs" changent la palette du site en direct, séparément pour le thème clair et sombre (bascule le thème avec le rond ☀/☾ en haut de la barre latérale du site pour régler les deux).</p>
+  <p><strong>FR / EN</strong> — bascule la langue directement sur le site (bouton FR/EN dans la barre latérale) : tu édites alors le texte anglais. Chaque langue est stockée séparément, rien n'est écrasé.</p>
+  <p><strong>Ctrl+Z</strong> annule ta dernière modification.</p>
+  <p><strong>Sauvegarde auto</strong> — le brouillon est stocké dans ton navigateur. Si l'indicateur en haut à droite passe en rouge, télécharge le site pour ne rien perdre.</p>
+  <p><strong>Télécharger le site</strong> — génère un <code>index.html</code> propre (sans les outils d'édition) à uploader sur GitHub par-dessus l'ancien.</p>
+</div>
+
+<main class="editor-stage">
+  <iframe id="siteFrame" src="../index.html" title="Aperçu du site en édition"></iframe>
+</main>
+
+<input type="file" id="fileInput" accept="image/*" hidden>
+<div class="toast" id="toast"></div>
+
+<script src="edit.js?v=1"></script>
+</body>
+</html>
