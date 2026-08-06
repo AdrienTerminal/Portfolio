@@ -270,7 +270,7 @@ body::after{
 }
 
 /* ================= MODULES — Accueil & Qui suis-je ================= */
-.hud__modules{ display:flex; flex-direction:column; gap:18px; max-width:70ch; padding-bottom:30px; }
+.hud__modules{ display:flex; flex-direction:column; gap:18px; max-width:70ch; }
 .mod__title{
   font-family:var(--font-display); font-weight:700; font-size:1.6rem;
   letter-spacing:.02em; color:var(--gold-bright);
