@@ -699,21 +699,30 @@ function wireModuleBlock(block){
   if(block.classList.contains("mod__image")){
     const wrap = wrapImageForBadge(block);
     wrap.classList.add("mod-block-wrap");
-    addBadges(wrap, [{ icon:"image", title:"Changer l'image", onClick:() => openImagePicker(block) }]);
-    addBlockToolbar(wrap, wrap, () => removeSimple(wrap));
+    addBadges(wrap, [
+      { icon:"image", title:"Changer l'image", onClick:() => openImagePicker(block) },
+      { icon:"delete", title:"Supprimer ce module", danger:true, onClick:() => removeSimple(wrap) },
+    ]);
+    addDragHandle(wrap, wrap);
     return;
   }
 
   if(block.classList.contains("mod__video")){
     if(!block.children.length) renderVideoBlock(block);
-    addBadges(block, [{ icon:"link", title:"Modifier la vidéo (YouTube ou MP4)", onClick:() => editVideoBlock(block) }]);
-    addBlockToolbar(block, block, () => removeSimple(block));
+    addBadges(block, [
+      { icon:"link", title:"Modifier la vidéo (YouTube ou MP4)", onClick:() => editVideoBlock(block) },
+      { icon:"delete", title:"Supprimer ce module", danger:true, onClick:() => removeSimple(block) },
+    ]);
+    addDragHandle(block, block);
     return;
   }
 
   if(block.classList.contains("mod__link")){
-    addBadges(block, [{ icon:"link", title:"Modifier le lien", onClick:() => editLink(block) }]);
-    addBlockToolbar(block, block, () => removeSimple(block));
+    addBadges(block, [
+      { icon:"link", title:"Modifier le lien", onClick:() => editLink(block) },
+      { icon:"delete", title:"Supprimer ce module", danger:true, onClick:() => removeSimple(block) },
+    ]);
+    addDragHandle(block, block);
     return;
   }
 
@@ -729,7 +738,8 @@ function wireModuleBlock(block){
       addBadges(span, [{ icon:"delete", title:"Supprimer ce tag", danger:true, onClick:() => removeSimple(span) }]);
       recordUndo(() => span.remove());
     });
-    addBlockToolbar(block, block, () => removeSimple(block));
+    addBadges(block, [{ icon:"delete", title:"Supprimer tout ce module", danger:true, onClick:() => removeSimple(block) }]);
+    addDragHandle(block, block);
     return;
   }
 
@@ -745,7 +755,8 @@ function wireModuleBlock(block){
       addBadges(li, [{ icon:"delete", title:"Supprimer cette ligne", danger:true, onClick:() => removeSimple(li) }]);
       recordUndo(() => li.remove());
     });
-    addBlockToolbar(block, block, () => removeSimple(block));
+    addBadges(block, [{ icon:"delete", title:"Supprimer tout ce module", danger:true, onClick:() => removeSimple(block) }]);
+    addDragHandle(block, block);
     return;
   }
 
@@ -763,12 +774,14 @@ function wireModuleBlock(block){
       addBadges(stat, [{ icon:"delete", title:"Supprimer cette statistique", danger:true, onClick:() => removeSimple(stat) }]);
       recordUndo(() => stat.remove());
     });
-    addBlockToolbar(block, block, () => removeSimple(block));
+    addBadges(block, [{ icon:"delete", title:"Supprimer tout ce module", danger:true, onClick:() => removeSimple(block) }]);
+    addDragHandle(block, block);
     return;
   }
 
-  // titre / texte : juste la barre d'outils (poignée + suppression)
-  addBlockToolbar(block, block, () => removeSimple(block));
+  // titre / texte : juste un badge suppression sur le bloc lui-même
+  addBadges(block, [{ icon:"delete", title:"Supprimer ce module", danger:true, onClick:() => removeSimple(block) }]);
+  addDragHandle(block, block);
 }
 
 function renderModulePalette(modulesContainer){
@@ -802,32 +815,17 @@ function renderModulePalette(modulesContainer){
 // annuler) mais sans tableau de données séparé à synchroniser : le
 // DOM EST la donnée, donc on réordonne directement dedans.
 // ---------------------------------------------------------------
-function addBlockToolbar(hostEl, dragTarget, onDelete){
-  if(hostEl.querySelector(":scope > .editor-block-toolbar")) return;
+function addDragHandle(hostEl, dragTarget){
+  if(hostEl.querySelector(":scope > .editor-drag-handle")) return;
   const doc = hostEl.ownerDocument;
   const currentPosition = doc.defaultView.getComputedStyle(hostEl).position;
   if(currentPosition === "static") hostEl.style.position = "relative";
-
-  const toolbar = doc.createElement("span");
-  toolbar.className = "editor-block-toolbar";
-  toolbar.setAttribute("contenteditable", "false");
-
   const handle = doc.createElement("span");
   handle.className = "editor-drag-handle";
   handle.textContent = "⠿";
   handle.title = "Maintenir pour déplacer (clic droit pendant le déplacement = annuler)";
-  toolbar.appendChild(handle);
-
-  if(onDelete){
-    const del = doc.createElement("span");
-    del.className = "editor-badge editor-badge--danger";
-    del.innerHTML = ICONS.delete;
-    del.title = "Supprimer ce module";
-    del.addEventListener("click", (e) => { e.stopPropagation(); e.preventDefault(); onDelete(); });
-    toolbar.appendChild(del);
-  }
-
-  hostEl.appendChild(toolbar);
+  handle.setAttribute("contenteditable", "false");
+  hostEl.appendChild(handle);
   wireModuleDragReorder(handle, dragTarget);
 }
 
@@ -1093,23 +1091,16 @@ function injectEditingInner(doc){
       }
       .editor-add-card:hover{ opacity:1; background:rgba(200,170,110,.08); }
 
-      .editor-block-toolbar{
+      .editor-drag-handle{
         position:absolute; top:6px; left:6px; z-index:40;
-        display:flex; gap:4px;
-        opacity:0; transition:opacity .15s ease;
-      }
-      .mod-block:hover > .editor-block-toolbar,
-      .mod-block-wrap:hover > .editor-block-toolbar{ opacity:1; }
-      .editor-block-toolbar .editor-drag-handle{
         width:20px; height:20px; border-radius:4px;
         background:rgba(10,20,40,.85); border:1.5px solid #C8AA6E; color:#C8AA6E;
         display:flex; align-items:center; justify-content:center;
-        font-size:12px; line-height:1; cursor:grab; padding:0;
-        transition:background-color .15s ease, transform .1s ease;
+        font-size:12px; line-height:1; cursor:grab;
+        opacity:0; transition:opacity .15s ease;
       }
-      .editor-block-toolbar .editor-drag-handle:hover{ background:rgba(200,170,110,.25); }
-      .editor-block-toolbar .editor-drag-handle:active{ cursor:grabbing; transform:scale(.92); }
-      .editor-block-toolbar .editor-badge{ width:20px; height:20px; }
+      .mod-block:hover > .editor-drag-handle,
+      .mod-block-wrap:hover > .editor-drag-handle{ opacity:1; }
 
       .editor-mini-add{
         display:inline-block; margin-top:4px;
@@ -1133,13 +1124,8 @@ function injectEditingInner(doc){
 
       .editor-block-ghost{
         position:fixed; z-index:9999; pointer-events:none;
-        opacity:.96; transform:rotate(-1deg) scale(1.04);
-        box-shadow:0 18px 36px -8px rgba(0,0,0,.65), 0 0 0 2px #C8AA6E;
-        animation:editor-ghost-pickup .12s ease-out;
-      }
-      @keyframes editor-ghost-pickup{
-        0%{ transform:rotate(0deg) scale(1); box-shadow:0 4px 10px -4px rgba(0,0,0,.4); }
-        100%{ transform:rotate(-1deg) scale(1.04); box-shadow:0 18px 36px -8px rgba(0,0,0,.65), 0 0 0 2px #C8AA6E; }
+        opacity:.96; transform:rotate(-1deg) scale(1.02);
+        box-shadow:0 16px 32px -8px rgba(0,0,0,.6);
       }
     `;
     doc.head.appendChild(style);
