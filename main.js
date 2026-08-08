@@ -313,6 +313,10 @@ aboutTabs.forEach(tab => {
     }
   });
   tab.addEventListener("keydown", (e) => {
+    // ne jamais intercepter Espace/Entrée si on est en train de taper
+    // du texte à l'intérieur (édition en direct) — sinon impossible
+    // de taper un espace dans un texte de la frise, par exemple.
+    if(e.target.closest("[contenteditable='true'], input, textarea")) return;
     if(e.key === "Enter" || e.key === " "){
       e.preventDefault();
       tab.click();

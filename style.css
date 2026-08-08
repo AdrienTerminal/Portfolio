@@ -492,7 +492,7 @@ h3[data-accent], .page__pitch[data-accent]{ color:var(--accent-color, var(--red-
    flèches pour naviguer si ça dépasse. ---- */
 .timeline{
   position:relative;
-  flex:1; min-height:300px;
+  flex:1; min-height:330px;
   display:flex; align-items:center;
   overflow-x:auto; overflow-y:hidden;
   scroll-behavior:smooth;
@@ -510,8 +510,8 @@ h3[data-accent], .page__pitch[data-accent]{ color:var(--accent-color, var(--red-
 .timeline::-webkit-scrollbar{ display:none; }
 .timeline__scroll{
   position:relative;
-  display:flex; align-items:center; gap:6px;
-  padding:0 10px;
+  display:flex; align-items:center; gap:16px;
+  padding:0 14px;
   min-width:min-content;
   width:100%;
 }
@@ -524,7 +524,7 @@ h3[data-accent], .page__pitch[data-accent]{ color:var(--accent-color, var(--red-
 }
 .timeline__node{
   position:relative; flex:0 0 auto;
-  width:132px; height:290px;
+  width:132px; height:320px;
 }
 .timeline__dot{
   position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
@@ -533,10 +533,11 @@ h3[data-accent], .page__pitch[data-accent]{ color:var(--accent-color, var(--red-
   z-index:2;
 }
 .timeline__card{
-  position:absolute; left:0; right:0;
+  position:absolute; left:50%; transform:translateX(-50%);
+  width:max-content; min-width:132px; max-width:212px;
   display:flex; flex-direction:column; align-items:center; text-align:center;
   background:var(--paper); border:var(--border) solid var(--ink);
-  border-radius:var(--radius-lg); padding:12px 8px;
+  border-radius:var(--radius-lg); padding:12px 10px;
   box-shadow:3px 3px 0 var(--ink);
 }
 .timeline__node--up .timeline__card{ bottom:calc(50% + 13px); }

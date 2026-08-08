@@ -554,6 +554,13 @@ function wireTextElement(el){
   el.setAttribute("contenteditable", "true");
   const doc = el.ownerDocument;
   let before = null;
+  // Un clic pour positionner le curseur dans le texte ne doit jamais
+  // déclencher AUSSI le comportement du parent (ex : les "occupations"
+  // de Mes passions sont des <button> qui changent d'état actif au
+  // clic — sans ça, cliquer pour éditer le texte coupait le focus en
+  // relançant l'animation d'agrandissement au même moment).
+  el.addEventListener("click", (e) => { e.stopPropagation(); });
+  el.addEventListener("mousedown", (e) => { e.stopPropagation(); });
   el.addEventListener("focus", () => { before = el.innerHTML; });
   el.addEventListener("paste", (e) => {
     e.preventDefault();
