@@ -613,6 +613,7 @@ h3[data-accent], .page__pitch[data-accent]{ color:var(--accent-color, var(--red-
   cursor:pointer;
   transition:flex .55s var(--ease);
 }
+.occupation:focus-visible{ outline:3px solid var(--red); outline-offset:-3px; z-index:1; }
 .occupation.is-active{ flex:5; }
 .occupation:hover:not(.is-active){ flex:1.8; }
 .occupation.is-peeking:not(.is-active){ flex:1.8; }

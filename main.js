@@ -275,11 +275,26 @@ drawers.forEach(drawer => {
 const occupations = document.querySelectorAll(".occupation");
 
 occupations.forEach(occ => {
-  occ.addEventListener("click", () => {
+  occ.addEventListener("click", (e) => {
+    // ne jamais changer quelle passion est active si le clic vient
+    // d'un texte en cours d'édition (éditeur visuel) — sinon cliquer
+    // pour positionner le curseur relance aussi l'animation et coupe
+    // le focus au même moment.
+    if(e.target.closest('[contenteditable="true"]')) return;
     if(occ.classList.contains("is-active")) return;
     occupations.forEach(o => o.classList.remove("is-active"));
     occ.classList.add("is-active");
     sfx.select();
+  });
+  // ce n'est plus un <button> natif (pour permettre l'édition de texte
+  // à l'intérieur sans que le navigateur ne vole le focus) : on
+  // rajoute donc l'accessibilité clavier à la main.
+  occ.addEventListener("keydown", (e) => {
+    if(e.target.closest('[contenteditable="true"], input, textarea')) return;
+    if(e.key === "Enter" || e.key === " "){
+      e.preventDefault();
+      occ.click();
+    }
   });
 });
 
