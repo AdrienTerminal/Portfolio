@@ -22,7 +22,7 @@
 
   /* même hauteur pour "Projects" et "About me" — plus de changement de
      taille de la carte au clic, seul le contenu se substitue en fondu */
-  --body-h:       640px;
+  --body-h:       740px;
 
   transition:background-color .35s ease;
 }
@@ -640,7 +640,7 @@ h3[data-accent], .page__pitch[data-accent]{ color:var(--accent-color, var(--red-
   pointer-events:none;
   transition:opacity .3s var(--ease) .1s;
 }
-.occupation.is-active .occupation__info{ opacity:1; }
+.occupation.is-active .occupation__info{ opacity:1; pointer-events:auto; }
 .occupation__info h3{
   font-family:var(--font-display); font-weight:600; font-size:1.3rem; color:#fff; margin-bottom:8px;
 }
