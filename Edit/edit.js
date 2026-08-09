@@ -461,6 +461,12 @@ function injectEditingInner(doc){
     addBadges(a, [{ icon:"link", title:"Changer l'URL", onClick:() => editLink(a) }]);
   });
 
+  // boutons réseau social insérés dans une passion (Letterboxd dans
+  // Cinéma, Spotify dans Musique...) : lien modifiable comme les autres
+  doc.querySelectorAll(".occupation__social").forEach(a => {
+    addBadges(a, [{ icon:"link", title:"Changer l'URL", onClick:() => editLink(a) }]);
+  });
+
   const resumeBtn = doc.querySelector(".resume-btn");
   if(resumeBtn) addBadges(resumeBtn, [{ icon:"link", title:"Changer l'URL", onClick:() => editLink(resumeBtn) }]);
 

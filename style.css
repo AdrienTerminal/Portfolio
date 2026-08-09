@@ -647,6 +647,17 @@ h3[data-accent], .page__pitch[data-accent]{ color:var(--accent-color, var(--red-
 .occupation__info p{
   font-size:0.86rem; color:rgba(255,255,255,0.9); max-width:46ch;
 }
+.occupation__social{
+  display:inline-flex; align-items:center; justify-content:center;
+  width:46px; height:46px; margin-top:14px; border-radius:50%;
+  background:rgba(255,255,255,.14); border:1.5px solid rgba(255,255,255,.5);
+  color:#fff;
+  transition:background-color .2s ease, border-color .2s ease, transform .2s ease;
+}
+.occupation__social:hover{
+  background:rgba(255,255,255,.28); border-color:#fff;
+  transform:translateY(-3px) scale(1.06);
+}
 .occupation__stat{
   display:inline-block;
   margin-top:12px;
