@@ -222,12 +222,13 @@ button{ font:inherit; color:inherit; background:none; border:none; cursor:pointe
   50%{ box-shadow:4px 4px 0 var(--ink), 0 0 0 6px rgba(228,72,63,0.18); }
 }
 
-.socials{ list-style:none; display:flex; flex-wrap:wrap; justify-content:center; gap:10px; margin-top:16px; }
+.socials{ list-style:none; display:flex; flex-wrap:nowrap; justify-content:center; gap:7px; margin-top:16px; }
 .socials a{
-  width:34px; height:34px; display:flex; align-items:center; justify-content:center;
-  border-radius:50%; background:var(--card-bg); border:2.5px solid var(--ink);
+  width:29px; height:29px; flex:0 0 auto; display:flex; align-items:center; justify-content:center;
+  border-radius:50%; background:var(--card-bg); border:2.2px solid var(--ink);
   transition:transform .15s var(--ease), background .15s var(--ease);
 }
+.socials a svg{ width:14px; height:14px; }
 .socials a:hover{ background:var(--yellow); transform:scale(1.08); }
 
 /* ==================================================================
@@ -649,7 +650,7 @@ h3[data-accent], .page__pitch[data-accent]{ color:var(--accent-color, var(--red-
 }
 .occupation__social{
   display:inline-flex; align-items:center; justify-content:center;
-  width:46px; height:46px; margin:8px 0 12px; border-radius:50%;
+  width:46px; height:46px; margin-bottom:10px; border-radius:50%;
   background:rgba(255,255,255,.14); border:1.5px solid rgba(255,255,255,.5);
   color:#fff;
   transition:background-color .2s ease, border-color .2s ease, transform .2s ease;
