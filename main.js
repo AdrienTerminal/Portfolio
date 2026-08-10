@@ -407,7 +407,7 @@ themeButtons.forEach(btn => {
 const corkboard        = document.getElementById("corkboard");
 const corkboardPins    = document.getElementById("corkboardPins");
 const corkboardClose   = document.getElementById("corkboardClose");
-const openCorkboardBtn = document.getElementById("openCorkboardBtn");
+const openCorkboardBtns = document.querySelectorAll(".corkboard-trigger");
 
 const corkViewer      = document.getElementById("corkboardViewer");
 const corkViewerPhoto = document.getElementById("viewerPhoto");
@@ -426,7 +426,7 @@ function closeCorkboard(){
   window.setTimeout(() => { corkboard.hidden = true; }, 400);
   sfx.close();
 }
-if(openCorkboardBtn) openCorkboardBtn.addEventListener("click", openCorkboard);
+openCorkboardBtns.forEach(btn => btn.addEventListener("click", openCorkboard));
 if(corkboardClose) corkboardClose.addEventListener("click", closeCorkboard);
 
 function openCorkViewer(imgSrc){
