@@ -397,3 +397,92 @@ themeButtons.forEach(btn => {
     sfx.tab();
   });
 });
+
+
+/* ==================================================================
+   6) TABLEAU PHOTO — overlay en liège, ouvert depuis la passion Photo.
+      Clic sur une photo punaisée -> vue rapprochée avec inclinaison
+      3D et reflet qui suivent la souris (simule un tirage physique).
+================================================================== */
+const corkboard        = document.getElementById("corkboard");
+const corkboardPins    = document.getElementById("corkboardPins");
+const corkboardClose   = document.getElementById("corkboardClose");
+const openCorkboardBtn = document.getElementById("openCorkboardBtn");
+
+const corkViewer      = document.getElementById("corkboardViewer");
+const corkViewerPhoto = document.getElementById("viewerPhoto");
+const corkViewerImg   = document.getElementById("viewerImg");
+const corkViewerClose = document.getElementById("viewerClose");
+
+function openCorkboard(){
+  if(!corkboard) return;
+  corkboard.hidden = false;
+  requestAnimationFrame(() => corkboard.classList.add("is-open"));
+  sfx.open();
+}
+function closeCorkboard(){
+  if(!corkboard || corkboard.hidden) return;
+  closeCorkViewer();
+  corkboard.classList.remove("is-open");
+  window.setTimeout(() => { corkboard.hidden = true; }, 400);
+  sfx.close();
+}
+if(openCorkboardBtn) openCorkboardBtn.addEventListener("click", openCorkboard);
+if(corkboardClose) corkboardClose.addEventListener("click", closeCorkboard);
+
+function openCorkViewer(imgSrc){
+  if(!corkViewer) return;
+  corkViewerImg.src = imgSrc;
+  corkViewer.hidden = false;
+  requestAnimationFrame(() => corkViewer.classList.add("is-open"));
+  sfx.select();
+}
+function closeCorkViewer(){
+  if(!corkViewer || corkViewer.hidden) return;
+  corkViewer.classList.remove("is-open");
+  corkViewerPhoto.style.transform = "";
+  window.setTimeout(() => { corkViewer.hidden = true; }, 300);
+}
+if(corkViewerClose) corkViewerClose.addEventListener("click", closeCorkViewer);
+// clic sur le fond sombre (pas sur la photo elle-même) -> referme aussi,
+// façon la plus instinctive de "sortir" de la vue rapprochée
+if(corkViewer){
+  corkViewer.addEventListener("click", (e) => {
+    if(e.target === corkViewer) closeCorkViewer();
+  });
+}
+
+function wireCorkpin(pin){
+  pin.addEventListener("click", () => {
+    const img = pin.querySelector("img");
+    if(img) openCorkViewer(img.src);
+  });
+}
+document.querySelectorAll(".corkpin").forEach(wireCorkpin);
+
+// Inclinaison 3D + reflet qui suivent la position de la souris sur la
+// photo agrandie : simule le grain et les reflets d'un vrai tirage
+// qu'on incline légèrement dans la main pour mieux le voir.
+if(corkViewerPhoto){
+  corkViewerPhoto.addEventListener("mousemove", (e) => {
+    const rect = corkViewerPhoto.getBoundingClientRect();
+    const px = (e.clientX - rect.left) / rect.width;
+    const py = (e.clientY - rect.top) / rect.height;
+    const rotateY = (px - 0.5) * 16;
+    const rotateX = (0.5 - py) * 16;
+    corkViewerPhoto.style.transform = `perspective(800px) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+    corkViewerPhoto.style.setProperty("--glare-x", (px * 100) + "%");
+    corkViewerPhoto.style.setProperty("--glare-y", (py * 100) + "%");
+  });
+  corkViewerPhoto.addEventListener("mouseleave", () => {
+    corkViewerPhoto.style.transform = "perspective(800px) rotateX(0deg) rotateY(0deg)";
+  });
+}
+
+// Échap : referme d'abord la vue rapprochée si elle est ouverte,
+// sinon le tableau lui-même — jamais les deux d'un coup.
+document.addEventListener("keydown", (e) => {
+  if(e.key !== "Escape") return;
+  if(corkViewer && !corkViewer.hidden){ closeCorkViewer(); return; }
+  if(corkboard && !corkboard.hidden){ closeCorkboard(); }
+});

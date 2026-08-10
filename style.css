@@ -729,3 +729,132 @@ h3[data-accent], .page__pitch[data-accent]{ color:var(--accent-color, var(--red-
 @media (prefers-reduced-motion: reduce){
   *{ animation-duration:0.01ms !important; transition-duration:0.01ms !important; }
 }
+
+/* ==================================================================
+   TABLEAU PHOTO — overlay en liège avec photos punaisées, et vue
+   rapprochée avec inclinaison + reflet suivant la souris.
+================================================================== */
+.corkboard{
+  position:fixed; inset:0; z-index:500;
+  opacity:0; pointer-events:none;
+  transition:opacity .4s var(--ease);
+}
+.corkboard.is-open{ opacity:1; pointer-events:auto; }
+
+.corkboard__surface{
+  position:absolute; inset:0;
+  background-color:#B08B5D;
+  background-image:
+    radial-gradient(circle, rgba(0,0,0,.14) 1px, transparent 1.4px),
+    radial-gradient(circle, rgba(255,255,255,.09) 1px, transparent 1.4px);
+  background-size:7px 7px, 11px 11px;
+  background-position:0 0, 3px 4px;
+  box-shadow:inset 0 0 10px rgba(0,0,0,.4), inset 0 0 160px rgba(0,0,0,.55);
+  overflow:hidden;
+}
+
+.corkboard__close{
+  position:absolute; top:22px; left:22px; z-index:2;
+  font-family:var(--font-mono); font-weight:700; font-size:0.82rem;
+  padding:9px 18px; border-radius:100px;
+  background:var(--card-bg); color:var(--ink); border:var(--border) solid var(--ink);
+  box-shadow:3px 3px 0 rgba(0,0,0,.4);
+  cursor:pointer;
+  transition:transform .15s var(--ease);
+}
+.corkboard__close:hover{ transform:translateY(-2px); }
+
+.corkboard__pins{
+  position:relative;
+  width:min(92vw, 1040px); height:min(80vh, 620px);
+  margin:70px auto 0;
+}
+
+.corkpin{
+  position:absolute; left:var(--x); top:var(--y);
+  transform:rotate(var(--rot));
+  width:150px; padding:0; border:none; background:none;
+  cursor:pointer;
+  filter:drop-shadow(3px 6px 6px rgba(0,0,0,.45));
+  transition:transform .25s var(--ease), filter .25s var(--ease);
+}
+.corkpin:hover{
+  transform:rotate(var(--rot)) scale(1.07) translateY(-4px);
+  filter:drop-shadow(5px 10px 10px rgba(0,0,0,.5));
+  z-index:5;
+}
+.corkpin:focus-visible{ outline:3px solid #fff; outline-offset:2px; }
+
+.corkpin__nail{
+  position:absolute; top:-7px; left:50%; transform:translateX(-50%);
+  width:15px; height:15px; border-radius:50%;
+  background:radial-gradient(circle at 35% 30%, #ff8a80, #a3231f 72%);
+  box-shadow:0 2px 3px rgba(0,0,0,.55);
+  z-index:2;
+}
+.corkpin__frame{
+  display:block; background:#fdfdfa;
+  padding:9px 9px 26px;
+  box-shadow:0 2px 5px rgba(0,0,0,.2);
+}
+.corkpin__frame img{
+  display:block; width:100%; aspect-ratio:1; object-fit:cover;
+  background:#1a1a1a;
+}
+
+/* ---- Vue rapprochée : la punaise disparaît, la photo s'approche et
+   s'incline légèrement en suivant la souris, avec un reflet qui se
+   déplace pour simuler la surface brillante d'un vrai tirage photo. ---- */
+.corkboard__viewer{
+  position:fixed; inset:0; z-index:600;
+  display:flex; align-items:center; justify-content:center;
+  background:rgba(10,10,10,.82);
+  opacity:0; pointer-events:none;
+  transition:opacity .3s var(--ease);
+}
+.corkboard__viewer.is-open{ opacity:1; pointer-events:auto; }
+
+.corkboard__viewer-close{
+  position:absolute; top:22px; right:22px; z-index:2;
+  width:42px; height:42px; border-radius:50%;
+  background:rgba(255,255,255,.12); border:1.5px solid rgba(255,255,255,.5);
+  color:#fff; font-size:1.1rem; cursor:pointer;
+  transition:background-color .15s ease, transform .15s ease;
+}
+.corkboard__viewer-close:hover{ background:rgba(255,255,255,.25); transform:scale(1.08); }
+
+.corkboard__viewer-photo{
+  position:relative;
+  width:min(58vw, 440px);
+  background:#fdfdfa; padding:16px 16px 46px;
+  transform-style:preserve-3d;
+  transition:transform .12s ease-out;
+  box-shadow:0 34px 70px -10px rgba(0,0,0,.6);
+  cursor:default;
+}
+.corkboard__viewer-photo img{
+  display:block; width:100%; aspect-ratio:1; object-fit:cover; background:#1a1a1a;
+}
+.corkboard__glare{
+  position:absolute; inset:16px 16px 46px 16px; pointer-events:none;
+  background:radial-gradient(circle at var(--glare-x,50%) var(--glare-y,50%), rgba(255,255,255,.55), transparent 55%);
+  mix-blend-mode:overlay;
+  opacity:0; transition:opacity .2s ease;
+}
+.corkboard__viewer-photo:hover .corkboard__glare{ opacity:1; }
+
+.editor-add-photo{
+  position:absolute; top:22px; right:22px; z-index:2;
+  font-family:var(--font-mono); font-size:12px; font-weight:700;
+  color:var(--ink); background:var(--card-bg); border:var(--border) solid var(--ink);
+  border-radius:100px; padding:9px 18px; cursor:pointer;
+  box-shadow:3px 3px 0 rgba(0,0,0,.4);
+  transition:transform .15s var(--ease);
+}
+.editor-add-photo:hover{ transform:translateY(-2px); }
+
+@media (max-width:760px){
+  .corkboard__pins{ width:94vw; height:74vh; margin-top:60px; }
+  .corkpin{ width:110px; }
+  .corkboard__viewer-photo{ width:82vw; }
+}

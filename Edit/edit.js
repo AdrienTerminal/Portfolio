@@ -462,10 +462,70 @@ function injectEditingInner(doc){
   });
 
   // boutons réseau social insérés dans une passion (Letterboxd dans
-  // Cinéma, Spotify dans Musique...) : lien modifiable comme les autres
-  doc.querySelectorAll(".occupation__social").forEach(a => {
+  // Cinéma, Spotify dans Musique...) : lien modifiable comme les autres.
+  // Le bouton Photo partage la même classe pour le style mais c'est un
+  // <button> qui ouvre le tableau en liège, pas un <a> — exclu ici.
+  doc.querySelectorAll("a.occupation__social").forEach(a => {
     addBadges(a, [{ icon:"link", title:"Changer l'URL", onClick:() => editLink(a) }]);
   });
+
+  // ---- Tableau photo : photos existantes éditables, bouton d'ajout
+  // qui positionne intelligemment les nouvelles (grille organique) ----
+  const CORK_POSITIONS = [
+    { x:"6%",  y:"10%", rot:"-6deg" }, { x:"29%", y:"5%",  rot:"4deg"  }, { x:"52%", y:"12%", rot:"-3deg" }, { x:"75%", y:"8%",  rot:"5deg"  },
+    { x:"9%",  y:"41%", rot:"5deg"  }, { x:"33%", y:"39%", rot:"-5deg" }, { x:"56%", y:"43%", rot:"3deg"  }, { x:"79%", y:"40%", rot:"-4deg" },
+    { x:"12%", y:"70%", rot:"-4deg" }, { x:"36%", y:"68%", rot:"6deg"  }, { x:"59%", y:"71%", rot:"-3deg" }, { x:"82%", y:"69%", rot:"4deg"  },
+  ];
+  function nextCorkPosition(count){
+    const base = CORK_POSITIONS[count % CORK_POSITIONS.length];
+    const cycle = Math.floor(count / CORK_POSITIONS.length);
+    if(cycle === 0) return base;
+    // au-delà de la grille de base, léger décalage pour ne jamais empiler pile au même endroit
+    const jx = ((cycle * 3) % 7) - 3, jy = ((cycle * 5) % 7) - 3;
+    return { x:`calc(${base.x} + ${jx}%)`, y:`calc(${base.y} + ${jy}%)`, rot:base.rot };
+  }
+  function wireCorkpin(pin){
+    const img = pin.querySelector("img");
+    addBadges(pin, [
+      { icon:"image", title:"Changer la photo", onClick:() => openImagePicker(img) },
+      { icon:"delete", title:"Supprimer cette photo", danger:true, onClick:() => removeSimple(pin) },
+    ]);
+  }
+  const corkboardPinsEl = doc.getElementById("corkboardPins");
+  if(corkboardPinsEl){
+    corkboardPinsEl.querySelectorAll(".corkpin").forEach(wireCorkpin);
+    const surface = doc.querySelector(".corkboard__surface");
+    if(surface && !surface.querySelector(".editor-add-photo")){
+      const addBtn = doc.createElement("button");
+      addBtn.type = "button";
+      addBtn.className = "editor-add-photo";
+      addBtn.textContent = "+ Ajouter une photo";
+      addBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const count = corkboardPinsEl.querySelectorAll(".corkpin").length;
+        const pos = nextCorkPosition(count);
+        const pin = doc.createElement("button");
+        pin.type = "button"; pin.className = "corkpin";
+        pin.style.setProperty("--x", pos.x); pin.style.setProperty("--y", pos.y); pin.style.setProperty("--rot", pos.rot);
+        const nail = doc.createElement("span"); nail.className = "corkpin__nail";
+        const frame = doc.createElement("span"); frame.className = "corkpin__frame";
+        const img = doc.createElement("img");
+        img.src = "https://placehold.co/300x300/2a2a2a/888888?text=%F0%9F%93%B7"; img.alt = "";
+        frame.appendChild(img);
+        pin.appendChild(nail); pin.appendChild(frame);
+        corkboardPinsEl.appendChild(pin);
+        wireCorkpin(pin);
+        pin.addEventListener("click", (e2) => {
+          if(e2.target.closest(".editor-badges")) return;
+          const openFn = doc.defaultView && doc.defaultView.openCorkViewer;
+          if(typeof openFn === "function") openFn(img.src);
+        });
+        recordUndo(() => pin.remove());
+        saveDraft();
+      });
+      surface.appendChild(addBtn);
+    }
+  }
 
   const resumeBtn = doc.querySelector(".resume-btn");
   if(resumeBtn) addBadges(resumeBtn, [{ icon:"link", title:"Changer l'URL", onClick:() => editLink(resumeBtn) }]);
@@ -2217,11 +2277,18 @@ btnDownload.addEventListener("click", () => {
   const clone = doc.documentElement.cloneNode(true);
 
   clone.querySelectorAll("[contenteditable]").forEach(el => el.removeAttribute("contenteditable"));
-  clone.querySelectorAll(".editor-add-tag, .editor-badges").forEach(el => el.remove());
+  clone.querySelectorAll(".editor-add-tag, .editor-badges, .editor-add-photo").forEach(el => el.remove());
   clone.querySelectorAll(".editor-img-wrap").forEach(wrap => wrap.replaceWith(...wrap.childNodes));
   clone.querySelector("#editor-injected-style")?.remove();
   clone.querySelector("#editor-color-override")?.remove();
   clone.querySelector("base[href]")?.remove();
+
+  // toujours repartir avec le tableau photo (et sa vue rapprochée) fermés,
+  // même s'ils étaient ouverts au moment du téléchargement
+  const clonedCorkboard = clone.querySelector("#corkboard");
+  if(clonedCorkboard){ clonedCorkboard.hidden = true; clonedCorkboard.classList.remove("is-open"); }
+  const clonedViewer = clone.querySelector("#corkboardViewer");
+  if(clonedViewer){ clonedViewer.hidden = true; clonedViewer.classList.remove("is-open"); }
 
   const html = "<!DOCTYPE html>\n" + clone.outerHTML;
   const blob = new Blob([html], { type: "text/html" });
