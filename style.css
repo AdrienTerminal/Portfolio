@@ -233,25 +233,26 @@ button{ font:inherit; color:inherit; background:none; border:none; cursor:pointe
   opacity:0.55; margin-bottom:8px;
 }
 .socials{ list-style:none; display:flex; flex-wrap:nowrap; justify-content:center; gap:7px; }
-.socials a{
+.socials a, .socials button{
   width:29px; height:29px; flex:0 0 auto; display:flex; align-items:center; justify-content:center;
-  border-radius:50%; background:var(--card-bg); border:2.2px solid var(--ink);
+  border-radius:50%; background:var(--card-bg); border:2.2px solid var(--ink); color:var(--ink);
+  padding:0; cursor:pointer;
   transition:transform .15s var(--ease), background .15s var(--ease), width .2s var(--ease), height .2s var(--ease);
 }
-.socials a svg{ width:14px; height:14px; transition:width .2s var(--ease), height .2s var(--ease); }
-.socials a:hover{ background:var(--yellow); transform:scale(1.08); }
+.socials a svg, .socials button svg{ width:14px; height:14px; transition:width .2s var(--ease), height .2s var(--ease); }
+.socials a:hover, .socials button:hover{ background:var(--yellow); transform:scale(1.08); }
 
 /* moins il reste d'icônes (si tu en supprimes depuis l'éditeur), plus
    les icônes restantes grandissent — la ligne reste belle quel que
    soit leur nombre, sans jamais avoir besoin de JS pour ça */
-.socials:has(li:nth-child(4):last-child) a{ width:33px; height:33px; }
-.socials:has(li:nth-child(4):last-child) a svg{ width:16px; height:16px; }
-.socials:has(li:nth-child(3):last-child) a{ width:38px; height:38px; }
-.socials:has(li:nth-child(3):last-child) a svg{ width:18px; height:18px; }
-.socials:has(li:nth-child(2):last-child) a{ width:44px; height:44px; }
-.socials:has(li:nth-child(2):last-child) a svg{ width:21px; height:21px; }
-.socials:has(li:nth-child(1):last-child) a{ width:52px; height:52px; }
-.socials:has(li:nth-child(1):last-child) a svg{ width:25px; height:25px; }
+.socials:has(li:nth-child(4):last-child) a, .socials:has(li:nth-child(4):last-child) button{ width:33px; height:33px; }
+.socials:has(li:nth-child(4):last-child) a svg, .socials:has(li:nth-child(4):last-child) button svg{ width:16px; height:16px; }
+.socials:has(li:nth-child(3):last-child) a, .socials:has(li:nth-child(3):last-child) button{ width:38px; height:38px; }
+.socials:has(li:nth-child(3):last-child) a svg, .socials:has(li:nth-child(3):last-child) button svg{ width:18px; height:18px; }
+.socials:has(li:nth-child(2):last-child) a, .socials:has(li:nth-child(2):last-child) button{ width:44px; height:44px; }
+.socials:has(li:nth-child(2):last-child) a svg, .socials:has(li:nth-child(2):last-child) button svg{ width:21px; height:21px; }
+.socials:has(li:nth-child(1):last-child) a, .socials:has(li:nth-child(1):last-child) button{ width:52px; height:52px; }
+.socials:has(li:nth-child(1):last-child) a svg, .socials:has(li:nth-child(1):last-child) button svg{ width:25px; height:25px; }
 
 /* ==================================================================
    PANNEAU DROIT
