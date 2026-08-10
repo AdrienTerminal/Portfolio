@@ -469,26 +469,20 @@ function injectEditingInner(doc){
     addBadges(a, [{ icon:"link", title:"Changer l'URL", onClick:() => editLink(a) }]);
   });
 
-  // ---- Tableau photo : photos existantes éditables, bouton d'ajout
-  // qui positionne intelligemment les nouvelles (grille organique) ----
-  const CORK_POSITIONS = [
-    { x:"6%",  y:"10%", rot:"-6deg" }, { x:"29%", y:"5%",  rot:"4deg"  }, { x:"52%", y:"12%", rot:"-3deg" }, { x:"75%", y:"8%",  rot:"5deg"  },
-    { x:"9%",  y:"41%", rot:"5deg"  }, { x:"33%", y:"39%", rot:"-5deg" }, { x:"56%", y:"43%", rot:"3deg"  }, { x:"79%", y:"40%", rot:"-4deg" },
-    { x:"12%", y:"70%", rot:"-4deg" }, { x:"36%", y:"68%", rot:"6deg"  }, { x:"59%", y:"71%", rot:"-3deg" }, { x:"82%", y:"69%", rot:"4deg"  },
-  ];
-  function nextCorkPosition(count){
-    const base = CORK_POSITIONS[count % CORK_POSITIONS.length];
-    const cycle = Math.floor(count / CORK_POSITIONS.length);
-    if(cycle === 0) return base;
-    // au-delà de la grille de base, léger décalage pour ne jamais empiler pile au même endroit
-    const jx = ((cycle * 3) % 7) - 3, jy = ((cycle * 5) % 7) - 3;
-    return { x:`calc(${base.x} + ${jx}%)`, y:`calc(${base.y} + ${jy}%)`, rot:base.rot };
+  // ---- Tableau photo : photos existantes éditables, bouton d'ajout.
+  // Le positionnement est entièrement délégué à relayoutCorkboard()
+  // (définie dans main.js) qui recalcule une vraie grille adaptée au
+  // nombre de photos à chaque ajout/suppression — jamais de chevauchement,
+  // même avec beaucoup de photos.
+  function relayoutCork(){
+    const fn = doc.defaultView && doc.defaultView.relayoutCorkboard;
+    if(typeof fn === "function") fn();
   }
   function wireCorkpin(pin){
     const img = pin.querySelector("img");
     addBadges(pin, [
       { icon:"image", title:"Changer la photo", onClick:() => openImagePicker(img) },
-      { icon:"delete", title:"Supprimer cette photo", danger:true, onClick:() => removeSimple(pin) },
+      { icon:"delete", title:"Supprimer cette photo", danger:true, onClick:() => { removeSimple(pin); relayoutCork(); } },
     ]);
   }
   const corkboardPinsEl = doc.getElementById("corkboardPins");
@@ -502,11 +496,8 @@ function injectEditingInner(doc){
       addBtn.textContent = "+ Ajouter une photo";
       addBtn.addEventListener("click", (e) => {
         e.stopPropagation();
-        const count = corkboardPinsEl.querySelectorAll(".corkpin").length;
-        const pos = nextCorkPosition(count);
         const pin = doc.createElement("button");
         pin.type = "button"; pin.className = "corkpin";
-        pin.style.setProperty("--x", pos.x); pin.style.setProperty("--y", pos.y); pin.style.setProperty("--rot", pos.rot);
         const nail = doc.createElement("span"); nail.className = "corkpin__nail";
         const frame = doc.createElement("span"); frame.className = "corkpin__frame";
         const img = doc.createElement("img");
@@ -520,7 +511,8 @@ function injectEditingInner(doc){
           const openFn = doc.defaultView && doc.defaultView.openCorkViewer;
           if(typeof openFn === "function") openFn(img.src);
         });
-        recordUndo(() => pin.remove());
+        relayoutCork();
+        recordUndo(() => { pin.remove(); relayoutCork(); });
         saveDraft();
       });
       surface.appendChild(addBtn);

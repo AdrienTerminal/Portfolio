@@ -412,7 +412,6 @@ const openCorkboardBtn = document.getElementById("openCorkboardBtn");
 const corkViewer      = document.getElementById("corkboardViewer");
 const corkViewerPhoto = document.getElementById("viewerPhoto");
 const corkViewerImg   = document.getElementById("viewerImg");
-const corkViewerClose = document.getElementById("viewerClose");
 
 function openCorkboard(){
   if(!corkboard) return;
@@ -443,14 +442,46 @@ function closeCorkViewer(){
   corkViewerPhoto.style.transform = "";
   window.setTimeout(() => { corkViewer.hidden = true; }, 300);
 }
-if(corkViewerClose) corkViewerClose.addEventListener("click", closeCorkViewer);
-// clic sur le fond sombre (pas sur la photo elle-même) -> referme aussi,
-// façon la plus instinctive de "sortir" de la vue rapprochée
+// clic sur le fond sombre (pas sur la photo elle-même) -> referme,
+// seule façon de sortir de la vue rapprochée (pas de croix)
 if(corkViewer){
   corkViewer.addEventListener("click", (e) => {
     if(e.target === corkViewer) closeCorkViewer();
   });
 }
+
+// Dispose toutes les photos en grille, en fonction de leur nombre
+// actuel — s'adapte automatiquement (plus de photos = grille plus
+// dense), donc ne se chevauchent jamais, contrairement à l'ancien
+// système de positions préréglées qui finissait par se répéter.
+// Rendue globale (pas de "const"/"let" au top-level bloquant l'accès)
+// pour que l'éditeur puisse la rappeler après un ajout/suppression.
+function relayoutCorkboard(){
+  const container = document.getElementById("corkboardPins");
+  if(!container) return;
+  const pins = [...container.querySelectorAll(".corkpin")];
+  const n = pins.length;
+  if(n === 0) return;
+  const cols = Math.max(1, Math.ceil(Math.sqrt(n * 1.4)));
+  const rows = Math.ceil(n / cols);
+  const rotations = [-6, 4, -3, 5, -5, 3, -4, 6, -2, 2, -7, 7];
+  const cellW = 100 / cols;
+  const cellH = 100 / rows;
+  pins.forEach((pin, i) => {
+    const col = i % cols;
+    const row = Math.floor(i / cols);
+    // léger décalage déterministe (pas aléatoire à chaque appel, donc
+    // stable) borné à l'intérieur de sa propre cellule
+    const jx = (((i * 37) % 100) / 100 - 0.5) * cellW * 0.35;
+    const jy = (((i * 53) % 100) / 100 - 0.5) * cellH * 0.35;
+    const x = Math.max(9, Math.min(91, col * cellW + cellW / 2 + jx));
+    const y = Math.max(10, Math.min(90, row * cellH + cellH / 2 + jy));
+    pin.style.setProperty("--x", x + "%");
+    pin.style.setProperty("--y", y + "%");
+    pin.style.setProperty("--rot", rotations[i % rotations.length] + "deg");
+  });
+}
+window.relayoutCorkboard = relayoutCorkboard;
 
 function wireCorkpin(pin){
   pin.addEventListener("click", () => {
@@ -459,6 +490,7 @@ function wireCorkpin(pin){
   });
 }
 document.querySelectorAll(".corkpin").forEach(wireCorkpin);
+relayoutCorkboard();
 
 // Inclinaison 3D + reflet qui suivent la position de la souris sur la
 // photo agrandie : simule le grain et les reflets d'un vrai tirage

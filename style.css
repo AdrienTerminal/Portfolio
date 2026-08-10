@@ -22,7 +22,7 @@
 
   /* même hauteur pour "Projects" et "About me" — plus de changement de
      taille de la carte au clic, seul le contenu se substitue en fondu */
-  --body-h:       740px;
+  --body-h:       min(740px, 80vh);
 
   transition:background-color .35s ease;
 }
@@ -100,6 +100,7 @@ button{ font:inherit; color:inherit; background:none; border:none; cursor:pointe
 .card{
   width:100%;
   max-width:1320px;
+  max-height:88vh;
   background:var(--card-bg);
   border:var(--border) solid var(--ink);
   border-radius:var(--radius-lg);
@@ -459,7 +460,7 @@ h3[data-accent], .page__pitch[data-accent]{ color:var(--accent-color, var(--red-
   cursor:pointer;
   transition:flex .55s var(--ease), transform .2s var(--ease);
 }
-.about-tab.is-active{ flex:7 1 0; }
+.about-tab.is-active{ flex:7 1 0; overflow-y:auto; overflow-x:hidden; }
 .about-tab:not(.is-active):hover{ transform:translateY(-2px); }
 
 .about-tab__label{
@@ -772,14 +773,14 @@ h3[data-accent], .page__pitch[data-accent]{ color:var(--accent-color, var(--red-
 
 .corkpin{
   position:absolute; left:var(--x); top:var(--y);
-  transform:rotate(var(--rot));
+  transform:translate(-50%,-50%) rotate(var(--rot));
   width:150px; padding:0; border:none; background:none;
   cursor:pointer;
   filter:drop-shadow(3px 6px 6px rgba(0,0,0,.45));
-  transition:transform .25s var(--ease), filter .25s var(--ease);
+  transition:transform .3s var(--ease), filter .25s var(--ease), left .3s var(--ease), top .3s var(--ease);
 }
 .corkpin:hover{
-  transform:rotate(var(--rot)) scale(1.07) translateY(-4px);
+  transform:translate(-50%,-50%) rotate(var(--rot)) scale(1.07) translateY(-4px);
   filter:drop-shadow(5px 10px 10px rgba(0,0,0,.5));
   z-index:5;
 }
@@ -813,15 +814,6 @@ h3[data-accent], .page__pitch[data-accent]{ color:var(--accent-color, var(--red-
   transition:opacity .3s var(--ease);
 }
 .corkboard__viewer.is-open{ opacity:1; pointer-events:auto; }
-
-.corkboard__viewer-close{
-  position:absolute; top:22px; right:22px; z-index:2;
-  width:42px; height:42px; border-radius:50%;
-  background:rgba(255,255,255,.12); border:1.5px solid rgba(255,255,255,.5);
-  color:#fff; font-size:1.1rem; cursor:pointer;
-  transition:background-color .15s ease, transform .15s ease;
-}
-.corkboard__viewer-close:hover{ background:rgba(255,255,255,.25); transform:scale(1.08); }
 
 .corkboard__viewer-photo{
   position:relative;
